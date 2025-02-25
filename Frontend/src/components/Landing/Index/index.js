@@ -1,0 +1,9 @@
+export { default as Navbar } from '../components/Navbar.jsx';
+export { default as GetStarted } from '../components/GetStarted.jsx';  
+export { default as Functionnalities } from '../components/Functionnalities.jsx';  
+export { default as Webflow } from '../components/Webflow.jsx';
+export { default as Solutions } from '../components/Solutions.jsx';
+export { default as Reviews } from '../components/Reviews.jsx';
+export { default as Pricing } from '../components/PricingPage.jsx';
+export { default as Faqs } from '../components/Faqs.jsx';
+export { default as Footer } from '../components/Footer.jsx';
