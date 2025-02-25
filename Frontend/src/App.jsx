@@ -1,20 +1,19 @@
-import React from "react";
-import { Navbar, GetStarted, Functionnalities, Webflow, Solutions, Reviews, Pricing, Faqs, Footer } from './components/Landing/Index';
-const App = () => {
+import React from 'react';
+import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import LandigPage from './components/Landing/LandingPage';
+import Test from './Pages/test';
 
+const App = () => {
   return (
-    <div>
-      <Navbar />
-      <GetStarted />
-      <Functionnalities />
-      <Webflow />
-      <Solutions />
-      <Reviews />
-      <Pricing />
-      <Faqs />
-      <Footer />
-      
-    </div>
+    <Router>
+      <div className="App">
+        <Routes>
+          <Route path="/" element={<LandigPage />} />  {/* Route publique */}
+          <Route path="/rr" element={<Test />} />  {/* Route publique */}
+
+        </Routes>
+      </div>
+    </Router>
   );
 };
 
