@@ -12,17 +12,17 @@ const Navbar = () => {
 
         {/* Navigation links */}
         <div className="hidden md:flex gap-8">
-          <a href="#enterprise" className="no-underline text-[#4D4D4D] text-sm font-medium transition-colors duration-200 hover:text-[#0052FF]">Enterprise</a>
-          <a href="#industries" className="no-underline text-[#4D4D4D] text-sm font-medium transition-colors duration-200 hover:text-[#0052FF]">Industries</a>
-          <a href="#features" className="no-underline text-[#4D4D4D] text-sm font-medium transition-colors duration-200 hover:text-[#0052FF]">Features</a>
-          <a href="#pricing" className="no-underline text-[#4D4D4D] text-sm font-medium transition-colors duration-200 hover:text-[#0052FF]">Pricing</a>
-          <a href="#resources" className="no-underline text-[#4D4D4D] text-sm font-medium transition-colors duration-200 hover:text-[#0052FF]">Resources</a>
+          <a href="#" className="no-underline text-[#4D4D4D] text-sm font-medium transition-colors duration-200 hover:text-[#0052FF]">Enterprise</a>
+          <a href="#" className="no-underline text-[#4D4D4D] text-sm font-medium transition-colors duration-200 hover:text-[#0052FF]">Industries</a>
+          <a href="#" className="no-underline text-[#4D4D4D] text-sm font-medium transition-colors duration-200 hover:text-[#0052FF]">Features</a>
+          <a href="#" className="no-underline text-[#4D4D4D] text-sm font-medium transition-colors duration-200 hover:text-[#0052FF]">Pricing</a>
+          <a href="#" className="no-underline text-[#4D4D4D] text-sm font-medium transition-colors duration-200 hover:text-[#0052FF]">Resources</a>
         </div>
 
         {/* Action buttons */}
         <div className="flex items-center gap-4 sm:gap-2">
-          <button className="bg-transparent border-none text-[#0052FF] text-sm font-medium cursor-pointer py-2 px-4 sm:px-3 hover:text-[#003CC5]">Log in</button>
-          <button className="bg-[#0052FF] text-white border-none rounded-md py-2 px-4 sm:px-3 text-sm font-medium cursor-pointer transition-colors duration-200 hover:bg-[#003CC5]">Get Started</button>
+          <button className="bg-transparent border-none text-[#0052FF] text-sm font-medium cursor-pointer py-2 px-4 sm:px-3 hover:text-[#003CC5]" onClick={() => window.location.href='/connexion'}>Log in</button>
+          <button className="bg-[#0052FF] text-white border-none rounded-md py-2 px-4 sm:px-3 text-sm font-medium cursor-pointer transition-colors duration-200 hover:bg-[#003CC5]" onClick={() => window.location.href='/inscription'}>Get Started</button>
         </div>
       </div>
     </nav>
