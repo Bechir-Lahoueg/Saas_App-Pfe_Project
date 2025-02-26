@@ -4,10 +4,11 @@ import LandigPage from './components/Landing/LandingPage';
 import Login from './Pages/LoginPage';
 import Signup from './Pages/Signup/SignupPage';
 import Erreur from './Pages/ErreurPage';
-import CC from './Pages/Signup/CompleteSignup1';
-import Ff from './Pages/Signup/CompleteSignup2';
-import Gg from './Pages/Signup/CompleteSignup3';
-import Hh from './Pages/Signup/CompleteSignup4';
+import Step1 from './Pages/Signup/CompleteSignup1';
+import Step2 from './Pages/Signup/CompleteSignup2';
+import Step3 from './Pages/Signup/CompleteSignup3';
+import Step4 from './Pages/Signup/CompleteSignup4';
+import Verification from './Pages/Signup/MailVerification';
 
 
 const App = () => {
@@ -19,10 +20,11 @@ const App = () => {
           <Route path="/connexion" element={<Login />} />  {/* Route publique */}
           <Route path="/inscription" element={<Signup />} />  {/* Route publique */}
           <Route path="/Erreur" element={<Erreur />} />  {/* Route publique */}
-          <Route path="/cc" element={<CC />} />  {/* Route publique */}
-          <Route path="/cc/ff" element={<Ff />} />  {/* Route publique */}
-          <Route path="/cc/ff/gg" element={<Gg />} />  {/* Route publique */}
-          <Route path="/cc/ff/gg/hh" element={<Hh />} />  {/* Route publique */}
+          <Route path="/paiement" element={<Step1 />} />  {/* Route publique */}
+          <Route path="/paiement/presentation" element={<Step2 />} />  {/* Route publique */}
+          <Route path="/paiement/presentation/adresse" element={<Step3 />} />  {/* Route publique */}
+          <Route path="/paiement/presentation/adresse/identifiants" element={<Step4 />} />  {/* Route publique */}
+          <Route path="/paiement/presentation/adresse/identifiants/verification" element={<Verification />} />  {/* Route publique */}
 
         </Routes>
       </div>
