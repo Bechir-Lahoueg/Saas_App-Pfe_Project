@@ -9,7 +9,7 @@ import Step2 from './Pages/Signup/CompleteSignup2';
 import Step3 from './Pages/Signup/CompleteSignup3';
 import Step4 from './Pages/Signup/CompleteSignup4';
 import Verification from './Pages/Signup/MailVerification';
-
+import Dashbord from './components/Admin/pages/Dashboard';
 
 const App = () => {
   return (
@@ -25,6 +25,12 @@ const App = () => {
           <Route path="/paiement/presentation/adresse" element={<Step3 />} />  {/* Route publique */}
           <Route path="/paiement/presentation/adresse/identifiants" element={<Step4 />} />  {/* Route publique */}
           <Route path="/paiement/presentation/adresse/identifiants/verification" element={<Verification />} />  {/* Route publique */}
+          <Route path="/dashbord" element={<Dashbord />} />  {/* Route publique */}
+
+
+  
+  
+        
 
         </Routes>
       </div>
