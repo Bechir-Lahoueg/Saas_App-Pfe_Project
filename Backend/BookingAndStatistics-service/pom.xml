@@ -9,9 +9,9 @@
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>com.example</groupId>
-	<artifactId>booking-service</artifactId>
+	<artifactId>BookingAndStatistics-service</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name>booking-service</name>
+	<name>BookingAndStatistics-service</name>
 	<description>Demo project for Spring Boot</description>
 	<url/>
 	<licenses>
@@ -133,7 +133,7 @@
 					<resourceGroup>your-resource-group</resourceGroup>
 					<appEnvironmentName>your-app-environment-name</appEnvironmentName>
 					<region>your-region</region>
-					<appName>booking-service</appName>
+					<appName>notification-service</appName>
 					<containers>
 						<container>
 							<type>code</type>
