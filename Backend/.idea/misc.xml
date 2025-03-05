@@ -13,10 +13,13 @@
         <option value="$PROJECT_DIR$/notification-service/pom.xml" />
         <option value="$PROJECT_DIR$/ClientBooking-service/pom.xml" />
         <option value="$PROJECT_DIR$/BookingAndStatistics-service/pom.xml" />
+        <option value="$PROJECT_DIR$/Payment-Service/pom.xml" />
+        <option value="$PROJECT_DIR$/Integration-Service/pom.xml" />
+        <option value="$PROJECT_DIR$/Reporting-Service/pom.xml" />
       </list>
     </option>
   </component>
-  <component name="ProjectRootManager" version="2" project-jdk-name="19" project-jdk-type="JavaSDK">
+  <component name="ProjectRootManager" version="2" languageLevel="JDK_23" project-jdk-name="corretto-19" project-jdk-type="JavaSDK">
     <output url="file://$PROJECT_DIR$/out" />
   </component>
 </project>

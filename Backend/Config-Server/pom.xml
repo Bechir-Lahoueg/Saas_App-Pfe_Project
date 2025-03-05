@@ -9,9 +9,9 @@
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>com.example</groupId>
-	<artifactId>BookingAndStatistics-service</artifactId>
+	<artifactId>config-server</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name>BookingAndStatistics-service</name>
+	<name>config-server</name>
 	<description>Demo project for Spring Boot</description>
 	<url/>
 	<licenses>
@@ -35,44 +35,44 @@
 	<dependencies>
 		<dependency>
 			<groupId>org.springframework.cloud</groupId>
-			<artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>
+			<artifactId>spring-cloud-config-server</artifactId>
 		</dependency>
-<!--		<dependency>-->
-<!--			<groupId>org.springframework.boot</groupId>-->
-<!--			<artifactId>spring-boot-starter-data-jpa</artifactId>-->
-<!--		</dependency>-->
-<!--		<dependency>-->
-<!--			<groupId>org.springframework.boot</groupId>-->
-<!--			<artifactId>spring-boot-starter-oauth2-authorization-server</artifactId>-->
-<!--		</dependency>-->
-<!--		<dependency>-->
-<!--			<groupId>org.springframework.boot</groupId>-->
-<!--			<artifactId>spring-boot-starter-oauth2-client</artifactId>-->
-<!--		</dependency>-->
-<!--		<dependency>-->
-<!--			<groupId>org.springframework.boot</groupId>-->
-<!--			<artifactId>spring-boot-starter-security</artifactId>-->
-<!--		</dependency>-->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-data-jpa</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-oauth2-authorization-server</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-oauth2-client</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-security</artifactId>
+		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-web</artifactId>
 		</dependency>
-<!--		<dependency>-->
-<!--			<groupId>com.azure.spring</groupId>-->
-<!--			<artifactId>spring-cloud-azure-starter</artifactId>-->
-<!--		</dependency>-->
-<!--		<dependency>-->
-<!--			<groupId>com.azure.spring</groupId>-->
-<!--			<artifactId>spring-cloud-azure-starter-active-directory</artifactId>-->
-<!--		</dependency>-->
-<!--		<dependency>-->
-<!--			<groupId>com.azure.spring</groupId>-->
-<!--			<artifactId>spring-cloud-azure-starter-jdbc-postgresql</artifactId>-->
-<!--		</dependency>-->
-<!--		<dependency>-->
-<!--			<groupId>org.springframework.ai</groupId>-->
-<!--			<artifactId>spring-ai-mongodb-atlas-store-spring-boot-starter</artifactId>-->
-<!--		</dependency>-->
+		<dependency>
+			<groupId>com.azure.spring</groupId>
+			<artifactId>spring-cloud-azure-starter</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>com.azure.spring</groupId>
+			<artifactId>spring-cloud-azure-starter-active-directory</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>com.azure.spring</groupId>
+			<artifactId>spring-cloud-azure-starter-jdbc-postgresql</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.ai</groupId>
+			<artifactId>spring-ai-mongodb-atlas-store-spring-boot-starter</artifactId>
+		</dependency>
 		<dependency>
 			<groupId>org.springframework.cloud</groupId>
 			<artifactId>spring-cloud-starter-openfeign</artifactId>
@@ -100,8 +100,11 @@
 			<scope>test</scope>
 		</dependency>
 	</dependencies>
+
+
 	<dependencyManagement>
 		<dependencies>
+		
 			<dependency>
 				<groupId>org.springframework.cloud</groupId>
 				<artifactId>spring-cloud-dependencies</artifactId>
@@ -123,6 +126,20 @@
 				<type>pom</type>
 				<scope>import</scope>
 			</dependency>
+			<dependency>
+				<groupId>org.springframework.cloud</groupId>
+				<artifactId>spring-cloud-dependencies</artifactId>
+				<version>2024.0.0</version>
+				<type>pom</type>
+				<scope>import</scope>
+			</dependency>
+			<dependency>
+				<groupId>org.springframework.cloud</groupId>
+				<artifactId>spring-cloud-starter-parent</artifactId>
+				<version>2023.0.0</version>
+				<type>pom</type>
+				<scope>import</scope>
+			</dependency>
 		</dependencies>
 	</dependencyManagement>
 
@@ -137,7 +154,7 @@
 					<resourceGroup>your-resource-group</resourceGroup>
 					<appEnvironmentName>your-app-environment-name</appEnvironmentName>
 					<region>your-region</region>
-					<appName>notification-service</appName>
+					<appName>config-server</appName>
 					<containers>
 						<container>
 							<type>code</type>
@@ -160,5 +177,7 @@
 			</plugin>
 		</plugins>
 	</build>
+
+
 
 </project>

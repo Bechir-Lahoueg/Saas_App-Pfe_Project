@@ -9,9 +9,9 @@
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>com.example</groupId>
-	<artifactId>BookingAndStatistics-service</artifactId>
+	<artifactId>auth-service </artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name>BookingAndStatistics-service</name>
+	<name>auth-service </name>
 	<description>Demo project for Spring Boot</description>
 	<url/>
 	<licenses>
@@ -33,6 +33,10 @@
 		<spring-cloud.version>2024.0.0</spring-cloud.version>
 	</properties>
 	<dependencies>
+		<dependency>
+			<groupId>org.springframework.cloud</groupId>
+			<artifactId>spring-cloud-starter-openfeign</artifactId>
+		</dependency>
 		<dependency>
 			<groupId>org.springframework.cloud</groupId>
 			<artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>
@@ -84,21 +88,21 @@
 			<scope>runtime</scope>
 			<optional>true</optional>
 		</dependency>
-		<dependency>
-			<groupId>org.postgresql</groupId>
-			<artifactId>postgresql</artifactId>
-			<scope>runtime</scope>
-		</dependency>
+<!--		<dependency>-->
+<!--			<groupId>org.postgresql</groupId>-->
+<!--			<artifactId>postgresql</artifactId>-->
+<!--			<scope>runtime</scope>-->
+<!--		</dependency>-->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-test</artifactId>
 			<scope>test</scope>
 		</dependency>
-		<dependency>
-			<groupId>org.springframework.security</groupId>
-			<artifactId>spring-security-test</artifactId>
-			<scope>test</scope>
-		</dependency>
+<!--		<dependency>-->
+<!--			<groupId>org.springframework.security</groupId>-->
+<!--			<artifactId>spring-security-test</artifactId>-->
+<!--			<scope>test</scope>-->
+<!--		</dependency>-->
 	</dependencies>
 	<dependencyManagement>
 		<dependencies>
@@ -137,7 +141,7 @@
 					<resourceGroup>your-resource-group</resourceGroup>
 					<appEnvironmentName>your-app-environment-name</appEnvironmentName>
 					<region>your-region</region>
-					<appName>notification-service</appName>
+					<appName>auth-service </appName>
 					<containers>
 						<container>
 							<type>code</type>

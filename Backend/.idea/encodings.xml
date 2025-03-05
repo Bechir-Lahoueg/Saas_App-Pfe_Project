@@ -1,14 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="Encoding">
+    <file url="file://$PROJECT_DIR$/Api-Gateway/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/Auth-Service/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/BookingAndStatistics-service/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/ClientBooking-service/src/main/java" charset="UTF-8" />
-    <file url="file://$PROJECT_DIR$/api-gateway/src/main/java" charset="UTF-8" />
-    <file url="file://$PROJECT_DIR$/auth-service/src/main/java" charset="UTF-8" />
-    <file url="file://$PROJECT_DIR$/config-server/src/main/java" charset="UTF-8" />
-    <file url="file://$PROJECT_DIR$/notification-service/src/main/java" charset="UTF-8" />
-    <file url="file://$PROJECT_DIR$/register-service/src/main/java" charset="UTF-8" />
-    <file url="file://$PROJECT_DIR$/reporting-service/src/main/java" charset="UTF-8" />
-    <file url="file://$PROJECT_DIR$/service-registry/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/Config-Server/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/Integration-Service/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/Notification-Service/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/Payment-Service/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/Register-Service/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/Reporting-Service/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/Service-Registry/src/main/java" charset="UTF-8" />
   </component>
 </project>
