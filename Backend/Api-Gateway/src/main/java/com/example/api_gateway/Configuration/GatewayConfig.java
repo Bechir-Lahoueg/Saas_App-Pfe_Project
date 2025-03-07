@@ -10,6 +10,7 @@ public class GatewayConfig {
         return builder.routes()
                 .route("register-service", r -> r
                         .path("/register/**")
+                        .filters(f -> f.rewritePath("/register/(?<segment>.*)", "/${segment}"))
                         .uri("lb://register-service"))
 
                 .route("reporting-service", r -> r
