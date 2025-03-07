@@ -9,7 +9,7 @@ import java.util.Date;
 
 @Component
 public class JWTUtils {
-    @Value("${spring.security.jwt.secret-key}")
+//    @Value("${spring.security.jwt.secret-key}")
     private String secret;
 
     public Claims getALlClaims(String token) {

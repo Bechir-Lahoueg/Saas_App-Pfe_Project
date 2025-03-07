@@ -17,12 +17,12 @@
         <module name="api-gateway" />
         <module name="ClientBooking-service" />
         <module name="notification-service" />
-        <module name="Service-Registry" />
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>
       <module name="reporting-service" target="17" />
       <module name="Reporting-Service" target="17" />
+      <module name="Service-Discovery" target="17" />
     </bytecodeTargetLevel>
   </component>
   <component name="JavacSettings">
@@ -33,7 +33,7 @@
       <module name="Payment-Service" options="-parameters" />
       <module name="Reporting-Service" options="-parameters" />
       <module name="Reporting-service" options="-parameters" />
-      <module name="Service-Registry" options="-parameters" />
+      <module name="Service-Discovery" options="-parameters" />
       <module name="api-gateway" options="-parameters" />
       <module name="auth-service" options="-parameters" />
       <module name="config-server" options="-parameters" />
