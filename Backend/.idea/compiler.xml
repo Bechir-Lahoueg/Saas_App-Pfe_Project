@@ -12,18 +12,15 @@
         <module name="auth-service" />
         <module name="register-service" />
         <module name="Integration-Service" />
+        <module name="Service-Discovery" />
         <module name="Reporting-service" />
         <module name="Payment-Service" />
         <module name="api-gateway" />
+        <module name="reporting-service" />
         <module name="ClientBooking-service" />
         <module name="notification-service" />
       </profile>
     </annotationProcessing>
-    <bytecodeTargetLevel>
-      <module name="reporting-service" target="17" />
-      <module name="Reporting-Service" target="17" />
-      <module name="Service-Discovery" target="17" />
-    </bytecodeTargetLevel>
   </component>
   <component name="JavacSettings">
     <option name="ADDITIONAL_OPTIONS_OVERRIDE">
@@ -31,7 +28,6 @@
       <module name="ClientBooking-service" options="-parameters" />
       <module name="Integration-Service" options="-parameters" />
       <module name="Payment-Service" options="-parameters" />
-      <module name="Reporting-Service" options="-parameters" />
       <module name="Reporting-service" options="-parameters" />
       <module name="Service-Discovery" options="-parameters" />
       <module name="api-gateway" options="-parameters" />
