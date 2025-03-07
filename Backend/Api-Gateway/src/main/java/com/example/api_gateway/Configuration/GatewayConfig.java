@@ -1,26 +1,15 @@
-package com.example.api_gateway.configuration;
+package com.example.api_gateway.Configuration;
 
 import org.springframework.cloud.gateway.route.RouteLocator;
 import org.springframework.cloud.gateway.route.builder.RouteLocatorBuilder;
 import org.springframework.context.annotation.Bean;
-import org.springframework.security.config.web.server.ServerHttpSecurity;
-import org.springframework.security.web.server.SecurityWebFilterChain;
-import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
 
-public class GatewayConfiguration {
+public class GatewayConfig {
     @Bean
     public RouteLocator customRouteLocator(RouteLocatorBuilder builder) {
         return builder.routes()
                 .route("register-service", r -> r
                         .path("/register/**")
-                        .filters(f -> f
-                                .removeRequestHeader("Origin")
-                                .removeRequestHeader("Access-Control-Request-Method")
-                                .removeRequestHeader("Access-Control-Request-Headers")
-                                .addResponseHeader("Access-Control-Allow-Origin", "*")
-                                .addResponseHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
-                                .addResponseHeader("Access-Control-Allow-Headers", "*")
-                        )
                         .uri("lb://register-service"))
 
                 .route("reporting-service", r -> r
@@ -54,10 +43,4 @@ public class GatewayConfiguration {
                 .build();
     }
 
-    @Bean
-    public SecurityWebFilterChain springSecurityFilterChain(ServerHttpSecurity http) {
-        return http
-                .csrf(csrf -> csrf.disable())  // Disable CSRF for API endpoints
-                .build();
-    }
 }
