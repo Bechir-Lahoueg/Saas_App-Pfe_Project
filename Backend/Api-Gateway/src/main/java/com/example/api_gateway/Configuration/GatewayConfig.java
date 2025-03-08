@@ -11,7 +11,6 @@ public class GatewayConfig {
                 .route("register-service", r -> r
                         .path("/register/**")
                         .uri("lb://register-service"))
-
                 .route("reporting-service", r -> r
                         .path("/reports/**")
                         .uri("lb://reporting-service"))

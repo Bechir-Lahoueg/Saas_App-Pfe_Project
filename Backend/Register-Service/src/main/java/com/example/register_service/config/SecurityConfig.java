@@ -29,7 +29,7 @@ public class SecurityConfig {
             http
                     .csrf().disable()
                     .authorizeHttpRequests(auth -> auth
-                            .requestMatchers("/abonne").permitAll()  // Allow public registration
+                            .requestMatchers("/abonne/**").permitAll()  // Allow public registration
                             .anyRequest().authenticated()
                     );
 

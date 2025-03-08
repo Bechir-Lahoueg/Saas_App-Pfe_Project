@@ -24,6 +24,11 @@ public class WebConfig {
         source.registerCorsConfiguration("/**", corsConfig);
         return source;
     }
+
+    @Bean
+    public CorsWebFilter corsWebFilter() {
+        return new CorsWebFilter(corsConfigurationSource());
+    }
     }
 
 
