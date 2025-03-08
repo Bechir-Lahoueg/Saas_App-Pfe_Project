@@ -1,6 +1,6 @@
-package com.example.register_service.repository;
+package com.example.auth_service.repository;
 
-import com.example.register_service.entities.Abonne;
+import com.example.auth_service.entities.Abonne;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
