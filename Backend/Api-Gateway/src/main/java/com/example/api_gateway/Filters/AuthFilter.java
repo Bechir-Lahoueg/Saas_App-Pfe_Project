@@ -21,7 +21,6 @@ public class AuthFilter implements GatewayFilter {
     @Autowired
     RouteValidator routeValidator;
 
-
     @Autowired
     private JWTUtils jwtUtil;
 

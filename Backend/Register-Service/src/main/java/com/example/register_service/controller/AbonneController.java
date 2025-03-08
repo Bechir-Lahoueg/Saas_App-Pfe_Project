@@ -7,13 +7,13 @@ import org.springframework.web.bind.annotation.*;
 
 @CrossOrigin
 @RestController
-@RequestMapping("/register")
+@RequestMapping("/abonne")
 public class AbonneController {
 
     @Autowired
     private AbonneService abonneService;
 
-    @PostMapping("/abonne")
+    @PostMapping("/signup")
     public Abonne registerAbonne(@RequestBody Abonne abonne) {
         return abonneService.registerAbonne(abonne);
     }
