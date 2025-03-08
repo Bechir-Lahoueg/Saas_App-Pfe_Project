@@ -15,7 +15,9 @@ public class WebConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration corsConfig = new CorsConfiguration();
-        corsConfig.setAllowedOrigins(Arrays.asList("*"));
+        corsConfig.setAllowedOrigins(Arrays.asList("http://localhost:4200")); // Specify actual origins
+        // Alternative: use allowedOriginPatterns if you need more flexibility
+        // corsConfig.setAllowedOriginPatterns(Arrays.asList("*"));
         corsConfig.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         corsConfig.setAllowedHeaders(Arrays.asList("*"));
         corsConfig.setAllowCredentials(true);
@@ -29,7 +31,4 @@ public class WebConfig {
     public CorsWebFilter corsWebFilter() {
         return new CorsWebFilter(corsConfigurationSource());
     }
-    }
-
-
-
+}
