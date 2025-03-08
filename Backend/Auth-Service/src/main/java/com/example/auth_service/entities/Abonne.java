@@ -1,4 +1,4 @@
-package com.example.register_service.entities;
+package com.example.auth_service.entities;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -13,7 +13,6 @@ public class Abonne {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
     private String nom;
     private String prenom;
     private String email;

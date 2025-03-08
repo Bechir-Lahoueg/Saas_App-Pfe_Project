@@ -1,4 +1,4 @@
-package com.example.register_service.config;
+package com.example.auth_service.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -30,6 +30,7 @@ public class SecurityConfig {
                     .csrf().disable()
                     .authorizeHttpRequests(auth -> auth
                             .requestMatchers("/abonne/**").permitAll()  // Allow public registration
+                            .requestMatchers("/auth/**").permitAll()
                             .anyRequest().authenticated()
                     );
 

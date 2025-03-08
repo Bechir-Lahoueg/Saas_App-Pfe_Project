@@ -1,7 +1,7 @@
-package com.example.register_service.service;
+package com.example.auth_service.service;
 
-import com.example.register_service.entities.Abonne;
-import com.example.register_service.repository.AbonneRepository;
+import com.example.auth_service.entities.Abonne;
+import com.example.auth_service.repository.AbonneRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -24,4 +24,6 @@ public class AbonneService {
 
         return abonneRepository.save(abonne);
     }
+
+
 }

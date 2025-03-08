@@ -1,7 +1,7 @@
-package com.example.register_service.controller;
+package com.example.auth_service.controller;
 
-import com.example.register_service.entities.Abonne;
-import com.example.register_service.service.AbonneService;
+import com.example.auth_service.entities.Abonne;
+import com.example.auth_service.service.AbonneService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
