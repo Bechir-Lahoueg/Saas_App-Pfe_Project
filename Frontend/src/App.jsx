@@ -10,6 +10,8 @@ import Step3 from './Pages/Signup/CompleteSignup3';
 import Step4 from './Pages/Signup/CompleteSignup4';
 import Verification from './Pages/Signup/MailVerification';
 import Dashbord from './components/Admin/pages/Dashboard';
+import LogAdm from './Pages/loginadmin';
+
 
 const App = () => {
   return (
@@ -26,6 +28,7 @@ const App = () => {
           <Route path="/paiement/presentation/adresse/identifiants" element={<Step4 />} />  {/* Route publique */}
           <Route path="/paiement/presentation/adresse/identifiants/verification" element={<Verification />} />  {/* Route publique */}
           <Route path="/dashbord" element={<Dashbord />} />  {/* Route publique */}
+          <Route path="/gg" element={<LogAdm />} />  {/* Route publique */}
 
 
   
