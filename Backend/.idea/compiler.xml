@@ -10,16 +10,18 @@
         <module name="BookingAndStatistics-service" />
         <module name="auth-service" />
         <module name="register-service" />
-        <module name="Integration-Service" />
         <module name="Service-Discovery" />
         <module name="Reporting-service" />
-        <module name="Payment-Service" />
         <module name="api-gateway" />
         <module name="reporting-service" />
         <module name="ClientBooking-service" />
         <module name="notification-service" />
       </profile>
     </annotationProcessing>
+    <bytecodeTargetLevel>
+      <module name="Integration-Service" target="17" />
+      <module name="Payment-Service" target="17" />
+    </bytecodeTargetLevel>
   </component>
   <component name="JavacSettings">
     <option name="ADDITIONAL_OPTIONS_OVERRIDE">
