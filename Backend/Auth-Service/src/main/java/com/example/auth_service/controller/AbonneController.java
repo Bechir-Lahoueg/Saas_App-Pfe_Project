@@ -1,6 +1,7 @@
 package com.example.auth_service.controller;
 
 import com.example.auth_service.entities.Abonne;
+import com.example.auth_service.entities.LoginRequest;
 import com.example.auth_service.service.AbonneService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -10,17 +11,12 @@ import java.util.List;
 
 @CrossOrigin
 @RestController
-@RequestMapping("/auth")
+@RequestMapping("/auth/abonne")
 public class AbonneController {
 
     @Autowired
     private AbonneService abonneService;
 
-
-    @PostMapping("/signup")
-    public ResponseEntity<Abonne> registerAbonne(@RequestBody Abonne abonne) {
-        return new ResponseEntity<>(abonneService.registerAbonne(abonne), HttpStatus.OK);
-    }
 
     @GetMapping("/getall")
     public ResponseEntity<List<Abonne>> getAllAbonnes() {
@@ -41,5 +37,10 @@ public class AbonneController {
     public ResponseEntity<Void> deleteAbonne(@PathVariable Long id) {
         abonneService.deleteAbonne(id);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    }
+
+    @PostMapping("/login")
+    public ResponseEntity<Abonne> login(@RequestBody LoginRequest request) {
+        return new ResponseEntity<>(abonneService.login(request.getEmail(), request.getPassword()), HttpStatus.OK);
     }
 }

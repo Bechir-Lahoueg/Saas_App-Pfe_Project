@@ -13,13 +13,13 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/auth")
-public class AuthController {
+public class AdminController {
 
     private final AdminRepository adminRepository;
     private final BCryptPasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
 
-    public AuthController(AdminRepository adminRepository, JwtUtil jwtUtil) {
+    public AdminController(AdminRepository adminRepository, JwtUtil jwtUtil) {
         this.adminRepository = adminRepository;
         this.passwordEncoder = new BCryptPasswordEncoder();
         this.jwtUtil = jwtUtil;
