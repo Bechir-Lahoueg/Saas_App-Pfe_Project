@@ -17,14 +17,6 @@ public class AbonneService {
     @Autowired
     private BCryptPasswordEncoder passwordEncoder;  // To encrypt passwords
 
-    public Abonne registerAbonne(Abonne abonne) {
-        if (abonneRepository.findByEmail(abonne.getEmail()).isPresent()) {
-            throw new RuntimeException("Email already registered!");
-        }
-
-        abonne.setMotDePasse(passwordEncoder.encode(abonne.getMotDePasse()));
-        return abonneRepository.save(abonne);
-    }
 
     public List<Abonne> getAllAbonnes() {
         return abonneRepository.findAll();
@@ -54,5 +46,17 @@ public class AbonneService {
     public void deleteAbonne(Long id) {
         Abonne abonne = getAbonneById(id);
         abonneRepository.delete(abonne);
+
     }
+
+    public Abonne login(String email, String motDePasse) {
+        Abonne abonne = abonneRepository.findByEmail(email).orElseThrow(() -> new RuntimeException("User not found"));
+
+        if (!passwordEncoder.matches(motDePasse, abonne.getMotDePasse())) {
+            throw new RuntimeException("Invalid password");
+        }
+
+        return abonne;
+    }
+
 }
