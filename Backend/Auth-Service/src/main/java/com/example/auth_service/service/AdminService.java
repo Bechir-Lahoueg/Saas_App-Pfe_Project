@@ -2,9 +2,10 @@ package com.example.auth_service.service;
 
 import com.example.auth_service.entities.Admin;
 import com.example.auth_service.repository.AdminRepository;
+import jakarta.annotation.PostConstruct;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
-import jakarta.annotation.PostConstruct;
+import java.util.Optional;
 
 @Service
 public class AdminService {
@@ -18,12 +19,20 @@ public class AdminService {
 
     @PostConstruct
     public void initAdmin() {
-        if (adminRepository.findByEmail("bechirsafwene@gmail.com").isEmpty()) {
+        if (adminRepository.findByEmail("admin@gmail.com").isEmpty()) {
             Admin admin = new Admin();
-            admin.setEmail("bechirsafwene@gmail.com");
-            admin.setPassword(passwordEncoder.encode("azerty123"));
+            admin.setEmail("admin@gmail.com");
+            admin.setPassword(passwordEncoder.encode("admin123"));
             adminRepository.save(admin);
             System.out.println("Admin par défaut créé !");
         }
+    }
+
+    public Optional<Admin> findByEmail(String email) {
+        return adminRepository.findByEmail(email);
+    }
+
+    public boolean checkPassword(String rawPassword, String encodedPassword) {
+        return passwordEncoder.matches(rawPassword, encodedPassword);
     }
 }
