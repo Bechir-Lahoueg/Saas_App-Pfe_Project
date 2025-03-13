@@ -3,19 +3,19 @@ import jakarta.persistence.*;
 import lombok.*;
 
 @Entity
-@Table(name = "abonnes")
+@Table(name = "subscribers")
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class Abonne {
+public class Subscriber {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    private String nom;
-    private String prenom;
+    private String firstName;
+    private String lastName;
     private String email;
-    private String telephone;
-    private String motDePasse;
+    private String phone;
+    private String password;
 }
