@@ -3,7 +3,9 @@ package com.example.api_gateway.Configuration;
 import org.springframework.cloud.gateway.route.RouteLocator;
 import org.springframework.cloud.gateway.route.builder.RouteLocatorBuilder;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 
+@Configuration
 public class GatewayConfig {
     @Bean
     public RouteLocator customRouteLocator(RouteLocatorBuilder builder) {
@@ -11,6 +13,7 @@ public class GatewayConfig {
                 .route("register-service", r -> r
                         .path("/register/**")
                         .uri("lb://register-service"))
+
                 .route("reporting-service", r -> r
                         .path("/reports/**")
                         .uri("lb://reporting-service"))
