@@ -1,8 +1,6 @@
 package com.example.auth_service.controller;
 
-import com.example.auth_service.entities.Admin;
-import com.example.auth_service.entities.LoginRequest;
-import com.example.auth_service.entities.LoginResponse;
+import com.example.auth_service.entities.*;
 import com.example.auth_service.service.AdminService;
 import com.example.auth_service.service.JwtService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,7 +18,7 @@ public class AdminController {
     private JwtService jwtService;
 
     @PostMapping("/login")
-    public ResponseEntity<LoginResponse> login(@RequestBody LoginRequest request) {
+    public ResponseEntity<LoginResponseAdmin> login(@RequestBody LoginRequestAdmin request) {
         Admin admin = adminService.findByEmail(request.getEmail())
                 .orElseThrow(() -> new RuntimeException("Admin not found"));
 
@@ -29,8 +27,10 @@ public class AdminController {
         }
 
         return ResponseEntity.ok(
-                LoginResponse.builder()
+                LoginResponseAdmin.builder()
                         .accessToken(jwtService.generateToken(admin))
+                        .refreshToken(jwtService.generateRefreshToken(admin))
+                        .admin(admin)
                         .build()
         );
     }

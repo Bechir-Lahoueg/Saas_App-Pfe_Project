@@ -1,13 +1,12 @@
 package com.example.auth_service.service;
 
-import com.example.auth_service.entities.LoginResponse;
+import com.example.auth_service.entities.LoginResponseSubscriber;
 import com.example.auth_service.entities.Subscriber;
 import com.example.auth_service.repository.SubscriberRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.util.HashMap;
 import java.util.List;
 
 @Service
@@ -53,15 +52,16 @@ public class SubscriberService {
 
     }
 
-    public LoginResponse login(String email, String motDePasse) {
+    public LoginResponseSubscriber login(String email, String motDePasse) {
         Subscriber subscriber = SubscriberRepository.findByEmail(email).orElseThrow(() -> new RuntimeException("User not found"));
 
         if (!passwordEncoder.matches(motDePasse, subscriber.getPassword())) {
             throw new RuntimeException("Invalid password");
         }
 
-        return LoginResponse.builder()
+        return LoginResponseSubscriber.builder()
                 .accessToken(jwtService.generateToken(subscriber))
+                .refreshToken(jwtService.generateRefreshToken(subscriber))
                 .subscriber(subscriber)
                 .build();
     }
