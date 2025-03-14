@@ -1,5 +1,7 @@
 package com.example.api_gateway.Configuration;
 
+import com.example.api_gateway.Filters.AuthFilter;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.gateway.route.RouteLocator;
 import org.springframework.cloud.gateway.route.builder.RouteLocatorBuilder;
 import org.springframework.context.annotation.Bean;
@@ -7,6 +9,10 @@ import org.springframework.context.annotation.Configuration;
 
 @Configuration
 public class GatewayConfig {
+
+    @Autowired
+    private AuthFilter authFilter;
+
     @Bean
     public RouteLocator customRouteLocator(RouteLocatorBuilder builder) {
         return builder.routes()
@@ -14,13 +20,16 @@ public class GatewayConfig {
                         .path("/register/**")
                         .uri("lb://register-service"))
 
+                .route("auth-service", r -> r
+                        .path("/auth/**")
+                        .filters(f->f.filter(authFilter))
+                        .uri("lb://auth-service"))
+
                 .route("reporting-service", r -> r
                         .path("/reports/**")
                         .uri("lb://reporting-service"))
 
-                .route("auth-service", r -> r
-                        .path("/auth/**")
-                        .uri("lb://auth-service"))
+
 
                 .route("bookingandstatistics-service", r -> r
                         .path("/bookingandstatistics/**")
