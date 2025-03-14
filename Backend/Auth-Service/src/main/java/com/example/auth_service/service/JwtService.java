@@ -42,6 +42,10 @@ public class JwtService {
         return createToken(new HashMap<>(), userDetails.getUsername(), EXPIRATION);
     }
 
+    public String generateRefreshToken(UserDetails userDetails) {
+        return createToken(new HashMap<>(), userDetails.getUsername(), REFRESH_TOKEN_EXPIRATION);
+    }
+
     private Key getSignInKey() {
         byte[] keyBytes = Decoders.BASE64.decode(SECRET_KEY);
         return Keys.hmacShaKeyFor(keyBytes);

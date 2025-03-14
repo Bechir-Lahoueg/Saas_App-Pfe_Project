@@ -1,7 +1,7 @@
 package com.example.auth_service.controller;
 
-import com.example.auth_service.entities.LoginRequest;
-import com.example.auth_service.entities.LoginResponse;
+import com.example.auth_service.entities.LoginRequestSubscriber;
+import com.example.auth_service.entities.LoginResponseSubscriber;
 import com.example.auth_service.entities.Subscriber;
 import com.example.auth_service.service.SubscriberService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,7 +41,7 @@ public class SubscriberController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<LoginResponse> login(@RequestBody LoginRequest request) {
+    public ResponseEntity<LoginResponseSubscriber> login(@RequestBody LoginRequestSubscriber request) {
         return  ResponseEntity.ok(SubscriberService.login(request.getEmail(), request.getPassword()));
     }
 }
