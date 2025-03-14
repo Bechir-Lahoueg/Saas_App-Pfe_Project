@@ -116,7 +116,7 @@ const Navbar = () => {
                   isActive={activeSection === 'entreprise'} 
                   onHover={setHoveredItem} 
                   scrolled={scrolled}
-                  redirectTo="/gg"
+                  redirectTo="#entreprise"
                 />
                 <NavItemWithDropdown 
                   id="secteurs" 
@@ -163,6 +163,22 @@ const Navbar = () => {
           <div className="hidden lg:flex items-center space-x-3">
             <button 
               className="relative overflow-hidden px-5 py-2 rounded-md bg-transparent group"
+              onClick={() => window.location.href='/dashbord'}
+            >
+              {/* Fond animé */}
+              <span className="absolute inset-0 w-full h-full transition-all duration-300 ease-out transform translate-y-full bg-gradient-to-t from-blue-50 to-blue-100 group-hover:translate-y-0"></span>
+              
+              {/* Texte */}
+              <span className={`relative font-medium text-sm transition-colors duration-300 ${
+                scrolled ? 'text-gray-700' : 'text-gray-700'
+              } group-hover:text-blue-600`}>
+                Admin (temp)
+                <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-blue-600 group-hover:w-full transition-all duration-300 ease-out"></span>
+              </span>
+            </button>
+
+            <button 
+              className="relative overflow-hidden px-5 py-2 rounded-md bg-transparent group"
               onClick={() => window.location.href='/gg'}
             >
               {/* Fond animé */}
@@ -179,7 +195,7 @@ const Navbar = () => {
             
             <button 
               className="relative px-6 py-2.5 rounded-md overflow-hidden group"
-              onClick={() => window.location.href='/gg'}
+              onClick={() => window.location.href='#demarrer'}
             >
               {/* Fond avec animation */}
               <span className="absolute inset-0 w-full h-full transition-all duration-500 ease-out transform -translate-x-full bg-gradient-to-r from-blue-500 to-blue-700 group-hover:translate-x-0"></span>
@@ -239,7 +255,7 @@ const Navbar = () => {
           <div className="mb-8 space-y-3">
             <MobileNavItem 
               label="Entreprise" 
-              onClick={() => window.location.href='/gg'}
+              onClick={() => window.location.href='#entreprise'}
             />
             <MobileNavItem 
               label="Secteurs" 
@@ -262,13 +278,13 @@ const Navbar = () => {
           <div className="space-y-3">
             <button 
               className="w-full py-3 px-4 bg-blue-50 text-blue-600 rounded-md font-medium text-sm"
-              onClick={() => window.location.href='/gg'}
+              onClick={() => window.location.href='/connexionadmin'}
             >
               Connexion
             </button>
             <button 
               className="w-full py-3 px-4 bg-blue-600 text-white rounded-md font-medium text-sm"
-              onClick={() => window.location.href='/gg'}
+              onClick={() => window.location.href='#demarrer'}
             >
               Démarrer
             </button>
