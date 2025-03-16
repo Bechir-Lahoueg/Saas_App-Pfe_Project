@@ -29,10 +29,8 @@ public class GatewayConfig {
                         .path("/reports/**")
                         .uri("lb://reporting-service"))
 
-
-
                 .route("bookingandstatistics-service", r -> r
-                        .path("/bookingandstatistics/**")
+                        .path("/reservation/**")
                         .uri("lb://bookingandstatistics-service"))
 
                 .route("payment-service", r -> r
@@ -49,6 +47,7 @@ public class GatewayConfig {
 
                 .route("notification-service", r -> r
                         .path("/notification/**")
+                        .filters(f->f.filter(authFilter))
                         .uri("lb://notification-service"))
 
                 .build();
