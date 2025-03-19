@@ -21,8 +21,10 @@ public class AdminService {
     public void initAdmin() {
         if (adminRepository.findByEmail("admin@gmail.com").isEmpty()) {
             Admin admin = new Admin();
+            admin.setName("Bechir Safwene");
             admin.setEmail("admin@gmail.com");
             admin.setPassword(passwordEncoder.encode("admin123"));
+
             adminRepository.save(admin);
             System.out.println("Admin par défaut créé !");
         }
