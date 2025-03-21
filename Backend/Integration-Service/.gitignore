@@ -16,8 +16,6 @@ bower_components/
 dist/
 build/
 
-# Environment variables
-.env
 
 # IDEs and editors
 .vscode/
