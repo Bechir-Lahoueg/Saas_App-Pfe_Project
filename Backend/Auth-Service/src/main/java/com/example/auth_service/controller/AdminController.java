@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.*;
 
 @CrossOrigin
 @RestController
-@RequestMapping("/auth/admin")
+@RequestMapping("/admin")
 public class AdminController {
 
     @Autowired

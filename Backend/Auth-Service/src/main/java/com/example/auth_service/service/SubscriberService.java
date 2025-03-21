@@ -3,11 +3,16 @@ package com.example.auth_service.service;
 import com.example.auth_service.entities.LoginResponseSubscriber;
 import com.example.auth_service.entities.Subscriber;
 import com.example.auth_service.repository.SubscriberRepository;
+import jakarta.mail.MessagingException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 
 import java.util.List;
+import java.util.UUID;
 
 @Service
 public class SubscriberService {
@@ -17,6 +22,7 @@ public class SubscriberService {
 
     @Autowired
     private BCryptPasswordEncoder passwordEncoder;  // To encrypt passwords
+
 
     @Autowired
     private  JwtService jwtService;
@@ -52,10 +58,10 @@ public class SubscriberService {
 
     }
 
-    public LoginResponseSubscriber login(String email, String motDePasse) {
+    public LoginResponseSubscriber login(String email, String password) {
         Subscriber subscriber = SubscriberRepository.findByEmail(email).orElseThrow(() -> new RuntimeException("User not found"));
 
-        if (!passwordEncoder.matches(motDePasse, subscriber.getPassword())) {
+        if (!passwordEncoder.matches(password, subscriber.getPassword())) {
             throw new RuntimeException("Invalid password");
         }
 
@@ -65,5 +71,9 @@ public class SubscriberService {
                 .subscriber(subscriber)
                 .build();
     }
+
+
+
+
 
 }

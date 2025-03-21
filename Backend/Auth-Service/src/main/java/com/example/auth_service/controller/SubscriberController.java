@@ -12,7 +12,7 @@ import java.util.List;
 
 @CrossOrigin
 @RestController
-@RequestMapping("/auth/subscriber")
+@RequestMapping("/subscriber")
 public class SubscriberController {
 
     @Autowired
@@ -44,4 +44,6 @@ public class SubscriberController {
     public ResponseEntity<LoginResponseSubscriber> login(@RequestBody LoginRequestSubscriber request) {
         return  ResponseEntity.ok(SubscriberService.login(request.getEmail(), request.getPassword()));
     }
+
+
 }
