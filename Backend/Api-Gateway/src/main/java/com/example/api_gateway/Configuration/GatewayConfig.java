@@ -21,7 +21,7 @@ public class GatewayConfig {
                         .uri("lb://register-service"))
 
                 .route("auth-service", r -> r
-                        .path("/auth/**")
+                        .path("/auth/**", "/login/oauth2/**")
                         .filters(f->f.filter(authFilter))
                         .uri("lb://auth-service"))
 
