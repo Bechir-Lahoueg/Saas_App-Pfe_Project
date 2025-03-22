@@ -1,12 +1,12 @@
 require("dotenv").config();
-const mongoose = require('mongoose');
 const express = require("express");
 const cors = require("cors");
 const connectDB = require("./src/config/db");
+const paymentRoutes = require('./src/routes/paymentRoutes');
+const Payment = require('./src/models/Payment');
+
 const app = express();
 const PORT = process.env.PORT;
-const registerWithEureka = require("./src/config/eurekaClient");
-const paymentRoutes = require('./src/routes/paymentRoutes');
 
 // Middleware
 app.use(express.json());
@@ -18,8 +18,32 @@ connectDB();
 // Routes
 app.use('/api/payments', paymentRoutes);
 
+// Webhook endpoint for Konnect
+app.post('/api/payments/webhook', async (req, res) => {
+  const { paymentId, status } = req.body;
+
+  try {
+    console.log('Webhook received:', req.body);
+
+    const payment = await Payment.findOne({ konnectPaymentId: paymentId });
+
+    if (!payment) {
+      return res.status(404).json({ error: 'Payment not found' });
+    }
+
+    // Mettre à jour le statut du paiement
+    payment.status = status;
+    await payment.save();
+
+    console.log(`Payment ${paymentId} updated to status: ${status}`);
+    res.status(200).json({ message: 'Webhook received and processed' });
+  } catch (error) {
+    console.error('Webhook error:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
 // Start Server
 app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
-    registerWithEureka();
+  console.log(`Server running on port ${PORT}`);
 });
