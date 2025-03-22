@@ -33,7 +33,9 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
                                 "/subscriber/login",
-                                "/oauth2/**", "/login/**"
+                                "/oauth2/**",
+                                "/forgot-password/**",
+                                "/reset-password/**"
                         ).permitAll()
                         .anyRequest()
                         .authenticated()

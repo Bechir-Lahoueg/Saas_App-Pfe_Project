@@ -4,6 +4,7 @@ import com.example.auth_service.entities.PasswordResetToken;
 import com.example.auth_service.entities.Subscriber;
 import com.example.auth_service.repository.PasswordResetTokenRepository;
 import com.example.auth_service.repository.SubscriberRepository;
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.SimpleMailMessage;
@@ -19,7 +20,7 @@ import java.util.UUID;
 public class PasswordResetService {
 
     @Autowired
-    private SubscriberRepository SubscriberRepository;
+    private SubscriberRepository subscriberRepository;
 
     @Autowired
     private PasswordResetTokenRepository tokenRepository;
@@ -33,8 +34,9 @@ public class PasswordResetService {
     @Value("${app.reset-password.url}")
     private String resetPasswordUrl;
 
+    @Transactional
     public void generateResetToken(String email) {
-        Optional<Subscriber> SubscriberOpt = SubscriberRepository.findByEmail(email);
+        Optional<Subscriber> SubscriberOpt = subscriberRepository.findByEmail(email);
 
         if (SubscriberOpt.isPresent()) {
             Subscriber Subscriber = SubscriberOpt.get();
@@ -52,7 +54,10 @@ public class PasswordResetService {
 
             // Send email
             sendResetEmail(Subscriber.getEmail(), token);
+        }else {
+            throw new IllegalArgumentException("Subscriber with email " + email + " does not exist");
         }
+
         // We don't notify if the email doesn't exist for security reasons
     }
 
@@ -67,6 +72,7 @@ public class PasswordResetService {
         mailSender.send(message);
     }
 
+    @Transactional
     public boolean resetPassword(String token, String newPassword) {
         Optional<PasswordResetToken> tokenOpt = tokenRepository.findByToken(token);
 
@@ -82,7 +88,7 @@ public class PasswordResetService {
             // Update password
             Subscriber Subscriber = resetToken.getSubscriber();
             Subscriber.setPassword(passwordEncoder.encode(newPassword));
-            SubscriberRepository.save(Subscriber);
+            subscriberRepository.save(Subscriber);
 
             // Delete used token
             tokenRepository.delete(resetToken);
