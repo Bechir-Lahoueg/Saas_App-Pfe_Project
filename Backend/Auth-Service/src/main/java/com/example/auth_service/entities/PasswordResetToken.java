@@ -14,12 +14,12 @@ import java.time.LocalDateTime;
 public class PasswordResetToken {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id_subscriber", nullable = false)
+    @Column(name = "id_token", nullable = false)
     private Long id;
 
     private String token;
     @OneToOne(targetEntity = Subscriber.class, fetch = FetchType.EAGER)
-    @JoinColumn(name = "subscriber_id")
+    @JoinColumn(name = "id_subscriber" , referencedColumnName = "id_subscriber")
     private Subscriber subscriber;
 
     private LocalDateTime expiryDate;

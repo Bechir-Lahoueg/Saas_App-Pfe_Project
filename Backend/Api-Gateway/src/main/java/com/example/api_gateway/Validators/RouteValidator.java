@@ -11,7 +11,9 @@ public class RouteValidator {
 
     public static final List<String> unprotectedUrls = List.of(
             "/auth/subscriber/login",
-            "/auth/subscriber/register"
+            "/auth/subscriber/register",
+            "/auth/forgot-password",
+            "/auth/reset-password"
     );
 
     public Predicate<ServerHttpRequest> isSecured = request -> unprotectedUrls.stream().noneMatch(uri -> request.getURI().getPath().contains(uri));
