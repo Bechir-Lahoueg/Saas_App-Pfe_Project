@@ -25,7 +25,7 @@ const Navigation = () => {
   useEffect(() => {
     // Check if user is logged in by looking for the access token
     const accessToken = localStorage.getItem('accessToken');
-    const userDataString = localStorage.getItem('userData');
+    const userDataString = localStorage.getItem('admin');
     
     if (!accessToken) {
       // Redirect to login if no token found
@@ -126,8 +126,8 @@ const Navigation = () => {
 
   // Get user's name
   const getUserName = () => {
-    if (userData && userData.admin && userData.admin.name) {
-      return userData.admin.name;
+    if (userData && userData.admin && userData.admin.email) {
+      return userData.admin.email;
     }
     return "Utilisateur";
   };

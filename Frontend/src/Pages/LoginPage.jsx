@@ -1,14 +1,65 @@
-import React from 'react';
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 const LoginPage = () => {
+  const [credentials, setCredentials] = useState({
+    email: '',
+    password: ''
+  });
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
+
+  const handleChange = (e) => {
+    setCredentials({
+      ...credentials,
+      [e.target.id]: e.target.value
+    });
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setError('');
+    
+    try {
+      const response = await fetch('http://localhost:8888/auth/subscriber/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(credentials)
+      });
+      
+      if (!response.ok) {
+        throw new Error('Email ou mot de passe incorrect');
+      }
+      
+      const data = await response.json();
+      
+      // Store tokens in local storage
+      localStorage.setItem('accessToken', data.accessToken);
+      localStorage.setItem('refreshToken', data.refreshToken);
+      localStorage.setItem('user', JSON.stringify(data.subscriber));
+      
+      // Redirect to dashboard or home
+      navigate('/gg');
+      
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="bg-blue-500 min-h-screen flex items-center justify-center relative overflow-hidden">
-      {/* Formes d'arrière-plan */}
+      {/* Background shapes */}
       <div className="absolute top-0 right-0 w-96 h-96 bg-blue-400 rounded-full -translate-y-1/4 translate-x-1/4"></div>
       <div className="absolute bottom-0 left-0 w-96 h-96 bg-blue-600 rounded-full translate-y-1/4 -translate-x-1/4"></div>
       <div className="absolute top-1/4 left-0 w-64 h-64 bg-blue-400 rounded-full -translate-x-1/4"></div>
       
-      {/* Carte de connexion */}
+      {/* Login card */}
       <div className="bg-white rounded-lg shadow-lg p-8 w-full max-w-md z-10">
         <h2 className="text-2xl font-semibold text-center mb-6">Connexion</h2>
         
@@ -16,7 +67,13 @@ const LoginPage = () => {
           Veuillez entrer votre email et votre mot de passe pour continuer
         </p>
         
-        <form>
+        {error && (
+          <div className="mb-4 p-2 bg-red-100 text-red-600 rounded text-center">
+            {error}
+          </div>
+        )}
+        
+        <form onSubmit={handleSubmit}>
           <div className="mb-4">
             <label htmlFor="email" className="block text-sm text-gray-700 mb-1">Email :</label>
             <input 
@@ -24,19 +81,25 @@ const LoginPage = () => {
               id="email"
               className="w-full px-3 py-2 border border-gray-300 rounded-md text-gray-600"
               placeholder="esteban_schiller@gmail.com"
+              value={credentials.email}
+              onChange={handleChange}
+              required
             />
           </div>
           
           <div className="mb-2">
             <div className="flex justify-between">
               <label htmlFor="password" className="block text-sm text-gray-700 mb-1">Mot de passe</label>
-              <a href="#" className="text-sm text-gray-500">Mot de passe oublié?</a>
+              <a href="/forgot-password" className="text-sm text-gray-500">Mot de passe oublié?</a>
             </div>
             <input 
               type="password" 
               id="password"
               className="w-full px-3 py-2 border border-gray-300 rounded-md"
               placeholder="••••••••••••••••"
+              value={credentials.password}
+              onChange={handleChange}
+              required
             />
           </div>
           
@@ -50,10 +113,10 @@ const LoginPage = () => {
           <button 
             type="submit" 
             className="w-full bg-blue-500 text-white py-2 rounded-md hover:bg-blue-600 transition-colors"
+            disabled={loading}
           >
-            Se connecter
+            {loading ? 'Chargement...' : 'Se connecter'}
           </button>
-          
           <div className="flex items-center my-4">
             <div className="flex-1 border-t border-gray-300"></div>
             <span className="px-4 text-gray-500 text-sm">or</span>
@@ -84,11 +147,9 @@ const LoginPage = () => {
             </svg>
             Continuer avec google
           </button>
+
           
-          <div className="text-center mt-6">
-            <span className="text-sm text-gray-600">Don't have an account? </span>
-            <a href="#" className="text-sm text-blue-500 font-medium">Create Account</a>
-          </div>
+          {/* Rest of the form */}
         </form>
       </div>
     </div>
@@ -96,3 +157,11 @@ const LoginPage = () => {
 };
 
 export default LoginPage;
+
+
+
+
+
+
+
+
