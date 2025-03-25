@@ -29,16 +29,16 @@ public class GatewayConfig {
                         .path("/reports/**")
                         .uri("lb://reporting-service"))
 
-                .route("bookingandstatistics-service", r -> r
-                        .path("/reservation/**")
-                        .uri("lb://bookingandstatistics-service"))
+                .route("schedule-service", r -> r
+                        .path("/schedule/**")
+                        .uri("lb://schedule-service"))
 
                 .route("payment-service", r -> r
                         .path("/payment/**")
                         .uri("lb://payment-service"))
 
                 .route("clientbooking-service", r -> r
-                        .path("/clientbooking/**")
+                        .path("/booking/**")
                         .uri("lb://clientbooking-service"))
 
                 .route("integration-service", r -> r
