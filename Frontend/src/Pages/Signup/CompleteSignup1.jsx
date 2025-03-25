@@ -1,132 +1,66 @@
 import React, { useState, useEffect } from 'react';
-import { Navbar, Footer } from '../../components/Landing/Index';
 import { motion } from 'framer-motion';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { Navbar, Footer } from '../../components/Landing/Index';
 
 const PaymentGatewayPage = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [paymentStatus, setPaymentStatus] = useState(null);
-  const [paymentRef, setPaymentRef] = useState(null);
   const navigate = useNavigate();
   const location = useLocation();
-
-  // États pour les champs du formulaire
-  const [firstName, setFirstName] = useState('');
-  const [lastName, setLastName] = useState('');
-  const [email, setEmail] = useState('');
-  const [phoneNumber, setPhoneNumber] = useState('');
-  const [address, setAddress] = useState('');
-  const [city, setCity] = useState('');
-  const [state, setState] = useState('');
-  const [postalCode, setPostalCode] = useState('');
 
   const fadeInVariants = {
     hidden: { opacity: 0, y: 20 },
     visible: { opacity: 1, y: 0 },
   };
 
-  // Check if returning from payment gateway with a payment_ref
-  useEffect(() => {
-    const queryParams = new URLSearchParams(location.search);
-    const payment_ref = queryParams.get('payment_ref');
-    const status = queryParams.get('status');
-
-    if (payment_ref) {
-      setPaymentRef(payment_ref);
-      verifyPayment(payment_ref);
-    }
-  }, [location.search]);
-
-  // Verify payment status
-  const verifyPayment = async (ref) => {
-    setIsLoading(true);
-    try {
-      const response = await fetch(`https://api.sandbox.konnect.network/api/v2/payments/verify/${ref}`, {
-        method: 'GET',
-        headers: {
-          'x-api-key': '67dd5a752f786e7f60691967:BcTXdYquEql7EzbId65fTjvEm8',
-        },
-      });
-
-      const result = await response.json();
-      console.log('Verification result:', result);
-
-      if (response.ok) {
-        setPaymentStatus(result.payment.status);
-
-        // Vérifier le statut global du paiement
-        if (result.payment.status === 'completed') {
-          // Rediriger vers la page de succès
-          setTimeout(() => {
-            navigate('/paiement/presentation');
-          }, 2000);
-        } else if (result.payment.status === 'failed') {
-          setError('Payment failed. Please try again.');
-        }
-      } else {
-        setError(result.message || 'Failed to verify payment');
-      }
-    } catch (err) {
-      setError('An error occurred during payment verification');
-      console.error('Verification error:', err);
-    } finally {
-      setIsLoading(false);
-    }
+  // Function to generate a random order ID
+  const generateOrderId = () => {
+    return `ORDER-${Math.random().toString(36).substr(2, 9).toUpperCase()}-${Date.now()}`;
   };
 
-  const handlePayNow = async () => {
+  // Payment initialization handler
+  const handleInitiatePayment = async () => {
     setIsLoading(true);
     setError(null);
 
     try {
+      // Prepare payment data
       const paymentData = {
         receiverWalletId: "67dd5a772f786e7f6069197a",
         token: "TND",
         amount: 500,
         type: "immediate",
         description: "Custom payment description",
-        acceptedPaymentMethods: ["wallet"], // Utiliser uniquement le portefeuille
+        acceptedPaymentMethods: ["wallet", "bank_card", "e-DINAR"],
         lifespan: 10,
         checkoutForm: true,
         addPaymentFeesToAmount: true,
-        firstName,
-        lastName,
-        phoneNumber,
-        email,
-        orderId: Date.now().toString(),
-        webhook: `${window.location.origin}/api/payments/webhook`,
-        silentWebhook: true,
-        successUrl: `${window.location.origin}/payment?status=success`,
-        failUrl: `${window.location.origin}/payment?status=failed`,
-        theme: "dark",
-        address,
-        city,
-        state,
-        postalCode,
+        orderId: generateOrderId(), // Randomly generated order ID
+        successUrl: "https://gateway.sandbox.konnect.network/payment-success",
+        failUrl: "https://gateway.sandbox.konnect.network/payment-failure",
+        theme: "dark"
       };
 
-      console.log('Sending payment data to Konnect:', paymentData);
-
+      // Send payment initialization request
       const response = await fetch('https://api.sandbox.konnect.network/api/v2/payments/init-payment', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'x-api-key': '67dd5a752f786e7f60691967:BcTXdYquEql7EzbId65fTjvEm8',
+          'x-api-key': '67dd5a752f786e7f60691967:BcTXdYquEql7EzbId65fTjvEm8'
         },
-        body: JSON.stringify(paymentData),
+        body: JSON.stringify(paymentData)
       });
 
       const result = await response.json();
-      console.log('Konnect API response:', result);
 
+      // Handle response
       if (response.ok && result.payUrl) {
-        if (result.payment_ref) {
-          localStorage.setItem('konnect_payment_ref', result.payment_ref);
-        }
+        // Redirect to Konnect payment page
         window.location.href = result.payUrl;
       } else {
-        setError(result.message || 'Failed to initialize payment');
+        // Handle error
+        setError(result.message || 'Payment initialization failed');
       }
     } catch (err) {
       setError('An error occurred during payment initialization');
@@ -135,85 +69,6 @@ const PaymentGatewayPage = () => {
       setIsLoading(false);
     }
   };
-
-  // If we're returning from payment and showing status
-  if (paymentRef) {
-    return (
-      <div className="min-h-screen flex flex-col bg-gradient-to-br from-blue-50 to-white">
-        <Navbar />
-
-        <div className="flex-grow flex items-center justify-center p-8">
-          <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="bg-white p-8 rounded-xl shadow-lg max-w-md w-full text-center"
-          >
-            {isLoading ? (
-              <>
-                <div className="flex justify-center mb-4">
-                  <svg className="animate-spin h-12 w-12 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                  </svg>
-                </div>
-                <h2 className="text-2xl font-bold mb-2">Vérification du paiement</h2>
-                <p className="text-gray-600">Veuillez patienter pendant que nous vérifions votre paiement...</p>
-              </>
-            ) : error ? (
-              <>
-                <div className="text-red-500 mb-4">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mx-auto">
-                    <circle cx="12" cy="12" r="10"></circle>
-                    <line x1="15" y1="9" x2="9" y2="15"></line>
-                    <line x1="9" y1="9" x2="15" y2="15"></line>
-                  </svg>
-                </div>
-                <h2 className="text-2xl font-bold mb-2 text-red-600">Erreur de paiement</h2>
-                <p className="text-gray-600 mb-6">{error}</p>
-                <button
-                  onClick={handlePayNow}
-                  className="px-6 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-all"
-                >
-                  Réessayer le paiement
-                </button>
-              </>
-            ) : paymentStatus === 'completed' ? (
-              <>
-                <div className="text-green-500 mb-4">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mx-auto">
-                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
-                    <polyline points="22 4 12 14.01 9 11.01"></polyline>
-                  </svg>
-                </div>
-                <h2 className="text-2xl font-bold mb-2 text-green-600">Paiement réussi</h2>
-                <p className="text-gray-600 mb-6">Votre paiement a été traité avec succès.</p>
-                <p className="text-sm text-gray-500">Référence: {paymentRef}</p>
-                <button
-                  onClick={() => navigate('/')}
-                  className="mt-6 px-6 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-all"
-                >
-                  Retour à l'accueil
-                </button>
-              </>
-            ) : (
-              <>
-                <h2 className="text-2xl font-bold mb-2">Statut du paiement: {paymentStatus}</h2>
-                <p className="text-gray-600 mb-6">Référence: {paymentRef}</p>
-                <button
-                  onClick={handlePayNow}
-                  className="px-6 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-all"
-                >
-                  Réessayer le paiement
-                </button>
-              </>
-            )}
-          </motion.div>
-        </div>
-
-        <Footer />
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-br from-blue-50 to-white">
@@ -347,11 +202,11 @@ const PaymentGatewayPage = () => {
               </div>
               <div className="flex justify-between mb-3">
                 <span className="text-gray-600">Numéro de commande</span>
-                <span className="font-semibold">#{Date.now().toString()}</span>
+                <span className="font-semibold">#{generateOrderId()}</span>
               </div>
               <div className="flex justify-between pt-3 border-t border-blue-100">
                 <span className="text-gray-700 font-medium">Total</span>
-                <span className="font-bold text-blue-600">500 TND</span>
+                <span className="font-bold text-blue-600">0.500 TND</span>
               </div>
             </div>
           </motion.section>
@@ -391,7 +246,7 @@ const PaymentGatewayPage = () => {
 
           {/* Bouton de paiement */}
           <motion.button
-            onClick={handlePayNow}
+            onClick={handleInitiatePayment}
             disabled={isLoading}
             className={`w-full py-4 px-6 rounded-lg font-semibold text-lg transition-all duration-300 ${isLoading ? 'bg-gray-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'} text-white shadow-lg`}
             whileHover={!isLoading ? { scale: 1.02 } : {}}

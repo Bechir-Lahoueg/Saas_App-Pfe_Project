@@ -35,7 +35,8 @@ public class SecurityConfig {
                                 "/subscriber/login",
                                 "/oauth2/**",
                                 "/forgot-password/**",
-                                "/reset-password/**"
+                                "/reset-password/**",
+                                "/admin/login"
                         ).permitAll()
                         .anyRequest()
                         .authenticated()

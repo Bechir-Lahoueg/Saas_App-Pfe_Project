@@ -13,7 +13,8 @@ public class RouteValidator {
             "/auth/subscriber/login",
             "/auth/subscriber/register",
             "/auth/forgot-password",
-            "/auth/reset-password"
+            "/auth/reset-password",
+            "/auth/admin/login"
     );
 
     public Predicate<ServerHttpRequest> isSecured = request -> unprotectedUrls.stream().noneMatch(uri -> request.getURI().getPath().contains(uri));

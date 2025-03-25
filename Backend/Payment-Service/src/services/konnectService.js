@@ -6,11 +6,22 @@ const API_KEY = process.env.KONNECT_API_KEY;
 
 const initiatePayment = async (paymentData) => {
   try {
-    const webhookUrl = `${process.env.BASE_URL}/api/payments/webhook`; // URL du webhook
+    // Configuration minimale pour initialiser un paiement
     const payload = {
-      ...paymentData,
-      webhook: webhookUrl, // Ajoutez l'URL du webhook
-      silentWebhook: true, // Konnect enverra des notifications silencieuses
+      receiverWalletId: paymentData.receiverWalletId,
+      token: paymentData.token,
+      amount: paymentData.amount,
+      type: paymentData.type || "immediate",
+      description: paymentData.description,
+      acceptedPaymentMethods: paymentData.acceptedPaymentMethods || ["wallet", "bank_card", "e-DINAR"],
+      lifespan: paymentData.lifespan || 10,
+      checkoutForm: true,
+      addPaymentFeesToAmount: paymentData.addPaymentFeesToAmount || true,
+      webhook: `${process.env.BASE_URL}/api/payments/webhook`,
+      silentWebhook: true,
+      successUrl: paymentData.successUrl || "https://gateway.sandbox.konnect.network/payment-success",
+      failUrl: paymentData.failUrl || "https://gateway.sandbox.konnect.network/payment-success",
+      theme: paymentData.theme || "dark"
     };
 
     console.log('Sending payment data to Konnect:', payload);
@@ -23,23 +34,14 @@ const initiatePayment = async (paymentData) => {
 
     console.log('Konnect API response:', response.data);
 
-    // Sauvegarder les détails du paiement dans la base de données
+    // Sauvegarder les détails minimaux du paiement dans la base de données
     const payment = new Payment({
       orderId: paymentData.orderId,
       amount: paymentData.amount,
       status: 'pending',
-      paymentMethod: 'wallet', // Utiliser uniquement le portefeuille
+      paymentMethod: 'unknown', // Sera mis à jour après completion
       receiverWalletId: paymentData.receiverWalletId,
-      customerDetails: {
-        firstName: paymentData.firstName,
-        lastName: paymentData.lastName,
-        email: paymentData.email,
-        phoneNumber: paymentData.phoneNumber,
-        address: paymentData.address,
-        city: paymentData.city,
-        state: paymentData.state,
-        postalCode: paymentData.postalCode,
-      },
+      customerDetails: {}, // Vide car nous n'avons pas les détails du client à ce stade
       konnectPaymentId: response.data.paymentId,
       konnectPaymentUrl: response.data.payUrl,
     });
@@ -53,34 +55,34 @@ const initiatePayment = async (paymentData) => {
 };
 
 const verifyPayment = async (paymentId) => {
-    try {
-      console.log('Verifying payment with ID:', paymentId);
-      const response = await axios.get(`${KONNECT_API_URL}/payments/${paymentId}`, {
-        headers: {
-          'Content-Type': 'application/json',
-          'x-api-key': API_KEY,
-        },
-      });
-  
-      const result = response.data;
-      console.log('Konnect API verification response:', result);
-  
-      // Vérifier si le tableau des transactions est vide
-      if (result.payment.transactions.length === 0) {
-        console.warn('No transactions found for this payment.');
-      }
-  
-      // Vérifier le statut global du paiement
-      if (result.payment.status === 'completed') {
-        return { success: true, payment: result.payment };
-      } else {
-        return { success: false, payment: result.payment, reason: `Payment status: ${result.payment.status}` };
-      }
-    } catch (error) {
-      console.error('Error verifying payment:', error.response ? error.response.data : error.message);
-      throw error;
+  try {
+    console.log('Verifying payment with ID:', paymentId);
+    const response = await axios.get(`${KONNECT_API_URL}/payments/${paymentId}`, {
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': API_KEY,
+      },
+    });
+
+    const result = response.data;
+    console.log('Konnect API verification response:', result);
+
+    // Vérifier si le tableau des transactions est vide
+    if (result.payment.transactions.length === 0) {
+      console.warn('No transactions found for this payment.');
     }
-  };
+
+    // Vérifier le statut global du paiement
+    if (result.payment.status === 'completed') {
+      return { success: true, payment: result.payment };
+    } else {
+      return { success: false, payment: result.payment, reason: `Payment status: ${result.payment.status}` };
+    }
+  } catch (error) {
+    console.error('Error verifying payment:', error.response ? error.response.data : error.message);
+    throw error;
+  }
+};
   
 const completePayment = async (paymentId) => {
   try {
@@ -97,6 +99,19 @@ const completePayment = async (paymentId) => {
     if (verificationResponse.success) {
       payment.status = 'completed';
       payment.completionDate = new Date();
+      
+      // Mettre à jour la méthode de paiement utilisée si disponible dans la réponse
+      if (verificationResponse.payment.transactions && 
+          verificationResponse.payment.transactions.length > 0 &&
+          verificationResponse.payment.transactions[0].paymentMethod) {
+        payment.paymentMethod = verificationResponse.payment.transactions[0].paymentMethod;
+      }
+      
+      // Mettre à jour les détails du client si disponibles dans la réponse
+      if (verificationResponse.payment.customerDetails) {
+        payment.customerDetails = verificationResponse.payment.customerDetails;
+      }
+      
       payment.metadata.verificationResponse = verificationResponse;
       await payment.save();
       return { success: true, payment };
