@@ -12,20 +12,12 @@ const initiatePayment = async (req, res) => {
     lifespan,
     checkoutForm,
     addPaymentFeesToAmount,
-    firstName,
-    lastName,
-    phoneNumber,
-    email,
     orderId,
     webhook,
     silentWebhook,
     successUrl,
     failUrl,
     theme,
-    address,
-    city,
-    state,
-    postalCode,
   } = req.body;
 
   const paymentData = {
@@ -34,24 +26,16 @@ const initiatePayment = async (req, res) => {
     amount,
     type,
     description,
-    acceptedPaymentMethods: ["wallet"], // Utiliser uniquement le portefeuille
+    acceptedPaymentMethods,
     lifespan,
     checkoutForm,
     addPaymentFeesToAmount,
-    firstName,
-    lastName,
-    phoneNumber,
-    email,
     orderId,
     webhook,
     silentWebhook,
     successUrl,
     failUrl,
     theme,
-    address,
-    city,
-    state,
-    postalCode,
   };
 
   try {
