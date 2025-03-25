@@ -3,31 +3,24 @@ package com.example.api_gateway.Configuration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.cors.CorsConfiguration;
-import org.springframework.web.cors.reactive.CorsConfigurationSource;
 import org.springframework.web.cors.reactive.CorsWebFilter;
 import org.springframework.web.cors.reactive.UrlBasedCorsConfigurationSource;
-
-import java.util.Arrays;
 
 @Configuration
 public class WebConfig {
 
     @Bean
-    public CorsConfigurationSource corsConfigurationSource() {
+    public CorsWebFilter corsWebFilter() {
         CorsConfiguration corsConfig = new CorsConfiguration();
-        corsConfig.setAllowedOrigins(Arrays.asList("http://localhost:5173"));
-        corsConfig.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-        corsConfig.setAllowedHeaders(Arrays.asList("*"));
+        corsConfig.addAllowedOrigin("http://localhost:5173");
+        corsConfig.addAllowedHeader("*");
+        corsConfig.addAllowedMethod("*");
         corsConfig.setAllowCredentials(true);
-        corsConfig.setExposedHeaders(Arrays.asList("Authorization")); // Add this to expose Authorization header
+        corsConfig.addExposedHeader("Authorization");
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", corsConfig);
-        return source;
-    }
 
-    @Bean
-    public CorsWebFilter corsWebFilter() {
-        return new CorsWebFilter(corsConfigurationSource());
+        return new CorsWebFilter(source);
     }
 }

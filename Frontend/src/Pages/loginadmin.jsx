@@ -15,13 +15,16 @@ const Login = () => {
             const response = await axios.post('http://localhost:8888/auth/admin/login', {
                 email,
                 password
-            });
+            },
+    
+        );
 
             const { accessToken, refreshToken, admin } = response.data;
 
             // Store tokens in localStorage or context/state for further use
             localStorage.setItem('accessToken', accessToken);
             localStorage.setItem('refreshToken', refreshToken);
+            localStorage.setItem('admin', JSON.stringify(admin));
 
             console.log('Login successful:', admin);
             setError('');
