@@ -161,25 +161,10 @@ const Navbar = () => {
 
           {/* Boutons d'action */}
           <div className="hidden lg:flex items-center space-x-3">
-            <button 
-              className="relative overflow-hidden px-5 py-2 rounded-md bg-transparent group"
-              onClick={() => window.location.href='/dashbord'}
-            >
-              {/* Fond animé */}
-              <span className="absolute inset-0 w-full h-full transition-all duration-300 ease-out transform translate-y-full bg-gradient-to-t from-blue-50 to-blue-100 group-hover:translate-y-0"></span>
-              
-              {/* Texte */}
-              <span className={`relative font-medium text-sm transition-colors duration-300 ${
-                scrolled ? 'text-gray-700' : 'text-gray-700'
-              } group-hover:text-blue-600`}>
-                Admin (temp)
-                <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-blue-600 group-hover:w-full transition-all duration-300 ease-out"></span>
-              </span>
-            </button>
 
             <button 
               className="relative overflow-hidden px-5 py-2 rounded-md bg-transparent group"
-              onClick={() => window.location.href='/gg'}
+              onClick={() => window.location.href='/connexion'}
             >
               {/* Fond animé */}
               <span className="absolute inset-0 w-full h-full transition-all duration-300 ease-out transform translate-y-full bg-gradient-to-t from-blue-50 to-blue-100 group-hover:translate-y-0"></span>

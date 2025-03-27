@@ -19,6 +19,7 @@
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>
+      <module name="BookingAndStatistics-service" target="17" />
       <module name="Integration-Service" target="17" />
       <module name="Payment-Service" target="17" />
       <module name="SubscriberManagement-service" target="17" />
