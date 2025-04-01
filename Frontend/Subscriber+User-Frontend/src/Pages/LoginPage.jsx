@@ -43,7 +43,7 @@ const LoginPage = () => {
       localStorage.setItem('user', JSON.stringify(data.subscriber));
       
       // Redirect to dashboard or home
-      navigate('/gg');
+      navigate('/dashbord');
       
     } catch (err) {
       setError(err.message);
