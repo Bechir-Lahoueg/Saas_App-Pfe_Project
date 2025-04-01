@@ -25,11 +25,9 @@ public class TenantService {
     private final PasswordEncoder passwordEncoder;
 
     public Tenant provisionTenant(TenantRegistrationRequest request) {
-
-
-
-
-
+        if (tenantRepository.findByEmail(request.getEmail()).isPresent()) {
+            throw new RuntimeException("Email already registered!");
+        }
         // Generate unique tenant ID
         String tenantId = generateTenantId(request.getBusinessName());
 

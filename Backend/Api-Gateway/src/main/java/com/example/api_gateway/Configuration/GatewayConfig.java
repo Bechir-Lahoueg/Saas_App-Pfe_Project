@@ -17,13 +17,13 @@ public class GatewayConfig {
     public RouteLocator customRouteLocator(RouteLocatorBuilder builder) {
         return builder.routes()
 
-                .route("tenant-subdomain-route", r -> r
-                .host("{subdomain:[a-z0-9-]+}.yoursaas.com")
-                .filters(f -> f
-                        .addRequestHeader("X-Tenant-ID", "#{request.hostVariables['subdomain']}")
-                        .rewritePath("/(?<segment>.*)", "/api/${segment}")
-                )
-                .uri("lb://api-gateway"))
+//                .route("tenant-subdomain-route", r -> r
+//                .host("{subdomain:[a-z0-9-]+}.yoursaas.com")
+//                .filters(f -> f
+//                        .addRequestHeader("X-Tenant-ID", "#{request.hostVariables['subdomain']}")
+//                        .rewritePath("/(?<segment>.*)", "/api/${segment}")
+//                )
+//                .uri("lb://api-gateway"))
 
                 .route("auth-service", r -> r
                         .path("/auth/**", "/login/oauth2/**")
