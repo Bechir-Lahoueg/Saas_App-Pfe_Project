@@ -57,7 +57,7 @@ const Navigation = () => {
 
     if (!accessToken) {
       // Redirect to login if no token found
-      window.location.href = "/connexionadmin";
+      window.location.href = "/connexion";
       return;
     }
 
@@ -80,7 +80,7 @@ const Navigation = () => {
     localStorage.removeItem("admin");
 
     // Redirect to login page
-    window.location.href = "/connexionadmin";
+    window.location.href = "/connexion";
   };
 
   // Monitor window width for responsive behavior
