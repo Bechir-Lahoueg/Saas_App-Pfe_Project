@@ -7,7 +7,7 @@ const ProtectedRoute = () => {
 
     // Si l'utilisateur n'est pas authentifié, redirigez-le vers la page de connexion
     if (!isAuthenticated) {
-        return <Navigate to="/connexionadmin" replace />;
+        return <Navigate to="/connexion" replace />;
     }
 
     // Si l'utilisateur est authentifié, affichez la route protégée
