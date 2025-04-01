@@ -16,14 +16,26 @@ public class GatewayConfig {
     @Bean
     public RouteLocator customRouteLocator(RouteLocatorBuilder builder) {
         return builder.routes()
-                .route("register-service", r -> r
-                        .path("/register/**")
-                        .uri("lb://register-service"))
+
+                .route("tenant-subdomain-route", r -> r
+                .host("{subdomain:[a-z0-9-]+}.yoursaas.com")
+                .filters(f -> f
+                        .addRequestHeader("X-Tenant-ID", "#{request.hostVariables['subdomain']}")
+                        .rewritePath("/(?<segment>.*)", "/api/${segment}")
+                )
+                .uri("lb://api-gateway"))
 
                 .route("auth-service", r -> r
                         .path("/auth/**", "/login/oauth2/**")
-                        .filters(f->f.filter(authFilter))
+                        .filters(f->f
+                                .filter(authFilter)
+                                .addRequestHeader("X-Tenant-ID", "#{request.headers['X-Tenant-ID']}")
+                        )
                         .uri("lb://auth-service"))
+
+                .route("register-service", r -> r
+                        .path("/register/**")
+                        .uri("lb://register-service"))
 
                 .route("reporting-service", r -> r
                         .path("/reports/**")

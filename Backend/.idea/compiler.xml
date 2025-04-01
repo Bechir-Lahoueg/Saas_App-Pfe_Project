@@ -14,12 +14,13 @@
         <module name="api-gateway" />
         <module name="Schedule-Service" />
         <module name="reporting-service" />
+        <module name="tenant-routing-library" />
         <module name="ClientBooking-service" />
         <module name="notification-service" />
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>
-      <module name="BookingAndStatistics-service" target="17" />
+      <module name="communs-library" target="17" />
       <module name="Integration-Service" target="17" />
       <module name="Payment-Service" target="17" />
       <module name="SubscriberManagement-service" target="17" />
@@ -36,6 +37,7 @@
       <module name="SubscriberManagement-service" options="-parameters" />
       <module name="api-gateway" options="-parameters" />
       <module name="auth-service" options="-parameters" />
+      <module name="communs-library" options="-parameters" />
       <module name="config-server" options="-parameters" />
       <module name="notification-service" options="-parameters" />
       <module name="register-service" options="-parameters" />

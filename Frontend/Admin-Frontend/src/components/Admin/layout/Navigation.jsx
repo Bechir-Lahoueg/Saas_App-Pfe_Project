@@ -1,6 +1,34 @@
 import React, { useState, useEffect } from "react";
-import { Search, Bell, Calendar, Menu, ChevronDown, Moon, Sun, Filter, LayoutGrid, FileText, Users, MessageCircle, Settings as SettingsIcon, ChevronRight, LogOut, ChevronLeft, User, CreditCard, X, Building, ChevronsRight, Home, LineChart, BarChart3, Clock, Star, Shield } from 'lucide-react';
-
+import {
+  Search,
+  Bell,
+  Calendar,
+  Menu,
+  ChevronDown,
+  Moon,
+  Sun,
+  Filter,
+  LayoutGrid,
+  FileText,
+  Users,
+  MessageCircle,
+  Settings as SettingsIcon,
+  ChevronRight,
+  LogOut,
+  ChevronLeft,
+  User,
+  CreditCard,
+  X,
+  Building,
+  ChevronsRight,
+  Home,
+  LineChart,
+  BarChart3,
+  Clock,
+  Star,
+  Shield,
+} from "lucide-react";
+import { UserCircle } from "lucide-react"; // Import icon
 // Import page components
 import DashboardContent from "../pages/DashboardContent";
 import Analytics from "../pages/Analytics";
@@ -19,26 +47,26 @@ const Navigation = () => {
   const [activePage, setActivePage] = useState("dashboard");
   const [windowWidth, setWindowWidth] = useState(window.innerWidth);
   const [hoveredMenu, setHoveredMenu] = useState(null);
-  const [userData, setUserData] = useState(null);
+  const [adminData, setadminData] = useState(null);
 
   // Fetch user data on component mount
   useEffect(() => {
     // Check if user is logged in by looking for the access token
-    const accessToken = localStorage.getItem('accessToken');
-    const userDataString = localStorage.getItem('admin');
-    
+    const accessToken = localStorage.getItem("accessToken");
+    const stringAdminData = localStorage.getItem("admin");
+
     if (!accessToken) {
       // Redirect to login if no token found
-      window.location.href = '/connexionadmin';
+      window.location.href = "/connexionadmin";
       return;
     }
-    
-    if (userDataString) {
+
+    if (stringAdminData) {
       try {
-        const parsedUserData = JSON.parse(userDataString);
-        setUserData(parsedUserData);
+        const parsedAdminData = JSON.parse(stringAdminData);
+        setadminData(parsedAdminData);
       } catch (error) {
-        console.error('Error parsing user data:', error);
+        console.error("Error parsing user data:", error);
         handleLogout(); // Logout if data is corrupted
       }
     }
@@ -47,12 +75,12 @@ const Navigation = () => {
   // Handle logout function
   const handleLogout = () => {
     // Remove tokens and user data from localStorage
-    localStorage.removeItem('accessToken');
-    localStorage.removeItem('refreshToken');
-    localStorage.removeItem('userData');
-    
+    localStorage.removeItem("accessToken");
+    localStorage.removeItem("refreshToken");
+    localStorage.removeItem("admin");
+
     // Redirect to login page
-    window.location.href = '/connexionadmin';
+    window.location.href = "/connexionadmin";
   };
 
   // Monitor window width for responsive behavior
@@ -126,20 +154,8 @@ const Navigation = () => {
 
   // Get user's name
   const getUserName = () => {
-    if (userData && userData.admin && userData.admin.email) {
-      return userData.admin.email;
-    }
-    return "Utilisateur";
-  };
-
-  // Get user's short name
-  const getUserShortName = () => {
-    if (userData && userData.admin && userData.admin.name) {
-      const nameParts = userData.admin.name.split(' ');
-      if (nameParts.length > 1) {
-        return `${nameParts[0]} ${nameParts[1].charAt(0)}.`;
-      }
-      return userData.admin.name;
+    if (adminData && adminData.name) {
+      return adminData.name;
     }
     return "Utilisateur";
   };
@@ -240,7 +256,7 @@ const Navigation = () => {
                   isDarkMode ? "text-white" : "text-gray-800"
                 } tracking-tight`}
               >
-                Enterprise
+                PlanifyGo
               </span>
             )}
           </div>
@@ -268,14 +284,10 @@ const Navigation = () => {
             } transition-all duration-200`}
           >
             <div className="relative">
-              <img
-                src="/api/placeholder/40/40"
-                alt="User profile"
-                className={`w-10 h-10 rounded-lg ring-2 ${
-                  isDarkMode
-                    ? "ring-blue-500/20 group-hover:ring-blue-500/40"
-                    : "ring-blue-100 group-hover:ring-blue-200"
-                } shadow-sm`}
+              <UserCircle
+                className={`w-10 h-10 ${
+                  isDarkMode ? "text-blue-400" : "text-blue-600"
+                }`}
               />
               <span className="absolute bottom-0 right-0 w-3 h-3 rounded-full bg-green-500 ring-2 ring-white"></span>
             </div>
@@ -296,18 +308,6 @@ const Navigation = () => {
                   En ligne
                 </p>
               </div>
-            )}
-
-            {isSidebarExpanded && (
-              <button
-                className={`p-1.5 rounded-lg ${
-                  isDarkMode
-                    ? "text-gray-400 hover:text-blue-400 hover:bg-blue-800/20"
-                    : "text-gray-400 hover:text-blue-600 hover:bg-blue-50"
-                }`}
-              >
-                <ChevronDown size={16} />
-              </button>
             )}
           </div>
         </div>
@@ -539,7 +539,11 @@ const Navigation = () => {
               {activePage === "analytics" && (
                 <div
                   className={`hidden sm:block px-2 py-0.5 rounded-lg border text-xs font-medium
-                  ${isDarkMode ? 'border-slate-600 text-slate-400' : 'border-gray-300 text-gray-500'}`}
+                  ${
+                    isDarkMode
+                      ? "border-slate-600 text-slate-400"
+                      : "border-gray-300 text-gray-500"
+                  }`}
                 >
                   Enterprise
                 </div>
@@ -613,46 +617,6 @@ const Navigation = () => {
                 <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-red-500 ring-2 ring-white animate-pulse"></span>
               </button>
             </div>
-
-            <button
-              className={`hidden md:flex items-center gap-2 pl-1.5 pr-3 py-1 rounded-lg 
-              ${
-                isDarkMode
-                  ? "hover:bg-blue-800/20 border-slate-700 hover:border-blue-900/40"
-                  : "hover:bg-blue-50 border-gray-200 hover:border-blue-200"
-              } 
-              transition-all duration-200 border group`}
-            >
-              <div className="relative">
-                <img
-                  src="/api/placeholder/32/32"
-                  alt="User profile"
-                  className={`w-8 h-8 rounded-lg border-2 ${
-                    isDarkMode
-                      ? "border-slate-700 group-hover:border-blue-900/40"
-                      : "border-white group-hover:border-blue-100"
-                  } shadow-sm transition-all duration-200`}
-                />
-                <span className="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-green-500 ring-2 ring-white"></span>
-              </div>
-              <span
-                className={`text-sm font-medium ${
-                  isDarkMode
-                    ? "text-gray-300 group-hover:text-blue-400"
-                    : "text-gray-700 group-hover:text-blue-600"
-                } transition-all duration-200`}
-              >
-                {getUserShortName()}
-              </span>
-              <ChevronDown
-                size={14}
-                className={`${
-                  isDarkMode
-                    ? "text-gray-500 group-hover:text-blue-400"
-                    : "text-gray-400 group-hover:text-blue-500"
-                } transition-all duration-200`}
-              />
-            </button>
           </div>
         </header>
 
