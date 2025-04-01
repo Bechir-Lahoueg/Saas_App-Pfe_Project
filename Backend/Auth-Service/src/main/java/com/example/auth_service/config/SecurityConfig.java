@@ -37,7 +37,8 @@ public class SecurityConfig {
                                 "/oauth2/**",
                                 "/forgot-password/**",
                                 "/reset-password/**",
-                                "/admin/login"
+                                "/admin/login",
+                                "/tenant/**"
                         ).permitAll()
                         .anyRequest()
                         .authenticated()

@@ -25,11 +25,14 @@
         <option value="$PROJECT_DIR$/Reporting-Service/pom.xml" />
         <option value="$PROJECT_DIR$/Service-Discovery/pom.xml" />
         <option value="$PROJECT_DIR$/Schedule-Service/pom.xml" />
+        <option value="$PROJECT_DIR$/communs-library/pom.xml" />
+        <option value="$PROJECT_DIR$/tenant-routing-library/pom.xml" />
       </list>
     </option>
     <option name="ignoredFiles">
       <set>
         <option value="$PROJECT_DIR$/Integration-Service/pom.xml" />
+        <option value="$PROJECT_DIR$/communs-library/pom.xml" />
       </set>
     </option>
   </component>
