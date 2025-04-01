@@ -1,6 +1,34 @@
 import React, { useState, useEffect } from "react";
-import { Search, Bell, Calendar, Menu, ChevronDown, Moon, Sun, Filter, LayoutGrid, FileText, Users, MessageCircle, Settings as SettingsIcon, ChevronRight, LogOut, ChevronLeft, User, CreditCard, X, Building, ChevronsRight, Home, LineChart, BarChart3, Clock, Star, Shield } from 'lucide-react';
-import { UserCircle } from 'lucide-react'; // Import icon
+import {
+  Search,
+  Bell,
+  Calendar,
+  Menu,
+  ChevronDown,
+  Moon,
+  Sun,
+  Filter,
+  LayoutGrid,
+  FileText,
+  Users,
+  MessageCircle,
+  Settings as SettingsIcon,
+  ChevronRight,
+  LogOut,
+  ChevronLeft,
+  User,
+  CreditCard,
+  X,
+  Building,
+  ChevronsRight,
+  Home,
+  LineChart,
+  BarChart3,
+  Clock,
+  Star,
+  Shield,
+} from "lucide-react";
+import { UserCircle } from "lucide-react"; // Import icon
 // Import page components
 import DashboardContent from "../pages/DashboardContent";
 import Analytics from "../pages/Analytics";
@@ -21,38 +49,38 @@ const Navigation = () => {
   const [hoveredMenu, setHoveredMenu] = useState(null);
   const [adminData, setadminData] = useState(null);
 
-// Fetch user data on component mount
-useEffect(() => {
-  // Check if user is logged in by looking for the access token
-  const accessToken = localStorage.getItem('accessToken');
-  const stringAdminData = localStorage.getItem('admin');
-  
-  if (!accessToken) {
-    // Redirect to login if no token found
-    window.location.href = '/connexionadmin';
-    return;
-  }
-  
-  if (stringAdminData) {
-    try {
-      const parsedAdminData = JSON.parse(stringAdminData);
-      setadminData(parsedAdminData);
-    } catch (error) {
-      console.error('Error parsing user data:', error);
-      handleLogout(); // Logout if data is corrupted
+  // Fetch user data on component mount
+  useEffect(() => {
+    // Check if user is logged in by looking for the access token
+    const accessToken = localStorage.getItem("accessToken");
+    const stringAdminData = localStorage.getItem("admin");
+
+    if (!accessToken) {
+      // Redirect to login if no token found
+      window.location.href = "/connexionadmin";
+      return;
     }
-  }
-}, []);
+
+    if (stringAdminData) {
+      try {
+        const parsedAdminData = JSON.parse(stringAdminData);
+        setadminData(parsedAdminData);
+      } catch (error) {
+        console.error("Error parsing user data:", error);
+        handleLogout(); // Logout if data is corrupted
+      }
+    }
+  }, []);
 
   // Handle logout function
   const handleLogout = () => {
     // Remove tokens and user data from localStorage
-    localStorage.removeItem('accessToken');
-    localStorage.removeItem('refreshToken');
-    localStorage.removeItem('admin');
-    
+    localStorage.removeItem("accessToken");
+    localStorage.removeItem("refreshToken");
+    localStorage.removeItem("admin");
+
     // Redirect to login page
-    window.location.href = '/connexionadmin';
+    window.location.href = "/connexionadmin";
   };
 
   // Monitor window width for responsive behavior
@@ -124,13 +152,13 @@ useEffect(() => {
     }
   };
 
-// Get user's name
-const getUserName = () => {
-  if (adminData && adminData.name) {
-    return adminData.name;
-  }
-  return "Utilisateur";
-};
+  // Get user's name
+  const getUserName = () => {
+    if (adminData && adminData.name) {
+      return adminData.name;
+    }
+    return "Utilisateur";
+  };
 
   // Menu items definition
   const menuItems = [
@@ -256,11 +284,11 @@ const getUserName = () => {
             } transition-all duration-200`}
           >
             <div className="relative">
-            <UserCircle 
-              className={`w-10 h-10 ${
-                isDarkMode ? "text-blue-400" : "text-blue-600"
-              }`}
-            />
+              <UserCircle
+                className={`w-10 h-10 ${
+                  isDarkMode ? "text-blue-400" : "text-blue-600"
+                }`}
+              />
               <span className="absolute bottom-0 right-0 w-3 h-3 rounded-full bg-green-500 ring-2 ring-white"></span>
             </div>
 
@@ -481,7 +509,6 @@ const getUserName = () => {
       >
         {/* Navbar */}
         <header
-        
           className={`${
             isDarkMode
               ? "bg-slate-800 border-slate-700"
@@ -512,7 +539,11 @@ const getUserName = () => {
               {activePage === "analytics" && (
                 <div
                   className={`hidden sm:block px-2 py-0.5 rounded-lg border text-xs font-medium
-                  ${isDarkMode ? 'border-slate-600 text-slate-400' : 'border-gray-300 text-gray-500'}`}
+                  ${
+                    isDarkMode
+                      ? "border-slate-600 text-slate-400"
+                      : "border-gray-300 text-gray-500"
+                  }`}
                 >
                   Enterprise
                 </div>
@@ -586,8 +617,6 @@ const getUserName = () => {
                 <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-red-500 ring-2 ring-white animate-pulse"></span>
               </button>
             </div>
-
-
           </div>
         </header>
 
