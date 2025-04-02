@@ -12,7 +12,7 @@ const eurekaClient = new Eureka({
       '$': process.env.PORT ,
       '@enabled': 'true'
     },
-    vipAddress: 'Inetgration-Service',
+    vipAddress: 'Integration-Service',
     dataCenterInfo: {
       '@class': 'com.netflix.appinfo.InstanceInfo$DefaultDataCenterInfo',
       name: 'MyOwn'
