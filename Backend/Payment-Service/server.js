@@ -4,6 +4,7 @@ const cors = require("cors");
 const connectDB = require("./src/config/db");
 const paymentRoutes = require('./src/routes/paymentRoutes');
 const Payment = require('./src/models/Payment');
+const registerWithEureka = require("./src/config/eurekaClient");
 
 const app = express();
 const PORT = process.env.PORT;
@@ -46,4 +47,5 @@ app.post('/api/payments/webhook', async (req, res) => {
 // Start Server
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
+  registerWithEureka();
 });

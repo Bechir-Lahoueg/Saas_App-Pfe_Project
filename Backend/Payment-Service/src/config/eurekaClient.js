@@ -4,7 +4,7 @@ const { Eureka } = require('eureka-js-client');
 const eurekaClient = new Eureka({
   instance: {
     app: 'Payment-Service',
-    instanceId: `Payment-Service`,
+    instanceId: `payment-service`,
     hostName: 'localhost',
     ipAddr: '127.0.0.1',
     statusPageUrl: `http://localhost:${process.env.PORT}`,
@@ -12,7 +12,7 @@ const eurekaClient = new Eureka({
       '$': process.env.PORT,
       '@enabled': 'true'
     },
-    vipAddress: 'Payment-Service',
+    vipAddress: 'payment-service',
     dataCenterInfo: {
       '@class': 'com.netflix.appinfo.InstanceInfo$DefaultDataCenterInfo',
       name: 'MyOwn'

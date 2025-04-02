@@ -18,6 +18,7 @@ const initiatePayment = async (req, res) => {
     successUrl,
     failUrl,
     theme,
+    customerDetails
   } = req.body;
 
   const paymentData = {
@@ -36,6 +37,7 @@ const initiatePayment = async (req, res) => {
     successUrl,
     failUrl,
     theme,
+    customerDetails
   };
 
   try {

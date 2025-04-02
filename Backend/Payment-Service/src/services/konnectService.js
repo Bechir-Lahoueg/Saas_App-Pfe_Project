@@ -6,7 +6,6 @@ const API_KEY = process.env.KONNECT_API_KEY;
 
 const initiatePayment = async (paymentData) => {
   try {
-    // Configuration minimale pour initialiser un paiement
     const payload = {
       receiverWalletId: paymentData.receiverWalletId,
       token: paymentData.token,
@@ -20,11 +19,10 @@ const initiatePayment = async (paymentData) => {
       webhook: `${process.env.BASE_URL}/api/payments/webhook`,
       silentWebhook: true,
       successUrl: paymentData.successUrl || "https://gateway.sandbox.konnect.network/payment-success",
-      failUrl: paymentData.failUrl || "https://gateway.sandbox.konnect.network/payment-success",
+      failUrl: paymentData.failUrl || "https://gateway.sandbox.konnect.network/payment-failure",
       theme: paymentData.theme || "dark"
     };
 
-    console.log('Sending payment data to Konnect:', payload);
     const response = await axios.post(`${KONNECT_API_URL}/payments/init-payment`, payload, {
       headers: {
         'Content-Type': 'application/json',
@@ -32,32 +30,31 @@ const initiatePayment = async (paymentData) => {
       },
     });
 
-    console.log('Konnect API response:', response.data);
+    console.log(`Payment initiated with ID: ${response.data.paymentRef}`);
 
-    // Sauvegarder les détails minimaux du paiement dans la base de données
     const payment = new Payment({
       orderId: paymentData.orderId,
       amount: paymentData.amount,
       status: 'pending',
-      paymentMethod: 'unknown', // Sera mis à jour après completion
+      paymentMethod: 'unknown',
       receiverWalletId: paymentData.receiverWalletId,
-      customerDetails: {}, // Vide car nous n'avons pas les détails du client à ce stade
-      konnectPaymentId: response.data.paymentId,
+      customerDetails: paymentData.customerDetails || {},
+      konnectPaymentId: response.data.paymentRef,
       konnectPaymentUrl: response.data.payUrl,
     });
 
     await payment.save();
     return response.data;
   } catch (error) {
-    console.error('Error initiating payment:', error.response ? error.response.data : error.message);
+    console.error('Payment initiation failed:', error.response?.data || error.message);
     throw error;
   }
 };
 
-const verifyPayment = async (paymentId) => {
+const verifyPayment = async (paymentRef) => {
   try {
-    console.log('Verifying payment with ID:', paymentId);
-    const response = await axios.get(`${KONNECT_API_URL}/payments/${paymentId}`, {
+    console.log(`Verifying payment: ${paymentRef}`);
+    const response = await axios.get(`${KONNECT_API_URL}/payments/${paymentRef}`, {
       headers: {
         'Content-Type': 'application/json',
         'x-api-key': API_KEY,
@@ -65,69 +62,88 @@ const verifyPayment = async (paymentId) => {
     });
 
     const result = response.data;
-    console.log('Konnect API verification response:', result);
-
-    // Vérifier si le tableau des transactions est vide
-    if (result.payment.transactions.length === 0) {
-      console.warn('No transactions found for this payment.');
-    }
-
-    // Vérifier le statut global du paiement
-    if (result.payment.status === 'completed') {
-      return { success: true, payment: result.payment };
-    } else {
-      return { success: false, payment: result.payment, reason: `Payment status: ${result.payment.status}` };
-    }
+    return {
+      success: result.payment.status === 'completed',
+      payment: result.payment,
+      status: result.payment.status
+    };
   } catch (error) {
-    console.error('Error verifying payment:', error.response ? error.response.data : error.message);
+    console.error('Payment verification failed:', error.response?.data || error.message);
     throw error;
   }
 };
-  
-const completePayment = async (paymentId) => {
+
+const completePayment = async (paymentRef) => {
   try {
-    // 1. Vérifier le statut du paiement dans Konnect
-    const verificationResponse = await verifyPayment(paymentId);
+    console.log(`Completing payment: ${paymentRef}`);
+    const verificationResponse = await verifyPayment(paymentRef);
 
-    // 2. Mettre à jour le paiement dans la base de données
-    const payment = await Payment.findOne({ konnectPaymentId: paymentId });
-
+    const payment = await Payment.findOne({ konnectPaymentId: paymentRef });
     if (!payment) {
       throw new Error('Payment not found in database');
     }
 
-    if (verificationResponse.success) {
-      payment.status = 'completed';
-      payment.completionDate = new Date();
-      
-      // Mettre à jour la méthode de paiement utilisée si disponible dans la réponse
-      if (verificationResponse.payment.transactions && 
-          verificationResponse.payment.transactions.length > 0 &&
-          verificationResponse.payment.transactions[0].paymentMethod) {
-        payment.paymentMethod = verificationResponse.payment.transactions[0].paymentMethod;
+    // Store original customer details
+    const originalCustomerDetails = { ...payment.customerDetails };
+    console.log('Original customer details:', originalCustomerDetails);
+
+    payment.status = verificationResponse.payment.status;
+
+    // Handle transaction data if available
+    const transactions = verificationResponse.payment.transactions;
+    if (transactions && transactions.length > 0) {
+      // Prefer method over type for payment method identification
+      if (transactions[0].method) {
+        payment.paymentMethod = transactions[0].method;
+      } else if (transactions[0].type) {
+        payment.paymentMethod = transactions[0].type;
       }
-      
-      // Mettre à jour les détails du client si disponibles dans la réponse
-      if (verificationResponse.payment.customerDetails) {
-        payment.customerDetails = verificationResponse.payment.customerDetails;
+
+      // Only use transaction owner data if original customer details is empty
+      const hasOriginalCustomerDetails = originalCustomerDetails &&
+          (originalCustomerDetails.firstName ||
+              originalCustomerDetails.lastName ||
+              originalCustomerDetails.email ||
+              originalCustomerDetails.phoneNumber);
+
+      if (!hasOriginalCustomerDetails && transactions[0].senderWallet?.owner) {
+        const owner = transactions[0].senderWallet.owner;
+        payment.customerDetails = {
+          firstName: owner.firstName || '',
+          lastName: owner.lastName || '',
+          email: owner.email || '',
+          phoneNumber: owner.phoneNumber || '',
+        };
+        console.log('Using owner details from transaction');
+      } else {
+        // Keep original customer details
+        payment.customerDetails = originalCustomerDetails;
+        console.log('Keeping original customer details');
       }
-      
-      payment.metadata.verificationResponse = verificationResponse;
-      await payment.save();
-      return { success: true, payment };
-    } else {
-      payment.status = 'failed';
-      payment.metadata.verificationResponse = verificationResponse;
-      await payment.save();
-      return { success: false, payment, reason: verificationResponse.reason };
     }
+
+    if (verificationResponse.payment.status === 'completed') {
+      payment.completionDate = new Date();
+    }
+
+    payment.metadata = {
+      verificationResponse: verificationResponse.payment
+    };
+
+    await payment.save();
+    console.log(`Payment ${paymentRef} completed with status: ${payment.status}`);
+
+    return {
+      success: verificationResponse.success,
+      payment,
+      status: verificationResponse.payment.status
+    };
   } catch (error) {
-    console.error('Error completing payment:', error.message);
+    console.error('Payment completion failed:', error.message);
     throw error;
   }
 };
 
-// Fonction pour obtenir les détails d'un paiement depuis notre base de données
 const getPaymentDetails = async (orderId) => {
   try {
     const payment = await Payment.findOne({ orderId });
@@ -136,7 +152,7 @@ const getPaymentDetails = async (orderId) => {
     }
     return payment;
   } catch (error) {
-    console.error('Error getting payment details:', error.message);
+    console.error(`Failed to retrieve payment details for order ${orderId}:`, error.message);
     throw error;
   }
 };
