@@ -19,7 +19,6 @@ export default function LandingPage() {
       <Webflow />
       <Solutions />
       <Reviews />
-      <Pricing />
       <Faqs />
       <Footer />
     </div>

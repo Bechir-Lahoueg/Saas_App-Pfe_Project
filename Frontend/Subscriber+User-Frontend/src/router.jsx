@@ -1,48 +1,77 @@
 import React, { Suspense, lazy } from "react";
 import { Route, Routes } from "react-router-dom";
-import LoadingSpinner from "../public/LoadingSpinner";
+import LoadingSpinner from "./Utils/LoadingSpinner";
 import DelayedLoadingWrapper from "./Utils/DelayedLoadingWrapper";
-import ProtectedRoute from "./Utils/ProtectedRoute"; // Importez le composant ProtectedRoute
+import ProtectedRoute from "./Utils/ProtectedRoute";
 
 // Importez vos composants lazy
 const LandigPage = lazy(() => import("./components/Landing/LandingPage"));
-const Login = lazy(() => import("./Pages/LoginPage"));
+const PricingPage = lazy(() => import("./components/Landing/components/PricingPage"));
+const Login = lazy(() => import("./components/Subscriber/LoginPage"));
 const Signup = lazy(() => import("./Pages/Signup/SignupPage"));
 const Erreur = lazy(() => import("./Pages/ErreurPage"));
-const Step1 = lazy(() => import("./Pages/Signup/CompleteSignup1"));
-const Step2 = lazy(() => import("./Pages/Signup/CompleteSignup2"));
+const Step1 = lazy(() => import("./Pages/Signup/PaiementPage"));
+const Demo = lazy(() => import("./Pages/Demo/Demo"));
 const Step3 = lazy(() => import("./Pages/Signup/CompleteSignup3"));
 const Step4 = lazy(() => import("./Pages/Signup/CompleteSignup4"));
 const Verification = lazy(() => import("./Pages/Signup/MailVerification"));
-const Dashbord = lazy(() =>import("./components/Subscriber/pages/Configuration/Dashboard"));
+const Dashbord = lazy(() => import("./components/Subscriber/pages/Configuration/Dashboard"));
+
 const AppRouter = () => {
   return (
     <Suspense fallback={<LoadingSpinner />}>
-      <DelayedLoadingWrapper>
-        <Routes>
-          <Route path="/" element={<LandigPage />} />
-          <Route path="/inscription" element={<Signup />} />
-          <Route path="/Erreur" element={<Erreur />} />
+      <Routes>
+        {/* Pages sans loading spécial */}
+        <Route path="/" element={<LandigPage />} />
+        <Route path="/connexion" element={<Login />} />
+        <Route path="/inscription" element={<Signup />} />
+        
+        {/* Pages avec loading spécial */}
+        <Route path="/Erreur" element={
+          <DelayedLoadingWrapper>
+            <Erreur />
+          </DelayedLoadingWrapper>
+        } />
+        <Route path="/paiement" element={
+          <DelayedLoadingWrapper>
+            <Step1 />
+          </DelayedLoadingWrapper>
+        } />
+         <Route path="/tarification" element={
+          <DelayedLoadingWrapper>
+            <PricingPage />
+          </DelayedLoadingWrapper>
+        } />
+        <Route path="/demo" element={
+          <DelayedLoadingWrapper>
+            <Demo />
+          </DelayedLoadingWrapper>
+        } />
+        <Route path="/paiement/presentation/adresse" element={
+          <DelayedLoadingWrapper>
+            <Step3 />
+          </DelayedLoadingWrapper>
+        } />
+        <Route path="/paiement/presentation/adresse/identifiants" element={
+          <DelayedLoadingWrapper>
+            <Step4 />
+          </DelayedLoadingWrapper>
+        } />
+        <Route path="/paiement/presentation/adresse/identifiants/verification" element={
+          <DelayedLoadingWrapper>
+            <Verification />
+          </DelayedLoadingWrapper>
+        } />
 
-          <Route path="/paiement" element={<Step1 />} />
-          <Route path="/paiement/presentation" element={<Step2 />} />
-          <Route path="/paiement/presentation/adresse" element={<Step3 />} />
-          <Route
-            path="/paiement/presentation/adresse/identifiants"
-            element={<Step4 />}
-          />
-          <Route
-            path="/paiement/presentation/adresse/identifiants/verification"
-            element={<Verification />}
-          />
-
-          {/* Utilisez ProtectedRoute pour les routes protégées */}
-          <Route element={<ProtectedRoute />}>
-            <Route path="/dashbord" element={<Dashbord />} />
-          </Route>
-          <Route path="/connexion" element={<Login />} />
-        </Routes>
-      </DelayedLoadingWrapper>
+        {/* Route protégée avec loading spécial */}
+        <Route element={<ProtectedRoute />}>
+          <Route path="/dashbord" element={
+            <DelayedLoadingWrapper>
+              <Dashbord />
+            </DelayedLoadingWrapper>
+          } />
+        </Route>
+      </Routes>
     </Suspense>
   );
 };

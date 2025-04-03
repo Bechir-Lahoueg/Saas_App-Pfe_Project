@@ -29,25 +29,14 @@ const LandingPage = () => {
           </p>
           <div className="flex flex-col sm:flex-row gap-4">
             <button className="px-8 py-3 rounded-lg bg-blue-600 text-white font-medium hover:bg-blue-700 transition-all shadow-md transform hover:-translate-y-1">
-              Commencer gratuitement
+              Essayer gratuitement
             </button>
-            <button className="px-8 py-3 rounded-lg bg-white text-blue-600 font-medium border border-blue-200 hover:border-blue-400 transition-all shadow-sm flex items-center justify-center">
+            <a href="/demo" className="px-8 py-3 rounded-lg bg-white text-blue-600 font-medium border border-blue-200 hover:border-blue-400 transition-all shadow-sm flex items-center justify-center">
               <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
                 <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd" />
               </svg>
               Voir la démo
-            </button>
-          </div>
-          
-          {/* Preuve sociale */}
-          <div className="mt-10">
-            <p className="text-sm text-gray-500 mb-3">Utilisé par plus de 10 000 entreprises dans le monde</p>
-            <div className="flex flex-wrap gap-6 items-center opacity-70">
-              <div className="h-8 w-auto">Entreprise 1</div>
-              <div className="h-8 w-auto">Entreprise 2</div>
-              <div className="h-8 w-auto">Entreprise 3</div>
-              <div className="h-8 w-auto">Entreprise 4</div>
-            </div>
+            </a>
           </div>
         </div>
         
@@ -59,7 +48,7 @@ const LandingPage = () => {
               <div className="p-4">
                 <div className="bg-white rounded-lg shadow-md overflow-hidden">
                   <div className="bg-blue-600 text-white px-4 py-3 flex justify-between items-center">
-                    <span>Mars 2025</span>
+                    <span>Avril 2025</span>
                     <div className="flex space-x-2">
                       <button className="p-1 rounded hover:bg-blue-500">
                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -91,14 +80,14 @@ const LandingPage = () => {
                 <div className="mt-4 space-y-2">
                   <div className="bg-white p-3 rounded-lg shadow-sm flex justify-between items-center">
                     <div>
-                      <p className="font-medium text-gray-800">Coupe de cheveux - Jean</p>
+                      <p className="font-medium text-gray-800">Coupe de cheveux - Bechir</p>
                       <p className="text-sm text-gray-500">10:00 - 10:45</p>
                     </div>
                     <span className="px-2 py-1 bg-green-100 text-green-700 text-xs rounded-full">Confirmé</span>
                   </div>
                   <div className="bg-white p-3 rounded-lg shadow-sm flex justify-between items-center">
                     <div>
-                      <p className="font-medium text-gray-800">Massage - Emma</p>
+                      <p className="font-medium text-gray-800">Massage - Safwene</p>
                       <p className="text-sm text-gray-500">11:30 - 12:30</p>
                     </div>
                     <span className="px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded-full">Nouveau</span>
