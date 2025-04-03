@@ -1,10 +1,13 @@
 import React, { useState } from 'react';
+import Navbar from './Navbar';
+import Footer from './Footer';
 
 const PricingPage = () => {
   const [billingCycle, setBillingCycle] = useState('annual');
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-white to-blue-50 font-sans relative overflow-hidden">
+        <Navbar />
       {/* Éléments de fond animés */}
       <div className="absolute inset-0 overflow-hidden">
         <div className="absolute top-0 left-1/4 w-64 h-64 bg-blue-100 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob"></div>
@@ -231,6 +234,8 @@ const PricingPage = () => {
           </p>
         </div>
       </div>
+      <Footer />
+
     </div>
   );
 };

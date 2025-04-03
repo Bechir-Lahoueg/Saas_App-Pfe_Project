@@ -4,8 +4,11 @@ const Navbar = () => {
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [activeSection, setActiveSection] = useState('accueil');
-  const [hoveredItem, setHoveredItem] = useState(null);
   const [openDropdown, setOpenDropdown] = useState(null);
+
+  const handleNavClick = (sectionId) => {
+    setActiveSection(sectionId);
+  };
 
   // Détection du défilement pour changer l'apparence
   useEffect(() => {
@@ -13,7 +16,7 @@ const Navbar = () => {
       setScrolled(window.scrollY > 20);
       
       // Logique pour déterminer la section active basée sur le défilement
-      const sections = ['accueil', 'fonctionnalites', 'tarifs', 'ressources'];
+      const sections = ['accueil', 'fonctionnalites', 'tarification', 'ressources'];
       const currentPos = window.scrollY + 100;
       
       for (const section of sections) {
@@ -30,15 +33,6 @@ const Navbar = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // Animation de l'indicateur lumineux
-  const glowPosition = {
-    entreprise: 'left-[5%]',
-    secteurs: 'left-[23%]',
-    fonctionnalites: 'left-[41%]',
-    tarifs: 'left-[59%]',
-    ressources: 'left-[77%]'
-  };
-
   // Gérer les dropdowns
   const handleDropdownToggle = (id) => {
     if (openDropdown === id) {
@@ -51,10 +45,16 @@ const Navbar = () => {
   // Contenu des dropdowns
   const dropdownContent = {
     secteurs: [
-      { label: 'Commerce de détail', link: '#retail' },
-      { label: 'Finance', link: '#finance' },
-      { label: 'Santé', link: '#sante' },
-      { label: 'Services en ligne', link: '#services' }
+      { label: 'Beauté et bien-être', link: '/Beaute_et_bien-etre' },
+      { label: 'Sports & Fitness', link: '/Sports_et_Fitness' },
+      { label: 'Santé', link: '/Sante' },
+      { label: 'Services professionnels', link: '/Services_professionnels' },
+      { label: 'Services publics', link: '/Services_publics' },
+      { label: 'Education', link: '/Education' },
+      { label: 'Photographes', link: '/Photographes' },
+      { label: 'Commerce de détail', link: '/Commerce_de_detail' },
+      { label: 'Evènementiel & loisirs', link: '/Evenementiel_et_loisirs' },
+      { label: 'Tous les secteurs', link: '/Tous_les_secteurs' }
     ],
     fonctionnalites: [
       { label: 'Paiements internationaux', link: '#intl' },
@@ -93,83 +93,67 @@ const Navbar = () => {
             <span className="font-bold text-xl relative">
               <span className={`transition-colors duration-300 ${
                 scrolled ? 'text-gray-800' : 'text-gray-800'
-              }`}>Flow</span>
-              <span className="bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">Pay</span>
+              }`}>Planify</span>
+              <span className="bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">Go</span>
               <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-blue-600 group-hover:w-full transition-all duration-300"></span>
             </span>
           </div>
 
           {/* Navigation principale - Desktop */}
           <div className="hidden lg:block">
-            <div className="relative">
-              {/* Indicateur de lien actif/survolé */}
-              <div 
-                className={`absolute h-8 w-24 bg-blue-50 rounded-md transition-all duration-300 ease-in-out ${
-                  hoveredItem ? glowPosition[hoveredItem] : 'opacity-0'
-                }`}
-              ></div>
-              
-              <div className="flex items-center space-x-1 relative">
-                <NavItem 
-                  id="entreprise" 
-                  label="Entreprise" 
-                  isActive={activeSection === 'entreprise'} 
-                  onHover={setHoveredItem} 
-                  scrolled={scrolled}
-                  redirectTo="#entreprise"
-                />
-                <NavItemWithDropdown 
-                  id="secteurs" 
-                  label="Secteurs" 
-                  isActive={activeSection === 'secteurs'} 
-                  onHover={setHoveredItem}
-                  scrolled={scrolled}
-                  isOpen={openDropdown === 'secteurs'}
-                  onToggle={handleDropdownToggle}
-                  items={dropdownContent.secteurs}
-                />
-                <NavItemWithDropdown 
-                  id="fonctionnalites" 
-                  label="Fonctionnalités" 
-                  isActive={activeSection === 'fonctionnalites'} 
-                  onHover={setHoveredItem}
-                  scrolled={scrolled}
-                  isOpen={openDropdown === 'fonctionnalites'}
-                  onToggle={handleDropdownToggle}
-                  items={dropdownContent.fonctionnalites}
-                />
-                <NavItem 
-                  id="tarifs" 
-                  label="Tarifs" 
-                  isActive={activeSection === 'tarifs'} 
-                  onHover={setHoveredItem}
-                  scrolled={scrolled}
-                />
-                <NavItemWithDropdown 
-                  id="ressources" 
-                  label="Ressources" 
-                  isActive={activeSection === 'ressources'} 
-                  onHover={setHoveredItem}
-                  scrolled={scrolled}
-                  isOpen={openDropdown === 'ressources'}
-                  onToggle={handleDropdownToggle}
-                  items={dropdownContent.ressources}
-                />
-              </div>
+            <div className="flex items-center space-x-1 relative">
+              <NavItem 
+                id="accueil" 
+                label="Accueil" 
+                isActive={activeSection === 'accueil'} 
+                scrolled={scrolled}
+                redirectTo="/"
+              />
+              <NavItemWithDropdown 
+                id="secteurs" 
+                label="Secteurs" 
+                isActive={activeSection === 'secteurs'} 
+                scrolled={scrolled}
+                isOpen={openDropdown === 'secteurs'}
+                onToggle={handleDropdownToggle}
+                items={dropdownContent.secteurs}
+              />
+              <NavItemWithDropdown 
+                id="fonctionnalites" 
+                label="Fonctionnalités" 
+                isActive={activeSection === 'fonctionnalites'} 
+                scrolled={scrolled}
+                isOpen={openDropdown === 'fonctionnalites'}
+                onToggle={handleDropdownToggle}
+                items={dropdownContent.fonctionnalites}
+              />
+              <NavItem 
+                id="tarification" 
+                label="Tarification" 
+                isActive={activeSection === 'tarification'} 
+                scrolled={scrolled}
+                redirectTo="/tarification"
+                onClick={() => handleNavClick('tarification')}
+              />
+              <NavItemWithDropdown 
+                id="ressources" 
+                label="Ressources" 
+                isActive={activeSection === 'ressources'} 
+                scrolled={scrolled}
+                isOpen={openDropdown === 'ressources'}
+                onToggle={handleDropdownToggle}
+                items={dropdownContent.ressources}
+              />
             </div>
           </div>
 
           {/* Boutons d'action */}
           <div className="hidden lg:flex items-center space-x-3">
-
             <button 
               className="relative overflow-hidden px-5 py-2 rounded-md bg-transparent group"
               onClick={() => window.location.href='/connexion'}
             >
-              {/* Fond animé */}
               <span className="absolute inset-0 w-full h-full transition-all duration-300 ease-out transform translate-y-full bg-gradient-to-t from-blue-50 to-blue-100 group-hover:translate-y-0"></span>
-              
-              {/* Texte */}
               <span className={`relative font-medium text-sm transition-colors duration-300 ${
                 scrolled ? 'text-gray-700' : 'text-gray-700'
               } group-hover:text-blue-600`}>
@@ -182,18 +166,13 @@ const Navbar = () => {
               className="relative px-6 py-2.5 rounded-md overflow-hidden group"
               onClick={() => window.location.href='#demarrer'}
             >
-              {/* Fond avec animation */}
               <span className="absolute inset-0 w-full h-full transition-all duration-500 ease-out transform -translate-x-full bg-gradient-to-r from-blue-500 to-blue-700 group-hover:translate-x-0"></span>
               <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-blue-600 to-blue-500"></span>
-              
-              {/* Texte et effet de brillance */}
               <span className="relative text-white font-medium text-sm flex items-center">
                 Démarrer
                 <svg className="w-4 h-4 ml-1 transform group-hover:translate-x-1 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
                 </svg>
-                
-                {/* Effet de brillance */}
                 <span className="absolute top-0 left-0 w-64 h-64 -mt-12 transition-all duration-1000 transform -translate-x-64 -translate-y-12 bg-white opacity-5 group-hover:-translate-x-0 ease rounded-full"></span>
               </span>
             </button>
@@ -239,22 +218,30 @@ const Navbar = () => {
         <div className="py-6 px-6 h-full overflow-y-auto">
           <div className="mb-8 space-y-3">
             <MobileNavItem 
-              label="Entreprise" 
-              onClick={() => window.location.href='#entreprise'}
+              label="Accueil" 
+              isActive={activeSection === 'accueil'} 
+              onClick={() => window.location.href='/'}
             />
             <MobileNavItem 
               label="Secteurs" 
+              isActive={activeSection === 'secteurs'} 
               hasChildren={true} 
               childrenItems={dropdownContent.secteurs}
             />
             <MobileNavItem 
               label="Fonctionnalités" 
+              isActive={activeSection === 'fonctionnalites'} 
               hasChildren={true}
               childrenItems={dropdownContent.fonctionnalites}
             />
-            <MobileNavItem label="Tarifs" />
+            <MobileNavItem 
+              label="Tarification" 
+              isActive={activeSection === 'tarification'} 
+              onClick={() => window.location.href='/tarification'}
+            />
             <MobileNavItem 
               label="Ressources" 
+              isActive={activeSection === 'ressources'} 
               hasChildren={true}
               childrenItems={dropdownContent.ressources}
             />
@@ -263,7 +250,7 @@ const Navbar = () => {
           <div className="space-y-3">
             <button 
               className="w-full py-3 px-4 bg-blue-50 text-blue-600 rounded-md font-medium text-sm"
-              onClick={() => window.location.href='/connexionadmin'}
+              onClick={() => window.location.href='/connexion'}
             >
               Connexion
             </button>
@@ -281,8 +268,13 @@ const Navbar = () => {
 };
 
 // Composant d'élément de navigation de bureau simple
-const NavItem = ({ id, label, isActive, onHover, scrolled, redirectTo }) => {
+const NavItem = ({ id, label, isActive, scrolled, redirectTo, onClick }) => {
+  const [isHovered, setIsHovered] = useState(false);
+  
   const handleClick = (e) => {
+    if (onClick) {
+      onClick();
+    }
     if (redirectTo) {
       e.preventDefault();
       window.location.href = redirectTo;
@@ -292,79 +284,88 @@ const NavItem = ({ id, label, isActive, onHover, scrolled, redirectTo }) => {
   return (
     <div 
       className="relative"
-      onMouseEnter={() => onHover(id)}
-      onMouseLeave={() => onHover(null)}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
     >
       <a 
         href={redirectTo || `#${id}`} 
         onClick={handleClick}
-        className={`py-2 px-6 rounded-md flex items-center text-sm font-medium transition-all duration-300 ${
+        className={`block py-2 px-6 rounded-md text-sm font-medium transition-all duration-300 relative ${
           isActive 
             ? 'text-blue-600'
-            : scrolled ? 'text-gray-700 hover:text-blue-600' : 'text-gray-700 hover:text-blue-600'
+            : scrolled ? 'text-gray-700' : 'text-gray-700'
         }`}
       >
-        {label}
+        <span 
+          className={`absolute inset-0 rounded-md transition-opacity duration-200 ${
+            isActive 
+              ? 'bg-blue-100 opacity-100' 
+              : isHovered ? 'bg-blue-50 opacity-100' : 'opacity-0'
+          }`}
+        ></span>
+        <span className="relative z-10">
+          {label}
+        </span>
       </a>
-      
-      {/* Indicateur actif */}
-      <span 
-        className={`absolute bottom-0 left-1/2 w-1 h-1 rounded-full bg-blue-600 transform -translate-x-1/2 transition-all duration-300 ${
-          isActive ? 'opacity-100' : 'opacity-0'
-        }`}
-      ></span>
     </div>
   );
 };
 
 // Composant d'élément de navigation avec dropdown
-const NavItemWithDropdown = ({ id, label, isActive, onHover, scrolled, isOpen, onToggle, items }) => {
+const NavItemWithDropdown = ({ id, label, isActive, scrolled, isOpen, onToggle, items }) => {
+  const [isHovered, setIsHovered] = useState(false);
+  
   return (
     <div 
       className="relative"
-      onMouseEnter={() => onHover(id)}
-      onMouseLeave={() => onHover(null)}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
     >
       <button 
         onClick={() => onToggle(id)}
-        className={`py-2 px-6 rounded-md flex items-center text-sm font-medium transition-all duration-300 ${
+        className={`py-2 px-6 rounded-md flex items-center text-sm font-medium transition-all duration-300 relative ${
           isActive 
             ? 'text-blue-600'
-            : scrolled ? 'text-gray-700 hover:text-blue-600' : 'text-gray-700 hover:text-blue-600'
+            : scrolled ? 'text-gray-700' : 'text-gray-700'
         }`}
       >
-        {label}
-        <svg 
-          className={`ml-1.5 w-4 h-4 transition-transform duration-300 ${
-            isOpen ? 'text-blue-600 rotate-180' : isActive ? 'text-blue-600' : 'text-gray-400'
-          }`} 
-          fill="none" 
-          stroke="currentColor" 
-          viewBox="0 0 24 24"
-        >
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
-        </svg>
+        <span 
+          className={`absolute inset-0 rounded-md transition-opacity duration-200 ${
+            isActive 
+              ? 'bg-blue-100 opacity-100' 
+              : (isHovered || isOpen) ? 'bg-blue-50 opacity-100' : 'opacity-0'
+          }`}
+        ></span>
+        <span className="relative z-10 flex items-center">
+          {label}
+          <svg 
+            className={`ml-1.5 w-4 h-4 transition-transform duration-300 ${
+              isOpen ? 'rotate-180 text-blue-600' : ''
+            }`} 
+            fill="none" 
+            stroke="currentColor" 
+            viewBox="0 0 24 24"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+          </svg>
+        </span>
       </button>
-      
-      {/* Indicateur actif */}
-      <span 
-        className={`absolute bottom-0 left-1/2 w-1 h-1 rounded-full bg-blue-600 transform -translate-x-1/2 transition-all duration-300 ${
-          isActive ? 'opacity-100' : 'opacity-0'
-        }`}
-      ></span>
 
-      {/* Dropdown menu */}
       <div 
         className={`absolute left-0 mt-2 w-56 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 transition-all duration-200 z-50 ${
           isOpen ? 'opacity-100 translate-y-0 visible' : 'opacity-0 -translate-y-2 invisible'
         }`}
       >
-        <div className="py-1">
+        <div className="py-1 overflow-hidden">
           {items.map((item, index) => (
             <a
               key={index}
               href={item.link}
               className="block px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors duration-150"
+              onClick={(e) => {
+                e.preventDefault();
+                window.location.href = item.link;
+              }}
             >
               {item.label}
             </a>
@@ -376,7 +377,7 @@ const NavItemWithDropdown = ({ id, label, isActive, onHover, scrolled, isOpen, o
 };
 
 // Composant d'élément de navigation mobile
-const MobileNavItem = ({ label, hasChildren = false, childrenItems = [], onClick }) => {
+const MobileNavItem = ({ label, isActive = false, hasChildren = false, childrenItems = [], onClick }) => {
   const [isOpen, setIsOpen] = useState(false);
   
   const handleClick = () => {
@@ -390,13 +391,18 @@ const MobileNavItem = ({ label, hasChildren = false, childrenItems = [], onClick
   return (
     <div>
       <div 
-        className="flex items-center justify-between py-3 border-b border-gray-100 cursor-pointer"
+        className={`flex items-center justify-between py-3 border-b border-gray-100 cursor-pointer ${
+          isActive ? 'bg-blue-50 text-blue-600' : 'text-gray-800'
+        }`}
         onClick={handleClick}
       >
-        <span className="font-medium text-gray-800">{label}</span>
+        <div className="flex items-center">
+          <span className="font-medium px-3">{label}
+          </span>
+        </div>
         {hasChildren && (
           <svg 
-            className={`w-5 h-5 text-gray-400 transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`} 
+            className={`w-5 h-5 mr-3 transition-transform duration-300 ${isOpen ? 'rotate-180 text-blue-600' : (isActive ? 'text-blue-600' : 'text-gray-400')}`} 
             fill="none" 
             stroke="currentColor" 
             viewBox="0 0 24 24"
@@ -406,11 +412,10 @@ const MobileNavItem = ({ label, hasChildren = false, childrenItems = [], onClick
         )}
       </div>
       
-      {/* Sous-menu */}
       {hasChildren && (
         <div 
           className={`overflow-hidden transition-all duration-300 ease-in-out ${
-            isOpen ? 'max-h-64 opacity-100' : 'max-h-0 opacity-0'
+            isOpen ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
           }`}
         >
           <div className="py-2 pl-4 space-y-2">
@@ -419,6 +424,10 @@ const MobileNavItem = ({ label, hasChildren = false, childrenItems = [], onClick
                 key={index} 
                 href={item.link} 
                 className="block py-2 text-sm text-gray-600 hover:text-blue-600"
+                onClick={(e) => {
+                  e.preventDefault();
+                  window.location.href = item.link;
+                }}
               >
                 {item.label}
               </a>
