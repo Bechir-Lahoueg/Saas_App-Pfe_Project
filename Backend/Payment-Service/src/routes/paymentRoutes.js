@@ -17,4 +17,9 @@ router.get('/details/:orderId', paymentController.getPaymentDetails);
 // Obtenir les paiements par statut
 router.get('/status/:status', paymentController.getPaymentsByStatus);
 
+router.post('/tenant-registration', paymentController.initiateRegistrationPayment);
+
+
+
+
 module.exports = router;
