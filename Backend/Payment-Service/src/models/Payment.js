@@ -27,7 +27,7 @@ const paymentSchema = new mongoose.Schema({
     firstName: String,
     lastName: String,
     email: String,
-    phoneNumber: String,
+    phone: String,
     address: String,
     city: String,
     state: String,

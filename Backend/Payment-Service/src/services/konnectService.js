@@ -1,5 +1,6 @@
 const axios = require('axios');
 const Payment = require('../models/Payment');
+const { registerTenant } = require('./tenantRegistrationService');
 
 const KONNECT_API_URL = process.env.KONNECT_API_URL;
 const API_KEY = process.env.KONNECT_API_KEY;
@@ -41,6 +42,7 @@ const initiatePayment = async (paymentData) => {
       customerDetails: paymentData.customerDetails || {},
       konnectPaymentId: response.data.paymentRef,
       konnectPaymentUrl: response.data.payUrl,
+      metadata: paymentData.metadata || {}
     });
 
     await payment.save();
@@ -83,50 +85,55 @@ const completePayment = async (paymentRef) => {
       throw new Error('Payment not found in database');
     }
 
-    // Store original customer details
-    const originalCustomerDetails = { ...payment.customerDetails };
-    console.log('Original customer details:', originalCustomerDetails);
-
     payment.status = verificationResponse.payment.status;
 
-    // Handle transaction data if available
+    // Handle transaction data for payment method only
     const transactions = verificationResponse.payment.transactions;
     if (transactions && transactions.length > 0) {
-      // Prefer method over type for payment method identification
       if (transactions[0].method) {
         payment.paymentMethod = transactions[0].method;
       } else if (transactions[0].type) {
         payment.paymentMethod = transactions[0].type;
       }
-
-      // Only use transaction owner data if original customer details is empty
-      const hasOriginalCustomerDetails = originalCustomerDetails &&
-          (originalCustomerDetails.firstName ||
-              originalCustomerDetails.lastName ||
-              originalCustomerDetails.email ||
-              originalCustomerDetails.phoneNumber);
-
-      if (!hasOriginalCustomerDetails && transactions[0].senderWallet?.owner) {
-        const owner = transactions[0].senderWallet.owner;
-        payment.customerDetails = {
-          firstName: owner.firstName || '',
-          lastName: owner.lastName || '',
-          email: owner.email || '',
-          phoneNumber: owner.phoneNumber || '',
-        };
-        console.log('Using owner details from transaction');
-      } else {
-        // Keep original customer details
-        payment.customerDetails = originalCustomerDetails;
-        console.log('Keeping original customer details');
-      }
     }
 
-    if (verificationResponse.payment.status === 'completed') {
+    // Only proceed with registration if payment is completed and it's a tenant registration
+    if (verificationResponse.payment.status === 'completed' && payment.metadata?.tenantRegistration) {
+      try {
+        payment.completionDate = new Date();
+
+        // Prepare tenant data from the stored metadata
+        const tenantData = {
+          email: payment.customerDetails.email,
+          firstName: payment.customerDetails.firstName,
+          lastName: payment.customerDetails.lastName,
+          // This is incorrect - Registration service expects 'phone' not 'phoneNumber'
+          phone: payment.customerDetails.phone,
+          password: payment.metadata.tenantRegistration.password,
+          businessName: payment.metadata.tenantRegistration.businessName,
+          subdomain: payment.metadata.tenantRegistration.subdomain
+        };
+
+        // Register the tenant synchronously
+        const registrationResult = await registerTenant(tenantData);
+
+        // Store registration result in payment metadata
+        payment.metadata.registrationResult = registrationResult;
+        console.log('Tenant successfully registered with ID:', registrationResult.tenantId);
+      } catch (registrationError) {
+        console.error('Failed to register tenant:', registrationError);
+        payment.metadata.registrationError = registrationError.message;
+        // Important: Since this is sync operation, you may want to mark payment as failed
+        // if tenant registration fails
+        throw new Error(`Payment completed but tenant registration failed: ${registrationError.message}`);
+      }
+    } else if (verificationResponse.payment.status === 'completed') {
       payment.completionDate = new Date();
     }
 
+    // Update payment metadata
     payment.metadata = {
+      ...payment.metadata,
       verificationResponse: verificationResponse.payment
     };
 
@@ -143,6 +150,8 @@ const completePayment = async (paymentRef) => {
     throw error;
   }
 };
+
+
 
 const getPaymentDetails = async (orderId) => {
   try {

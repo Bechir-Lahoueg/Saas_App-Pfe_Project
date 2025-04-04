@@ -97,10 +97,48 @@ const getPaymentsByStatus = async (req, res) => {
   }
 };
 
+const initiateRegistrationPayment = async (req, res) => {
+  try {
+    const {
+      receiverWalletId,
+      token,
+      amount,
+      customerDetails,
+      tenantRegistration
+    } = req.body;
+
+    if (!customerDetails || !tenantRegistration) {
+      return res.status(400).json({
+        error: 'Missing required fields: customerDetails and tenantRegistration'
+      });
+    }
+
+    const paymentData = {
+      receiverWalletId,
+      token,
+      amount,
+      description: `Tenant registration for ${tenantRegistration.businessName}`,
+      orderId: `REG-${Date.now()}`,
+      customerDetails,
+      metadata: {
+        tenantRegistration
+      }
+    };
+
+    const paymentResponse = await konnectService.initiatePayment(paymentData);
+    res.status(200).json(paymentResponse);
+  } catch (error) {
+    console.error('Error initiating registration payment:', error);
+    res.status(500).json({ error: error.message || 'Internal Server Error' });
+  }
+};
+
 module.exports = {
   initiatePayment,
   verifyPayment,
   completePayment,
   getPaymentDetails,
   getPaymentsByStatus,
+  initiateRegistrationPayment
+
 };

@@ -1,3 +1,4 @@
+// Payment-Service/src/utils/eurekaClient.js
 const { Eureka } = require('eureka-js-client');
 
 // Eureka client configuration
@@ -19,8 +20,8 @@ const eurekaClient = new Eureka({
     }
   },
   eureka: {
-    host: 'localhost',  
-    port: 8761,        
+    host: 'localhost',
+    port: 8761,
     servicePath: '/eureka/apps/'
   }
 });
@@ -36,4 +37,8 @@ const registerWithEureka = () => {
   });
 };
 
-module.exports = registerWithEureka;
+// Export both the function and the client
+module.exports = {
+  register: registerWithEureka,
+  client: eurekaClient
+};
