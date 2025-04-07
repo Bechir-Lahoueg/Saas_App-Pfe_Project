@@ -7,6 +7,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.example.tenant.context.TenantContext;
 
 import java.util.List;
 import java.util.UUID;
@@ -21,19 +22,17 @@ import java.util.UUID;
         generator = ObjectIdGenerators.PropertyGenerator.class,
         property = "id")
 public class Calendar {
+
         @Id
         @GeneratedValue(strategy = GenerationType.UUID)
         private UUID id;
 
-        @Column(name = "subscriber_id", nullable = false)
-        private Long subscriberId;
+        @Column(name = "tenant_id", updatable = false)
+        private String tenantId;
 
         @Column(nullable = false)
         private String name;
 
-//        private boolean synchronizedWithGoogle;
-//
-//        private boolean synchronizedWithOutlook;
 
         private String timezone;
 
@@ -55,4 +54,11 @@ public class Calendar {
         public enum CalendrierStatus {
                 ACTIVE, INACTIVE
         }
+
+        @PrePersist
+        @PreUpdate
+        public void setTenantId() {
+                this.tenantId = TenantContext.getCurrentTenant();
+        }
+
 }

@@ -3,6 +3,7 @@ package com.example.Schedule_Service.controller;
 import com.example.Schedule_Service.entities.Calendar;
 import com.example.Schedule_Service.service.CalendarService;
 import lombok.RequiredArgsConstructor;
+import org.example.tenant.context.TenantContext;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -28,14 +29,13 @@ public class CalendarController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    @GetMapping("/subscriber/{subscriberId}")
-    public ResponseEntity<List<Calendar>> getCalendarsBySubscriberId(@PathVariable Long subscriberId) {
-        return ResponseEntity.ok(calendarService.getCalendarsBySubscriberId(subscriberId));
-    }
-
     @PostMapping("/create")
     public ResponseEntity<Calendar> createCalendar(@RequestBody Calendar calendar) {
-        return new ResponseEntity<>(calendarService.createCalendar(calendar), HttpStatus.CREATED);
+        String tenantId = TenantContext.getCurrentTenant();
+        if (tenantId == null) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        }
+        return new ResponseEntity<>(calendarService.createCalendar(calendar, tenantId), HttpStatus.CREATED);
     }
 
     @PutMapping("/update/{id}")

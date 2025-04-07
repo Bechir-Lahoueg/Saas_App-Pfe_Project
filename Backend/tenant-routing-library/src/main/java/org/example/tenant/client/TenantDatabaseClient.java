@@ -54,6 +54,7 @@ public class TenantDatabaseClient {
             return config;
         } catch (Exception e) {
             log.error("Failed to retrieve database config: {}", e.getMessage(), e);
+            // Return a default config or throw exception based on your requirements
             throw new RuntimeException("Failed to retrieve database configuration", e);
         }
     }

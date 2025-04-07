@@ -27,7 +27,7 @@ public class TenantFilter implements Filter {
         HttpServletRequest req = (HttpServletRequest) request;
         String tenantId = req.getHeader(TENANT_HEADER);
 
-        if (tenantId != null && !tenantId.isEmpty()) {
+        if (tenantId != null) {
             log.debug("Setting tenant context: {}", tenantId);
             TenantContext.setCurrentTenant(tenantId);
         } else {

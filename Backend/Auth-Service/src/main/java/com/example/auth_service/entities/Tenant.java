@@ -11,6 +11,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
+import java.util.UUID;
 
 @Entity
 @Table(name = "tenants")
@@ -20,8 +21,10 @@ import java.util.List;
 @AllArgsConstructor
 public class Tenant implements UserDetails {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    @Column(name = "id_tenant", nullable = false)
+
+    private UUID id;
 
     @Column(unique = true)
     private String tenantId; // Unique identifier for this tenant
@@ -52,7 +55,8 @@ public class Tenant implements UserDetails {
 
     @Override
     public String getUsername() {
-        return "";
+        return email;
+
     }
 
 }

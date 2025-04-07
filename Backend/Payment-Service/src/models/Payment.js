@@ -31,7 +31,7 @@ const paymentSchema = new mongoose.Schema({
     address: String,
     city: String,
     state: String,
-    postalCode: String
+    zipCode: String
   },
   konnectPaymentId: String,
   konnectPaymentUrl: String,

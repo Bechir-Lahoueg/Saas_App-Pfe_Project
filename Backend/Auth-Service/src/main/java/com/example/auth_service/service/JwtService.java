@@ -1,5 +1,6 @@
 package com.example.auth_service.service;
 
+import com.example.auth_service.entities.Tenant;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
@@ -40,12 +41,20 @@ public class JwtService {
                 .compact();
     }
 
-    public String generateToken(UserDetails userDetails) {
-        return createToken(new HashMap<>(), userDetails.getUsername(), EXPIRATION);
+    public String generateToken(Tenant tenant) {
+        Map<String, Object> claims = new HashMap<>();
+        claims.put("tenantId", tenant.getTenantId());
+        claims.put("subdomain", tenant.getSubdomain());
+        claims.put("id", tenant.getId().toString());
+
+        return createToken(claims, tenant.getEmail(), EXPIRATION);
     }
 
-    public String generateRefreshToken(UserDetails userDetails) {
-        return createToken(new HashMap<>(), userDetails.getUsername(), REFRESH_TOKEN_EXPIRATION);
+    public String generateRefreshToken(Tenant tenant) {
+        Map<String, Object> claims = new HashMap<>();
+        claims.put("tenantId", tenant.getTenantId());
+
+        return createToken(claims, tenant.getEmail(), REFRESH_TOKEN_EXPIRATION);
     }
 
     private Key getSignInKey() {

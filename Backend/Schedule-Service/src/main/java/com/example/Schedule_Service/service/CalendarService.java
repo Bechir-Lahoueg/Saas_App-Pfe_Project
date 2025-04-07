@@ -23,12 +23,13 @@ public class CalendarService {
         return calendarRepository.findById(id);
     }
 
-    public List<Calendar> getCalendarsBySubscriberId(Long subscriberId) {
-        return calendarRepository.findBySubscriberId(subscriberId);
+    public List<Calendar> getCalendarsByTenantId(String tenantId) {
+        return calendarRepository.findByTenantId(tenantId);
     }
 
     @Transactional
-    public Calendar createCalendar(Calendar calendar) {
+    public Calendar createCalendar(Calendar calendar, String tenantId) {
+        calendar.setTenantId(tenantId);
         return calendarRepository.save(calendar);
     }
 
