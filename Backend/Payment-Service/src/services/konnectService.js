@@ -15,12 +15,11 @@ const initiatePayment = async (paymentData) => {
       description: paymentData.description,
       acceptedPaymentMethods: paymentData.acceptedPaymentMethods || ["wallet", "bank_card", "e-DINAR"],
       lifespan: paymentData.lifespan || 10,
-      checkoutForm: true,
       addPaymentFeesToAmount: paymentData.addPaymentFeesToAmount || true,
       webhook: `${process.env.BASE_URL}/api/payments/webhook`,
       silentWebhook: true,
-      successUrl: paymentData.successUrl || "https://gateway.sandbox.konnect.network/payment-success",
-      failUrl: paymentData.failUrl || "https://gateway.sandbox.konnect.network/payment-failure",
+      successUrl: "http://localhost:5173/paiement?step=3&status=success",
+      failUrl: "http://localhost:5173/paiement?step=3&status=failed",
       theme: paymentData.theme || "dark"
     };
 
