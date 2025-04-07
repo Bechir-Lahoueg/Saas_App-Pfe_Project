@@ -1,5 +1,6 @@
 package org.example.tenant.config;
 
+//import org.example.tenant.client.TenantDatabaseClient;
 import org.example.tenant.client.TenantDatabaseClient;
 import org.example.tenant.context.TenantContext;
 import com.zaxxer.hikari.HikariConfig;
@@ -70,14 +71,20 @@ public class DataSourceConfig {
             String tenantId = TenantContext.getCurrentTenant();
 
             if (tenantId == null) {
-                throw new IllegalStateException("No tenant ID found in context");
+                log.debug("No tenant ID in context, using default datasource");
+                return getDefaultDataSource();
             }
 
-            return resolvedDataSources.computeIfAbsent(tenantId, id -> {
-                log.info("Creating new datasource for tenant: {}", id);
-                Map<String, String> config = databaseClient.getDatabaseConfig(id);
-                return createDataSource(config.get("connectionString"));
-            });
+            try {
+                return resolvedDataSources.computeIfAbsent(tenantId, id -> {
+                    log.info("Creating new datasource for tenant: {}", id);
+                    Map<String, String> config = databaseClient.getDatabaseConfig(id);
+                    return createDataSource(config.get("connectionString"));
+                });
+            } catch (Exception e) {
+                log.error("Failed to determine datasource for tenant {}: {}", tenantId, e.getMessage());
+                return getDefaultDataSource(); // Fallback to default
+            }
         }
 
         private DataSource createDataSource(String connectionString) {
@@ -87,6 +94,14 @@ public class DataSourceConfig {
             config.setUsername("neondb_owner");
             config.setMinimumIdle(2);
             config.setMaximumPoolSize(5);
+            return new HikariDataSource(config);
+        }
+
+        private DataSource getDefaultDataSource() {
+            HikariConfig config = new HikariConfig();
+            config.setJdbcUrl("jdbc:h2:mem:default;DB_CLOSE_DELAY=-1");
+            config.setUsername("sa");
+            config.setPassword("");
             return new HikariDataSource(config);
         }
     }

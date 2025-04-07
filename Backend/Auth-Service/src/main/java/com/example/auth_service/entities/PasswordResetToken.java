@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Entity
 @Data
@@ -13,14 +14,14 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 public class PasswordResetToken {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.UUID)
     @Column(name = "id_token", nullable = false)
-    private Long id;
+    private UUID id;
 
     private String token;
-    @OneToOne(targetEntity = Subscriber.class, fetch = FetchType.EAGER)
-    @JoinColumn(name = "id_subscriber" , referencedColumnName = "id_subscriber")
-    private Subscriber subscriber;
+    @OneToOne(targetEntity = Tenant.class, fetch = FetchType.EAGER)
+    @JoinColumn(name = "id_tenant" , referencedColumnName = "id_tenant")
+    private Tenant tenant;
 
     private LocalDateTime expiryDate;
 

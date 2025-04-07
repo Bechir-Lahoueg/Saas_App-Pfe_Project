@@ -1,11 +1,10 @@
 package com.example.register_service.service;
 
 
-import com.example.register_service.dto.TenantRegistrationRequest;
 import com.example.register_service.entities.Tenant;
 import com.example.register_service.entities.TenantDatabase;
+import com.example.register_service.dto.TenantRegistrationRequest;
 import com.example.register_service.repository.TenantRepository;
-import com.example.register_service.service.NeonDatabaseService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -21,6 +20,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 @Transactional
 public class TenantService {
+
     private final TenantRepository tenantRepository;
     private final NeonDatabaseService neonDatabaseService;
     private final PasswordEncoder passwordEncoder;
@@ -69,7 +69,7 @@ public class TenantService {
         return tenantRepository.save(tenant);
     }
 
-    public Tenant getTenantById(Long id) {
+    public Tenant getTenantById(UUID id) {
         return tenantRepository.findById(id)
                 .orElseThrow(() ->
                    new RuntimeException("Tenant not found with id: " + id)

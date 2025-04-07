@@ -1,6 +1,7 @@
 package com.example.api_gateway.Configuration;
 
 import com.example.api_gateway.Filters.AuthFilter;
+import com.example.api_gateway.Filters.TenantIdentificationFilter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.gateway.route.RouteLocator;
 import org.springframework.cloud.gateway.route.builder.RouteLocatorBuilder;
@@ -13,24 +14,23 @@ public class GatewayConfig {
     @Autowired
     private AuthFilter authFilter;
 
+    @Autowired
+    private TenantIdentificationFilter tenantIdentificationFilter;
+
     @Bean
     public RouteLocator customRouteLocator(RouteLocatorBuilder builder) {
         return builder.routes()
 
-//                .route("tenant-subdomain-route", r -> r
-//                .host("{subdomain:[a-z0-9-]+}.yoursaas.com")
-//                .filters(f -> f
-//                        .addRequestHeader("X-Tenant-ID", "#{request.hostVariables['subdomain']}")
-//                        .rewritePath("/(?<segment>.*)", "/api/${segment}")
-//                )
-//                .uri("lb://api-gateway"))
+                .route("tenant-subdomain-route", r -> r
+                        .host("{subdomain:[a-z0-9-]+}.yoursaas.com")
+                        .filters(f -> f
+                                .filter(tenantIdentificationFilter)
+                                .rewritePath("/(?<segment>.*)", "/api/${segment}")
+                        )
+                        .uri("lb://api-gateway"))
 
                 .route("auth-service", r -> r
                         .path("/auth/**", "/login/oauth2/**")
-                        .filters(f->f
-                                .filter(authFilter)
-                                .addRequestHeader("X-Tenant-ID", "#{request.headers['X-Tenant-ID']}")
-                        )
                         .uri("lb://auth-service"))
 
                 .route("register-service", r -> r
@@ -43,6 +43,10 @@ public class GatewayConfig {
 
                 .route("schedule-service", r -> r
                         .path("/schedule/**")
+                        .filters(f -> f
+                                .filter(tenantIdentificationFilter)  // Apply tenant filter
+                                .filter(authFilter)                  // Apply auth filter
+                        )
                         .uri("lb://schedule-service"))
 
                 .route("payment-service", r -> r

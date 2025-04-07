@@ -31,6 +31,9 @@ public class TenantController {
                 .lastName(tenant.getLastName())
                 .businessName(tenant.getBusinessName())
                 .subdomain(tenant.getSubdomain())
+                .address(tenant.getAddress())
+                .phone(tenant.getPhone())
+                .zipcode(tenant.getZipcode())
                 .build();
     }
 }

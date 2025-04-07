@@ -3,7 +3,6 @@ package com.example.auth_service.controller;
 import com.example.auth_service.dto.TenantLoginRequest;
 import com.example.auth_service.dto.TenantLoginResponse;
 import com.example.auth_service.dto.TenantDTO;
-import com.example.auth_service.entities.Subscriber;
 import com.example.auth_service.entities.Tenant;
 import com.example.auth_service.dto.TenantRegistrationRequest;
 import com.example.auth_service.service.JwtService;
@@ -14,6 +13,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @RestController
@@ -53,12 +53,12 @@ public class TenantController {
     }
 
     @PutMapping("/update/{id}")
-    public ResponseEntity<Tenant> updateTenant(@PathVariable Long id, @RequestBody Tenant tenant) {
+    public ResponseEntity<Tenant> updateTenant(@PathVariable UUID id, @RequestBody Tenant tenant) {
         return new ResponseEntity<>(tenantService.updateTenant(id, tenant), HttpStatus.OK);
     }
 
     @DeleteMapping("/delete/{id}")
-    public ResponseEntity<Void> deleteTenant(@PathVariable Long id) {
+    public ResponseEntity<Void> deleteTenant(@PathVariable UUID id) {
         Tenant tenant = tenantService.getTenantById(id);
         tenantService.deleteTenant(tenant.getId());
         return ResponseEntity.noContent().build();
@@ -66,7 +66,7 @@ public class TenantController {
 
 
     @GetMapping("/get/{id}")
-    public ResponseEntity<TenantDTO> getTenantById(@PathVariable Long id) {
+    public ResponseEntity<TenantDTO> getTenantById(@PathVariable UUID id) {
         Tenant tenant = tenantService.getTenantById(id);
         return ResponseEntity.ok(mapToDTO(tenant));
     }

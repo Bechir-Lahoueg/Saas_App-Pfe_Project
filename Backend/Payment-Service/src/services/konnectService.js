@@ -109,9 +109,12 @@ const completePayment = async (paymentRef) => {
           lastName: payment.customerDetails.lastName,
           // This is incorrect - Registration service expects 'phone' not 'phoneNumber'
           phone: payment.customerDetails.phone,
+          address: payment.customerDetails.address, // Ensure address is included
+
           password: payment.metadata.tenantRegistration.password,
           businessName: payment.metadata.tenantRegistration.businessName,
-          subdomain: payment.metadata.tenantRegistration.subdomain
+          subdomain: payment.metadata.tenantRegistration.subdomain,
+
         };
 
         // Register the tenant synchronously

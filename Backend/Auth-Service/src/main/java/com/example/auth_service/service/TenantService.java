@@ -71,7 +71,7 @@ public class TenantService {
     }
 
     @Transactional
-    public Tenant updateTenant(Long tenantId, Tenant tenantDetails) {
+    public Tenant updateTenant(UUID tenantId, Tenant tenantDetails) {
         Tenant tenant = tenantRepository.findById(tenantId)
                 .orElseThrow(() -> new RuntimeException("Tenant not found"));
             tenant.setEmail(tenantDetails.getEmail());
@@ -95,7 +95,7 @@ public class TenantService {
     }
 
 
-    public Tenant getTenantById(Long id) {
+    public Tenant getTenantById(UUID id) {
         return tenantRepository.findById(id)
                 .orElseThrow(() ->
                    new RuntimeException("Tenant not found with id: " + id)
@@ -103,7 +103,7 @@ public class TenantService {
     }
 
     @Transactional
-    public void deleteTenant(Long tenantId) {
+    public void deleteTenant(UUID tenantId) {
         Tenant tenant = tenantRepository.findById(tenantId)
                 .orElseThrow(() -> new RuntimeException("Tenant not found"));
 

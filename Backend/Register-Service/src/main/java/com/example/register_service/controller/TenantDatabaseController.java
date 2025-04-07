@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Map;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/tenant-db")
@@ -20,7 +21,7 @@ public class TenantDatabaseController {
 
     @GetMapping("/config/{tenantId}/{serviceType}")
     public ResponseEntity<Map<String, String>> getDatabaseConfig(
-            @PathVariable Long tenantId,
+            @PathVariable UUID tenantId,
             @PathVariable String serviceType) {
 
         Tenant tenant = tenantService.getTenantById(tenantId);

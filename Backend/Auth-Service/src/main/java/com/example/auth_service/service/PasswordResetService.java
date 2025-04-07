@@ -1,9 +1,9 @@
 package com.example.auth_service.service;
 
 import com.example.auth_service.entities.PasswordResetToken;
-import com.example.auth_service.entities.Subscriber;
+import com.example.auth_service.entities.Tenant;
 import com.example.auth_service.repository.PasswordResetTokenRepository;
-import com.example.auth_service.repository.SubscriberRepository;
+import com.example.auth_service.repository.TenantRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -20,7 +20,7 @@ import java.util.UUID;
 public class PasswordResetService {
 
     @Autowired
-    private SubscriberRepository subscriberRepository;
+    private TenantRepository tenantRepository;
 
     @Autowired
     private PasswordResetTokenRepository tokenRepository;
@@ -36,26 +36,26 @@ public class PasswordResetService {
 
     @Transactional
     public void generateResetToken(String email) {
-        Optional<Subscriber> SubscriberOpt = subscriberRepository.findByEmail(email);
+        Optional<Tenant> TenantOpt = tenantRepository.findByEmail(email);
 
-        if (SubscriberOpt.isPresent()) {
-            Subscriber Subscriber = SubscriberOpt.get();
+        if (TenantOpt.isPresent()) {
+            Tenant Tenant = TenantOpt.get();
 
             // Delete any existing tokens
-            tokenRepository.deleteBySubscriber(Subscriber);
+            tokenRepository.deleteByTenant(Tenant);
 
             // Generate new token
             String token = UUID.randomUUID().toString();
             PasswordResetToken resetToken = new PasswordResetToken();
             resetToken.setToken(token);
-            resetToken.setSubscriber(Subscriber);
+            resetToken.setTenant(Tenant);
             resetToken.setExpiryDate(LocalDateTime.now().plusHours(1));
             tokenRepository.save(resetToken);
 
             // Send email
-            sendResetEmail(Subscriber.getEmail(), token);
+            sendResetEmail(Tenant.getEmail(), token);
         }else {
-            throw new IllegalArgumentException("Subscriber with email " + email + " does not exist");
+            throw new IllegalArgumentException("tenant with email " + email + " does not exist");
         }
 
         // We don't notify if the email doesn't exist for security reasons
@@ -86,9 +86,9 @@ public class PasswordResetService {
             }
 
             // Update password
-            Subscriber Subscriber = resetToken.getSubscriber();
-            Subscriber.setPassword(passwordEncoder.encode(newPassword));
-            subscriberRepository.save(Subscriber);
+            Tenant Tenant = resetToken.getTenant();
+            Tenant.setPassword(passwordEncoder.encode(newPassword));
+            tenantRepository.save(Tenant);
 
             // Delete used token
             tokenRepository.delete(resetToken);

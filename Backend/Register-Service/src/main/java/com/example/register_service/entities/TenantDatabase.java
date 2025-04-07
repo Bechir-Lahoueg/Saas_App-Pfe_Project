@@ -1,16 +1,17 @@
 package com.example.register_service.entities;
 
-import com.example.register_service.entities.Tenant;
 import jakarta.persistence.*;
 import lombok.Data;
+
+import java.util.UUID;
 
 @Entity
 @Table(name = "tenant_databases")
 @Data
 public class TenantDatabase {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private UUID id;
 
     @ManyToOne
     @JoinColumn(name = "tenant_id")
