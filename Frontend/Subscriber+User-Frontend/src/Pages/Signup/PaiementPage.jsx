@@ -185,7 +185,7 @@ useEffect(() => {
 
         if (result.success && result.status === "completed") {
           console.log("Enregistrement du tenant complété avec succès");
-          setTimeout(() => navigate("/dashbord"), 2000);
+          navigate("/connexion")
         } else {
           setError(
             "Paiement complété mais l'enregistrement du tenant a échoué"
