@@ -8,7 +8,7 @@ const DelayedLoadingWrapper = ({ children }) => {
   const location = useLocation();
   
   // Liste des chemins où le loading ne doit pas s'afficher
-  const excludedPaths = ['/', '/connexion', '/inscription'];
+  const excludedPaths = ['/', '/connexion', '/inscription','/tarification'];
   
   // Vérifier si le chemin actuel est exclu
   const shouldSkipLoading = excludedPaths.includes(location.pathname);
@@ -18,11 +18,10 @@ const DelayedLoadingWrapper = ({ children }) => {
     // Pages qui nécessitent plus de temps de chargement
     if (path.includes('/dashbord')) return 3500;
     if (path.includes('/demo')) return 3000;
-    if (path.includes('/paiement')) return 2500;
-    if (path.includes('/tarification')) return 2500;
+    if (path.includes('/paiement')) return 4500;
 
     // Durée par défaut
-    return 2000;
+    return 1500;
   };
   
   useEffect(() => {

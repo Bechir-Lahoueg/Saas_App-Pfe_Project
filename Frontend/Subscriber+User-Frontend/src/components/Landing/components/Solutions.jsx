@@ -336,8 +336,11 @@ const ServiceSolutionsPage = () => {
               rendez-vous, des clients et des paiements pour tous les secteurs
               d'activité.
             </p>
-            <button className="bg-white text-blue-800 font-medium text-lg py-3 px-8 rounded-lg hover:bg-blue-50 transition-colors shadow-lg transform hover:scale-105 duration-300">
-              Commencer gratuitement
+            <button 
+              className="bg-white text-blue-800 font-medium text-lg py-3 px-8 rounded-lg hover:bg-blue-50 transition-colors shadow-lg transform hover:scale-105 duration-300"
+              onClick={() => (window.location.href = "/tarification")}
+            >
+              Découvrir nos offres
             </button>
           </div>
         </div>
@@ -514,10 +517,10 @@ const ServiceSolutionsPage = () => {
               Demander une démo
             </button>
             <button
-              onClick={() => (window.location.href = "/signup")}
+              onClick={() => (window.location.href = "/paiement")}
               className="bg-white text-blue-800 font-medium py-3 px-8 rounded-lg hover:bg-blue-100 transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl"
             >
-              Commencer gratuitement
+              Commencer dès maintenant
             </button>
           </div>
         </div>

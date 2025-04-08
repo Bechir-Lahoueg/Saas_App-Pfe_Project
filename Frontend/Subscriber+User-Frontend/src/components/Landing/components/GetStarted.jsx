@@ -28,8 +28,9 @@ const LandingPage = () => {
             Transformez la façon dont vos clients réservent vos services avec notre plateforme tout-en-un. Définissez vos services, configurez vos disponibilités et laissez votre agenda se remplir 24h/24 et 7j/7.
           </p>
           <div className="flex flex-col sm:flex-row gap-4">
-            <button className="px-8 py-3 rounded-lg bg-blue-600 text-white font-medium hover:bg-blue-700 transition-all shadow-md transform hover:-translate-y-1">
-              Essayer gratuitement
+            <button className="px-8 py-3 rounded-lg bg-blue-600 text-white font-medium hover:bg-blue-700 transition-all shadow-md transform hover:-translate-y-1"
+            onClick={() => (window.location.href = "/paiement")}>
+              Commencer maintenant
             </button>
             <a href="/demo" className="px-8 py-3 rounded-lg bg-white text-blue-600 font-medium border border-blue-200 hover:border-blue-400 transition-all shadow-sm flex items-center justify-center">
               <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">

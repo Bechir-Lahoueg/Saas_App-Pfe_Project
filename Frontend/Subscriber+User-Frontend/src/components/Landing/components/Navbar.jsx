@@ -56,12 +56,6 @@ const Navbar = () => {
       { label: 'Evènementiel & loisirs', link: '/Evenementiel_et_loisirs' },
       { label: 'Tous les secteurs', link: '/Tous_les_secteurs' }
     ],
-    fonctionnalites: [
-      { label: 'Paiements internationaux', link: '#intl' },
-      { label: 'Gestion des abonnements', link: '#abonnements' },
-      { label: 'Protection anti-fraude', link: '#securite' },
-      { label: 'Tableau de bord analytique', link: '#analytics' }
-    ],
     ressources: [
       { label: 'Centre d\'aide', link: '#support' },
       { label: 'Documentation API', link: '#api' },
@@ -118,14 +112,13 @@ const Navbar = () => {
                 onToggle={handleDropdownToggle}
                 items={dropdownContent.secteurs}
               />
-              <NavItemWithDropdown 
+              <NavItem 
                 id="fonctionnalites" 
                 label="Fonctionnalités" 
                 isActive={activeSection === 'fonctionnalites'} 
                 scrolled={scrolled}
-                isOpen={openDropdown === 'fonctionnalites'}
-                onToggle={handleDropdownToggle}
-                items={dropdownContent.fonctionnalites}
+                redirectTo="/fonctionnalites"
+                onClick={() => handleNavClick('fonctionnalites')}
               />
               <NavItem 
                 id="tarification" 
@@ -164,7 +157,7 @@ const Navbar = () => {
             
             <button 
               className="relative px-6 py-2.5 rounded-md overflow-hidden group"
-              onClick={() => window.location.href='#demarrer'}
+              onClick={() => window.location.href='/paiement'}
             >
               <span className="absolute inset-0 w-full h-full transition-all duration-500 ease-out transform -translate-x-full bg-gradient-to-r from-blue-500 to-blue-700 group-hover:translate-x-0"></span>
               <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-blue-600 to-blue-500"></span>
@@ -231,8 +224,7 @@ const Navbar = () => {
             <MobileNavItem 
               label="Fonctionnalités" 
               isActive={activeSection === 'fonctionnalites'} 
-              hasChildren={true}
-              childrenItems={dropdownContent.fonctionnalites}
+              onClick={() => window.location.href='/fonctionnalites'}
             />
             <MobileNavItem 
               label="Tarification" 
@@ -256,7 +248,7 @@ const Navbar = () => {
             </button>
             <button 
               className="w-full py-3 px-4 bg-blue-600 text-white rounded-md font-medium text-sm"
-              onClick={() => window.location.href='#demarrer'}
+              onClick={() => window.location.href='/paiement'}
             >
               Démarrer
             </button>

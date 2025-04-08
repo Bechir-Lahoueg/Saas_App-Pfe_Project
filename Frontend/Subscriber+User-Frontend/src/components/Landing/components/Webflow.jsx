@@ -100,8 +100,9 @@ const WorkflowSection = () => {
             </p>
             
             <div className="flex flex-col sm:flex-row gap-3">
-              <button className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg flex items-center justify-center gap-2 transition-all duration-300 shadow-lg hover:shadow-md hover:translate-y-[-1px] group text-sm">
-                <span>Essayez PlanifyGo Gratuitement</span>
+              <button className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg flex items-center justify-center gap-2 transition-all duration-300 shadow-lg hover:shadow-md hover:translate-y-[-1px] group text-sm"
+               onClick={() => (window.location.href = "/paiement")}>
+                <span>Démarrer l’aventure</span>
                 <svg className="w-4 h-4 transition-transform duration-300 group-hover:translate-x-1" viewBox="0 0 20 20" fill="currentColor">
                   <path fillRule="evenodd" d="M10.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L12.586 11H5a1 1 0 110-2h7.586l-2.293-2.293a1 1 0 010-1.414z" clipRule="evenodd" />
                 </svg>
