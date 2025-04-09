@@ -18,10 +18,10 @@ public class TenantDatabase {
     private Tenant tenant;
 
     private String serviceType; // e.g. "booking", "schedule", etc.
-    private String databaseId;  // Neon database ID
     private String databaseName; // Actual database name
 
     private String connectionString;
 
 }
+
 

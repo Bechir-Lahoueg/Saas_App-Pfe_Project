@@ -7,7 +7,6 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.example.tenant.context.TenantContext;
 
 import java.util.List;
 import java.util.UUID;
@@ -55,10 +54,6 @@ public class Calendar {
                 ACTIVE, INACTIVE
         }
 
-        @PrePersist
-        @PreUpdate
-        public void setTenantId() {
-                this.tenantId = TenantContext.getCurrentTenant();
-        }
+
 
 }

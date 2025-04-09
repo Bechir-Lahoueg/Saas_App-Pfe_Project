@@ -8,7 +8,6 @@ import lombok.NoArgsConstructor;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
-import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
@@ -25,28 +24,20 @@ public class Tenant implements UserDetails {
     @Column(name = "id_tenant", nullable = false)
 
     private UUID id;
-
-    @Column(unique = true)
-    private String tenantId; // Unique identifier for this tenant
-
     private String email;
     private String password;
     private String firstName;
     private String lastName;
     private String phone;
-
-    // Business information
+    private String zipcode;
+    private String country;
+    private String city;
     private String businessName;
-    private String subdomain; // For custom URL (businessname.yoursaas.com)
+    private String subdomain;
     private String address;
-//    private String logoUrl;
 
-    // Database connection info for each service
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "tenant")
     private List<TenantDatabase> databases;
-
-    private LocalDateTime createdAt;
-    private LocalDateTime updatedAt;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
@@ -56,7 +47,6 @@ public class Tenant implements UserDetails {
     @Override
     public String getUsername() {
         return email;
-
     }
 
 }

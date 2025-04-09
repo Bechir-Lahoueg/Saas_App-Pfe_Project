@@ -7,8 +7,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
-import org.example.tenant.context.TenantContext;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -42,14 +40,8 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         String jwtToken = authHeader.substring(7);
         String userEmail = jwtService.extractUsername(jwtToken);
 
-        // Extract tenant ID from JWT claims
-        String tenantId = jwtService.extractClaim(jwtToken, claims ->
-                claims.get("tenantId", String.class));
 
-        // Set tenant ID in TenantContext
-        if (tenantId != null) {
-            TenantContext.setCurrentTenant(tenantId);
-        }
+
 
         // Continue with authentication
         if(userEmail != null && SecurityContextHolder.getContext().getAuthentication() == null) {
@@ -64,9 +56,6 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         }
 
         filterChain.doFilter(request, response);
-
-        // Clear TenantContext after request completes
-        TenantContext.clear();
     }
 
 }

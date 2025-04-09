@@ -9,5 +9,4 @@ import java.util.UUID;
 
 @Repository
 public interface CalendarRepository extends JpaRepository<Calendar, UUID> {
-    List<Calendar> findByTenantId(String tenantId); // Changed from findBySubscriber_id
 }

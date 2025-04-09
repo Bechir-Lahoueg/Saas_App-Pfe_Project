@@ -23,13 +23,9 @@ public class CalendarService {
         return calendarRepository.findById(id);
     }
 
-    public List<Calendar> getCalendarsByTenantId(String tenantId) {
-        return calendarRepository.findByTenantId(tenantId);
-    }
 
     @Transactional
-    public Calendar createCalendar(Calendar calendar, String tenantId) {
-        calendar.setTenantId(tenantId);
+    public Calendar createCalendar(Calendar calendar  ) {
         return calendarRepository.save(calendar);
     }
 
