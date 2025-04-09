@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
-const LoadingSpinner = ({ progress = 0 }) => {
+const LoadingSpinner = () => {
+  const [progress, setProgress] = useState(0);
   const [activePhase, setActivePhase] = useState(0);
   
   // Phases génériques pour le chargement
@@ -11,6 +12,33 @@ const LoadingSpinner = ({ progress = 0 }) => {
     "Préparation",
     "Finalisation"
   ];
+
+  // Simuler la progression automatique basée sur le temps écoulé
+  useEffect(() => {
+    let startTime = Date.now();
+    let animationFrame;
+    
+    const updateProgress = () => {
+      // Calculer le temps écoulé (max 5 secondes pour atteindre 95%)
+      const elapsed = Date.now() - startTime;
+      // Fonction non linéaire pour la progression (rapide au début, plus lente ensuite)
+      // Reste à 95% max pour laisser le temps au composant réel de se charger
+      const newProgress = Math.min(95, Math.pow(elapsed / 2000, 0.7) * 95);
+      
+      setProgress(newProgress);
+      
+      // Continuer l'animation tant que nous n'avons pas atteint 95%
+      if (newProgress < 95) {
+        animationFrame = requestAnimationFrame(updateProgress);
+      }
+    };
+    
+    animationFrame = requestAnimationFrame(updateProgress);
+    
+    return () => {
+      cancelAnimationFrame(animationFrame);
+    };
+  }, []);
 
   // Mettre à jour la phase de chargement en fonction de la progression
   useEffect(() => {
