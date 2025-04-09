@@ -8,17 +8,16 @@ import lombok.Data;
 public class NeonDatabaseResponse {
     private String id;
     private Database database;
+    private String connectionString;
+
 
     @Data
     @JsonIgnoreProperties(ignoreUnknown = true)
     public static class Database {
         private String id;
         private String name;
+        private String connectionString;
+
     }
 
-    // Handle nested response structure from Neon API
-    public String getId() {
-        // Try to get ID from top level, if null try from nested database object
-        return (id != null) ? id : (database != null ? database.getId() : null);
-    }
 }

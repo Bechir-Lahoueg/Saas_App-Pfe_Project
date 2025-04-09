@@ -58,9 +58,6 @@ public class AuthFilter implements GatewayFilter {
     }
 
 
-//    private boolean isCredsMissing(ServerHttpRequest request) {
-//        return !(request.getHeaders().containsKey("userName") && request.getHeaders().containsKey("role")) && !request.getHeaders().containsKey("Authorization");
-//    }
 
     private boolean isCredsMissing(ServerHttpRequest request) {
         return !request.getHeaders().containsKey("Authorization");

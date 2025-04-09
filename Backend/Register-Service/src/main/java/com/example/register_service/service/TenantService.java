@@ -7,6 +7,7 @@ import com.example.register_service.dto.TenantRegistrationRequest;
 import com.example.register_service.repository.TenantRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -19,6 +20,7 @@ import java.util.UUID;
 @Service
 @RequiredArgsConstructor
 @Transactional
+@Slf4j
 public class TenantService {
 
     private final TenantRepository tenantRepository;
@@ -29,12 +31,11 @@ public class TenantService {
         if (tenantRepository.findByEmail(request.getEmail()).isPresent()) {
             throw new RuntimeException("Email already registered!");
         }
-        // Generate unique tenant ID
-        String tenantId = generateTenantId(request.getBusinessName());
-
+        if (tenantRepository.findBySubdomain(request.getSubdomain()).isPresent()) {
+            throw new RuntimeException("subdomain already exists!");
+        }
         // Create tenant record
         Tenant tenant = Tenant.builder()
-                .tenantId(tenantId)
                 .email(request.getEmail())
                 .password(passwordEncoder.encode(request.getPassword()))
                 .firstName(request.getFirstName())
@@ -43,7 +44,10 @@ public class TenantService {
                 .businessName(request.getBusinessName())
                 .subdomain(request.getSubdomain())
                 .address(request.getAddress())
-                .createdAt(LocalDateTime.now())
+                .zipcode(request.getZipcode())
+                .country(request.getCountry())
+                .city(request.getCity())
+
                 .databases(new ArrayList<>())
                 .build();
 
@@ -51,37 +55,27 @@ public class TenantService {
 
         // Create databases for each service
         List<String> services = List.of(
-                "schedule-service",
-                "notification-service",
-                "reporting-service",
-                "clientbooking-service"
+                "schedule-service"
+//                "notification-service",
+//                "reporting-service",
+//                "clientbooking-service"
         );
         for (String service : services) {
-            String dbId = neonDatabaseService.createTenantDatabase(tenant.getTenantId(), service);
-            String dbName = service + "_" + tenantId;
+            String dbName = service + "-" + tenant.getSubdomain();
+
+            // Actually create the database in Neon
+            log.info("Creating database {} for tenant {}", dbName, tenant.getId());
+            String databaseId = neonDatabaseService.createTenantDatabase(tenant.getSubdomain(), service);
+
+            // Store database information
             TenantDatabase db = new TenantDatabase();
             db.setTenant(tenant);
             db.setServiceType(service);
-            db.setDatabaseName(dbName); // Store the database name
-            db.setDatabaseId(dbId);
+            db.setDatabaseName(dbName);
             tenant.getDatabases().add(db);
+
+            log.info("Database created with ID: {}", databaseId);
         }
         return tenantRepository.save(tenant);
     }
-
-    public Tenant getTenantById(UUID id) {
-        return tenantRepository.findById(id)
-                .orElseThrow(() ->
-                   new RuntimeException("Tenant not found with id: " + id)
-                );
-    }
-
-    private String generateTenantId(String businessName) {
-        String base = businessName.toLowerCase()
-                .replaceAll("[^a-z0-9]", "-")
-                .replaceAll("-+", "-");
-        return base + "_" + UUID.randomUUID().toString().substring(0, 8);
-    }
-
 }
-

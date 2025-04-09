@@ -7,9 +7,7 @@ import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 import org.springframework.context.annotation.ComponentScan;
 
 @EnableDiscoveryClient
-@SpringBootApplication(exclude = {DataSourceAutoConfiguration.class})
-@ComponentScan(basePackages = {"com.example.Schedule_Service", "org.example.tenant"})
-
+@SpringBootApplication
 public class ScheduleServiceApplication {
 
 	public static void main(String[] args) {

@@ -10,6 +10,7 @@ import org.springframework.web.reactive.function.client.WebClientResponseExcepti
 
 import java.time.Duration;
 import java.util.Map;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -29,9 +30,9 @@ public class NeonDatabaseService {
     /**
      * Creates a new database for a tenant in Neon with retry logic
      */
-    public String createTenantDatabase(String tenantId, String serviceType) {
-        String cleanTenantId = tenantId.replaceAll("[^a-zA-Z0-9]", "_");
-        String dbName = serviceType + "_" + cleanTenantId;
+    public String createTenantDatabase(String subdomain, String serviceType) {
+
+        String dbName = serviceType + "-" + subdomain;
         String url = "https://console.neon.tech/api/v2/projects/" + projectId + "/branches/" + branchId + "/databases";
         Map<String, Object> requestBody = Map.of(
                 "database", Map.of(
@@ -57,16 +58,16 @@ public class NeonDatabaseService {
                         .block();
 
                 // Add debug logging to check response contents
-                log.info("Created database {} for tenant {}. Response ID: {}",
-                        dbName, tenantId, response != null ? response.getId() : "null");
+                log.info("Created database {} Response ID: {}",
+                        dbName, response != null ? response.getId() : "null");
 
                 return response != null ? response.getId() : null;
             } catch (WebClientResponseException e) {
                 if (e.getStatusCode().value() == 423) {
                     retryCount++;
                     if (retryCount >= maxRetries) {
-                        log.error("Maximum retries reached. Failed to create database for tenant {}: {}",
-                                tenantId, e.getMessage());
+                        log.error("Maximum retries reached. Failed to create database {}",
+                                 e.getMessage());
                         throw new RuntimeException("Database creation failed after " + maxRetries + " retries: " + e.getMessage());
                     }
 
@@ -81,11 +82,9 @@ public class NeonDatabaseService {
                         throw new RuntimeException("Thread interrupted during retry delay", ie);
                     }
                 } else {
-                    log.error("Failed to create database for tenant {}: {}", tenantId, e.getMessage());
                     throw new RuntimeException("Database creation failed: " + e.getMessage());
                 }
             } catch (Exception e) {
-                log.error("Failed to create database for tenant {}: {}", tenantId, e.getMessage());
                 throw new RuntimeException("Database creation failed: " + e.getMessage());
             }
         }

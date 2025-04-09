@@ -40,5 +40,11 @@ public class TenantRegistrationRequest {
     @NotBlank(message = "Zipcode is required")
     private String zipcode;
 
+    @NotBlank(message = "Country is required")
+    private String country;
+
+    @NotBlank(message = "City is required")
+    private String city;
+
 
 }

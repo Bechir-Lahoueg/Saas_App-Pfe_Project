@@ -4,7 +4,6 @@ import com.example.auth_service.dto.TenantLoginRequest;
 import com.example.auth_service.dto.TenantLoginResponse;
 import com.example.auth_service.dto.TenantDTO;
 import com.example.auth_service.entities.Tenant;
-import com.example.auth_service.dto.TenantRegistrationRequest;
 import com.example.auth_service.service.JwtService;
 import com.example.auth_service.service.TenantService;
 import lombok.RequiredArgsConstructor;
@@ -23,11 +22,6 @@ public class TenantController {
     private final TenantService tenantService;
     private final JwtService jwtService;
 
-    @PostMapping("/register")
-    public ResponseEntity<TenantDTO> registerTenant(@RequestBody TenantRegistrationRequest request) {
-        Tenant tenant = tenantService.provisionTenant(request);
-        return ResponseEntity.ok(mapToDTO(tenant));
-    }
 
     @PostMapping("/login")
     public ResponseEntity<TenantLoginResponse> login(@RequestBody TenantLoginRequest request) {
@@ -75,12 +69,17 @@ public class TenantController {
     private TenantDTO mapToDTO(Tenant tenant) {
         return TenantDTO.builder()
                 .id(tenant.getId())
-                .tenantId(tenant.getTenantId())
                 .email(tenant.getEmail())
                 .firstName(tenant.getFirstName())
                 .lastName(tenant.getLastName())
                 .businessName(tenant.getBusinessName())
                 .subdomain(tenant.getSubdomain())
+                .address(tenant.getAddress())
+                .phone(tenant.getPhone())
+                .zipcode(tenant.getZipcode())
+                .country(tenant.getCountry())
+                .city(tenant.getCity())
+
                 .build();
     }
 }

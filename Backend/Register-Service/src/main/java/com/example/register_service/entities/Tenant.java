@@ -26,28 +26,23 @@ public class Tenant implements UserDetails {
 
     private UUID id;
 
-    @Column(unique = true)
-    private String tenantId; // Unique identifier for this tenant
-
     private String email;
     private String password;
     private String firstName;
     private String lastName;
     private String phone;
     private String zipcode;
+    private String country;
+    private String city;
 
     // Business information
     private String businessName;
     private String subdomain; // For custom URL (businessname.yoursaas.com)
     private String address;
-//    private String logoUrl;
 
     // Database connection info for each service
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "tenant")
     private List<TenantDatabase> databases;
-
-    private LocalDateTime createdAt;
-    private LocalDateTime updatedAt;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {

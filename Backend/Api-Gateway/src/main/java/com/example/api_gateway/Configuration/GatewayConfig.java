@@ -21,14 +21,6 @@ public class GatewayConfig {
     public RouteLocator customRouteLocator(RouteLocatorBuilder builder) {
         return builder.routes()
 
-                .route("tenant-subdomain-route", r -> r
-                        .host("{subdomain:[a-z0-9-]+}.yoursaas.com")
-                        .filters(f -> f
-                                .filter(tenantIdentificationFilter)
-                                .rewritePath("/(?<segment>.*)", "/api/${segment}")
-                        )
-                        .uri("lb://api-gateway"))
-
                 .route("auth-service", r -> r
                         .path("/auth/**", "/login/oauth2/**")
                         .uri("lb://auth-service"))
@@ -44,7 +36,6 @@ public class GatewayConfig {
                 .route("schedule-service", r -> r
                         .path("/schedule/**")
                         .filters(f -> f
-                                .filter(tenantIdentificationFilter)  // Apply tenant filter
                                 .filter(authFilter)                  // Apply auth filter
                         )
                         .uri("lb://schedule-service"))

@@ -43,16 +43,14 @@ public class JwtService {
 
     public String generateToken(Tenant tenant) {
         Map<String, Object> claims = new HashMap<>();
-        claims.put("tenantId", tenant.getTenantId());
-        claims.put("subdomain", tenant.getSubdomain());
         claims.put("id", tenant.getId().toString());
-
+        claims.put("subdomain", tenant.getSubdomain()); // Add subdomain for tenant identification
         return createToken(claims, tenant.getEmail(), EXPIRATION);
     }
 
     public String generateRefreshToken(Tenant tenant) {
         Map<String, Object> claims = new HashMap<>();
-        claims.put("tenantId", tenant.getTenantId());
+        claims.put("id", tenant.getId());
 
         return createToken(claims, tenant.getEmail(), REFRESH_TOKEN_EXPIRATION);
     }

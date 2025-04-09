@@ -9,5 +9,5 @@ import java.util.UUID;
 
 public interface TenantRepository extends JpaRepository<Tenant, UUID> {
     Optional<Tenant> findByEmail(String email);  // Check if email already exists
-    Optional <Tenant> findByTenantId(String tenantId);  // Check if tenantId already exists
+    Optional<Tenant> findBySubdomain(String subdomain);  // Check if subdomain already exists
 }

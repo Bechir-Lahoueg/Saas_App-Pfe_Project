@@ -25,7 +25,6 @@ public class TenantController {
     private TenantDTO mapToDTO(Tenant tenant) {
         return TenantDTO.builder()
                 .id(tenant.getId())
-                .tenantId(tenant.getTenantId())
                 .email(tenant.getEmail())
                 .firstName(tenant.getFirstName())
                 .lastName(tenant.getLastName())
@@ -34,6 +33,9 @@ public class TenantController {
                 .address(tenant.getAddress())
                 .phone(tenant.getPhone())
                 .zipcode(tenant.getZipcode())
+                .country(tenant.getCountry())
+                .city(tenant.getCity())
+
                 .build();
     }
 }
