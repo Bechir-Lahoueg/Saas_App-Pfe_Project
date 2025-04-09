@@ -17,8 +17,7 @@ const initiatePayment = async (req, res) => {
     silentWebhook,
     successUrl,
     failUrl,
-    theme,
-    customerDetails
+    theme
   } = req.body;
 
   const paymentData = {
@@ -36,8 +35,7 @@ const initiatePayment = async (req, res) => {
     silentWebhook,
     successUrl,
     failUrl,
-    theme,
-    customerDetails
+    theme
   };
 
   try {
@@ -103,26 +101,55 @@ const initiateRegistrationPayment = async (req, res) => {
       receiverWalletId,
       token,
       amount,
-      customerDetails,
-      tenantRegistration
+      firstName,
+      lastName,
+      email,
+      phone,
+      address,
+      city,
+      zipcode,
+      country,
+      businessName,
+      subdomain,
+      password,
+      successUrl,
+      failUrl,
+      theme
     } = req.body;
 
-    if (!customerDetails || !tenantRegistration) {
+    // Vérifier les champs requis
+    if (!email || !firstName || !lastName || !password || !businessName || !subdomain) {
       return res.status(400).json({
-        error: 'Missing required fields: customerDetails and tenantRegistration'
+        error: 'Missing required tenant registration fields'
       });
     }
+
+    // Créer un objet de données d'enregistrement
+    const registrationData = {
+      email,
+      firstName,
+      lastName,
+      phone,
+      address,
+      password,
+      businessName,
+      subdomain,
+      city,
+      zipcode,
+      country
+    };
 
     const paymentData = {
       receiverWalletId,
       token,
       amount,
-      description: `Tenant registration for ${tenantRegistration.businessName}`,
+      description: `Tenant registration for ${businessName}`,
       orderId: `REG-${Date.now()}`,
-      customerDetails,
-      metadata: {
-        tenantRegistration
-      }
+      successUrl,
+      failUrl,
+      theme,
+      isTenantRegistration: true,
+      registrationData
     };
 
     const paymentResponse = await konnectService.initiatePayment(paymentData);
@@ -140,5 +167,4 @@ module.exports = {
   getPaymentDetails,
   getPaymentsByStatus,
   initiateRegistrationPayment
-
 };

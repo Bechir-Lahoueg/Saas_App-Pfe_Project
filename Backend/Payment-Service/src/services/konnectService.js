@@ -18,8 +18,8 @@ const initiatePayment = async (paymentData) => {
       addPaymentFeesToAmount: paymentData.addPaymentFeesToAmount || true,
       webhook: `${process.env.BASE_URL}/api/payments/webhook`,
       silentWebhook: true,
-      successUrl: "http://localhost:5173/paiement?step=3&status=success",
-      failUrl: "http://localhost:5173/paiement?step=3&status=failed",
+      successUrl: paymentData.successUrl || "http://localhost:5173/paiement?step=3&status=success",
+      failUrl: paymentData.failUrl || "http://localhost:5173/paiement?step=3&status=failed",
       theme: paymentData.theme || "dark"
     };
 
@@ -32,17 +32,21 @@ const initiatePayment = async (paymentData) => {
 
     console.log(`Payment initiated with ID: ${response.data.paymentRef}`);
 
+    // Créer l'enregistrement de paiement
     const payment = new Payment({
       orderId: paymentData.orderId,
       amount: paymentData.amount,
       status: 'pending',
       paymentMethod: 'unknown',
       receiverWalletId: paymentData.receiverWalletId,
-      customerDetails: paymentData.customerDetails || {},
       konnectPaymentId: response.data.paymentRef,
-      konnectPaymentUrl: response.data.payUrl,
-      metadata: paymentData.metadata || {}
+      konnectPaymentUrl: response.data.payUrl
     });
+
+    // Si c'est un paiement d'enregistrement, stocker temporairement les données d'enregistrement
+    if (paymentData.isTenantRegistration) {
+      payment.registrationData = paymentData.registrationData;
+    }
 
     await payment.save();
     return response.data;
@@ -79,7 +83,9 @@ const completePayment = async (paymentRef) => {
     console.log(`Completing payment: ${paymentRef}`);
     const verificationResponse = await verifyPayment(paymentRef);
 
-    const payment = await Payment.findOne({ konnectPaymentId: paymentRef });
+    // Inclure explicitement le champ registrationData qui est défini avec select: false
+    const payment = await Payment.findOne({ konnectPaymentId: paymentRef }).select('+registrationData');
+
     if (!payment) {
       throw new Error('Payment not found in database');
     }
@@ -96,55 +102,51 @@ const completePayment = async (paymentRef) => {
       }
     }
 
-    // Only proceed with registration if payment is completed and it's a tenant registration
-    if (verificationResponse.payment.status === 'completed' && payment.metadata?.tenantRegistration) {
+    // Si le paiement est complété et que nous avons des données d'enregistrement
+    if (verificationResponse.payment.status === 'completed' && payment.registrationData) {
       try {
         payment.completionDate = new Date();
 
-        // Prepare tenant data from the stored metadata
-        const tenantData = {
-          email: payment.customerDetails.email,
-          firstName: payment.customerDetails.firstName,
-          lastName: payment.customerDetails.lastName,
-          // This is incorrect - Registration service expects 'phone' not 'phoneNumber'
-          phone: payment.customerDetails.phone,
-          address: payment.customerDetails.address, // Ensure address is included
+        // Enregistrer le locataire avec les données stockées temporairement
+        const registrationResult = await registerTenant(payment.registrationData);
 
-          password: payment.metadata.tenantRegistration.password,
-          businessName: payment.metadata.tenantRegistration.businessName,
-          subdomain: payment.metadata.tenantRegistration.subdomain,
+        // Stocker l'ID d'enregistrement du locataire
+        payment.tenantRegistrationId = registrationResult.tenantId;
 
-        };
+        // Nettoyer les données d'enregistrement après utilisation
+        payment.registrationData = undefined;
 
-        // Register the tenant synchronously
-        const registrationResult = await registerTenant(tenantData);
-
-        // Store registration result in payment metadata
-        payment.metadata.registrationResult = registrationResult;
         console.log('Tenant successfully registered with ID:', registrationResult.tenantId);
       } catch (registrationError) {
         console.error('Failed to register tenant:', registrationError);
-        payment.metadata.registrationError = registrationError.message;
-        // Important: Since this is sync operation, you may want to mark payment as failed
-        // if tenant registration fails
+        // Même en cas d'erreur, nous nettoyons les données
+        payment.registrationData = undefined;
         throw new Error(`Payment completed but tenant registration failed: ${registrationError.message}`);
       }
     } else if (verificationResponse.payment.status === 'completed') {
       payment.completionDate = new Date();
     }
 
-    // Update payment metadata
-    payment.metadata = {
-      ...payment.metadata,
-      verificationResponse: verificationResponse.payment
-    };
-
     await payment.save();
     console.log(`Payment ${paymentRef} completed with status: ${payment.status}`);
 
     return {
       success: verificationResponse.success,
-      payment,
+      payment: {
+        _id: payment._id,
+        orderId: payment.orderId,
+        amount: payment.amount,
+        status: payment.status,
+        paymentMethod: payment.paymentMethod,
+        receiverWalletId: payment.receiverWalletId,
+        konnectPaymentId: payment.konnectPaymentId,
+        konnectPaymentUrl: payment.konnectPaymentUrl,
+        paymentDate: payment.paymentDate,
+        completionDate: payment.completionDate,
+        tenantRegistrationId: payment.tenantRegistrationId,
+        createdAt: payment.createdAt,
+        updatedAt: payment.updatedAt
+      },
       status: verificationResponse.payment.status
     };
   } catch (error) {
@@ -152,8 +154,6 @@ const completePayment = async (paymentRef) => {
     throw error;
   }
 };
-
-
 
 const getPaymentDetails = async (orderId) => {
   try {

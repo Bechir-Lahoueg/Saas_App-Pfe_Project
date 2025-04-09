@@ -204,22 +204,6 @@ const PricingPage = () => {
           </div>
         </div>
         
-        {/* Testimonial/CTA Section */}
-        <div className="mt-20 bg-white p-8 rounded-2xl shadow-md max-w-3xl mx-auto">
-          <div className="flex flex-col md:flex-row items-center gap-6">
-            <div className="w-20 h-20 rounded-full bg-blue-100 flex items-center justify-center">
-              <svg className="w-10 h-10 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-6-3a2 2 0 11-4 0 2 2 0 014 0zm-2 4a5 5 0 00-4.546 2.916A5.986 5.986 0 005 10a6 6 0 0012 0c0-.35-.035-.691-.1-1.021A5 5 0 0010 11z" clipRule="evenodd" />
-              </svg>
-            </div>
-            <div className="text-left">
-              <p className="text-gray-700 italic mb-3">"Cette plateforme a transformé la façon dont nous gérons nos réservations. Nous avons augmenté nos rendez-vous de 40% tout en réduisant les absences."</p>
-              <p className="font-medium text-gray-900">Sophie Martin</p>
-              <p className="text-sm text-gray-500">Propriétaire, Salon de Beauté Élégance</p>
-            </div>
-          </div>
-        </div>
-        
         {/* FAQ Link */}
         <div className="mt-12 text-center">
           <p className="text-gray-600">
