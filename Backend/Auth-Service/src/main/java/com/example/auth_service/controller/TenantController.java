@@ -4,6 +4,7 @@ import com.example.auth_service.dto.TenantLoginRequest;
 import com.example.auth_service.dto.TenantLoginResponse;
 import com.example.auth_service.dto.TenantDTO;
 import com.example.auth_service.entities.Tenant;
+import com.example.auth_service.entities.TenantDatabase;
 import com.example.auth_service.service.JwtService;
 import com.example.auth_service.service.TenantService;
 import lombok.RequiredArgsConstructor;
@@ -63,6 +64,12 @@ public class TenantController {
     public ResponseEntity<TenantDTO> getTenantById(@PathVariable UUID id) {
         Tenant tenant = tenantService.getTenantById(id);
         return ResponseEntity.ok(mapToDTO(tenant));
+    }
+
+    @GetMapping("/databases")
+    public ResponseEntity<List<TenantDatabase>> getTenantDatabases(@RequestParam UUID tenantId) {
+        List<TenantDatabase> databases = tenantService.getTenantDatabases(tenantId);
+        return ResponseEntity.ok(databases);
     }
 
 

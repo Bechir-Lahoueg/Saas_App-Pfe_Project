@@ -23,7 +23,7 @@ public class Notification {
     private Long id;
     private String title;
     private String message;
-    private Date sendingDate;
+//    private Date sendingDate;
     private boolean read;
 
 }

@@ -14,7 +14,6 @@
         <module name="api-gateway" />
         <module name="Schedule-Service" />
         <module name="reporting-service" />
-        <module name="tenant-routing-library" />
         <module name="ClientBooking-service" />
         <module name="notification-service" />
       </profile>
@@ -24,6 +23,7 @@
       <module name="Integration-Service" target="17" />
       <module name="Payment-Service" target="17" />
       <module name="SubscriberManagement-service" target="17" />
+      <module name="tenant-routing-library" target="19" />
     </bytecodeTargetLevel>
   </component>
   <component name="JavacSettings">

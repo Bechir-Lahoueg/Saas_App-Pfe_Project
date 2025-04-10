@@ -1,7 +1,6 @@
 package com.example.api_gateway.Configuration;
 
 import com.example.api_gateway.Filters.AuthFilter;
-import com.example.api_gateway.Filters.TenantIdentificationFilter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.gateway.route.RouteLocator;
 import org.springframework.cloud.gateway.route.builder.RouteLocatorBuilder;
@@ -13,9 +12,6 @@ public class GatewayConfig {
 
     @Autowired
     private AuthFilter authFilter;
-
-    @Autowired
-    private TenantIdentificationFilter tenantIdentificationFilter;
 
     @Bean
     public RouteLocator customRouteLocator(RouteLocatorBuilder builder) {
@@ -54,7 +50,7 @@ public class GatewayConfig {
 
                 .route("notification-service", r -> r
                         .path("/notification/**")
-                        .filters(f->f.filter(authFilter))
+//                        .filters(f->f.filter(authFilter))
                         .uri("lb://notification-service"))
 
                 .build();
