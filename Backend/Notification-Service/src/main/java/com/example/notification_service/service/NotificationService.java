@@ -30,7 +30,7 @@ public class NotificationService {
         Notification notification = notificationRepository.findById(id).orElseThrow(() -> new RuntimeException("Notification not found"));
         notification.setTitle(notificationDetails.getTitle());
         notification.setMessage(notificationDetails.getMessage());
-        notification.setSendingDate(notificationDetails.getSendingDate());
+//        notification.setSendingDate(notificationDetails.getSendingDate());
         notification.setRead(notificationDetails.isRead());
         return notificationRepository.save(notification);
     }

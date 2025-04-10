@@ -54,6 +54,12 @@ public class TenantService {
                 );
     }
 
+    public List<TenantDatabase> getTenantDatabases(UUID tenantId){
+        Tenant tenant = tenantRepository.findById(tenantId)
+                .orElseThrow(() -> new RuntimeException("Tenant not found"));
+        return tenant.getDatabases();
+    }
+
     @Transactional
     public void deleteTenant(UUID tenantId) {
         Tenant tenant = tenantRepository.findById(tenantId)

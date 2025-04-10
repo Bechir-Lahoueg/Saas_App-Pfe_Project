@@ -55,8 +55,8 @@ public class TenantService {
 
         // Create databases for each service
         List<String> services = List.of(
-                "schedule-service"
-//                "notification-service",
+                "schedule-service",
+                "notification-service"
 //                "reporting-service",
 //                "clientbooking-service"
         );

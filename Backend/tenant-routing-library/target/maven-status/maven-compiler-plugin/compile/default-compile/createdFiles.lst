@@ -1,8 +1,0 @@
-org\example\tenant\config\WebClientConfig.class
-org\example\tenant\filter\TenantFilter.class
-org\example\tenant\config\DataSourceConfig$RoutingDataSource.class
-org\example\tenant\client\TenantDatabaseClient$1.class
-org\example\tenant\config\DataSourceConfig.class
-org\example\tenant\autoconfigure\TenantAutoConfiguration.class
-org\example\tenant\client\TenantDatabaseClient.class
-org\example\tenant\context\TenantContext.class

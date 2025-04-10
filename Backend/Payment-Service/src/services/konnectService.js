@@ -18,8 +18,8 @@ const initiatePayment = async (paymentData) => {
       addPaymentFeesToAmount: paymentData.addPaymentFeesToAmount || true,
       webhook: `${process.env.BASE_URL}/api/payments/webhook`,
       silentWebhook: true,
-      successUrl: paymentData.successUrl || "http://localhost:5173/paiement?step=3&status=success",
-      failUrl: paymentData.failUrl || "http://localhost:5173/paiement?step=3&status=failed",
+      successUrl: "http://localhost:5173/paiement?step=3&status=success",
+      failUrl: "http://localhost:5173/paiement?step=3&status=failed",
       theme: paymentData.theme || "dark"
     };
 

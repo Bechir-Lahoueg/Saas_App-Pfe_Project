@@ -1,5 +1,6 @@
-package com.example.auth_service.entities;
+package com.example.auth_service.dto;
 
+import com.example.auth_service.entities.Admin;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;

@@ -1,5 +1,7 @@
 package com.example.auth_service.controller;
 
+import com.example.auth_service.dto.LoginRequestAdmin;
+import com.example.auth_service.dto.LoginResponseAdmin;
 import com.example.auth_service.entities.*;
 import com.example.auth_service.service.AdminService;
 import com.example.auth_service.service.JwtService;
