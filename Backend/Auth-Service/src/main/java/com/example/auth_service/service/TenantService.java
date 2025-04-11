@@ -18,7 +18,6 @@ import java.util.UUID;
 @Transactional
 public class TenantService {
     private final TenantRepository tenantRepository;
-    private final NeonDatabaseService neonDatabaseService;
     private final PasswordEncoder passwordEncoder;
 
 
@@ -64,19 +63,6 @@ public class TenantService {
     public void deleteTenant(UUID tenantId) {
         Tenant tenant = tenantRepository.findById(tenantId)
                 .orElseThrow(() -> new RuntimeException("Tenant not found"));
-
-        // Delete all tenant databases in Neon
-        for (TenantDatabase database : tenant.getDatabases()) {
-            try {
-                // If databaseName is already stored:
-                if (database.getDatabaseName() != null) {
-                    neonDatabaseService.deleteTenantDatabase(database.getDatabaseName());
-                }
-            } catch (Exception e) {
-                System.err.println("Failed to delete tenant database %s: %s");
-            }
-        }
-        // Delete the tenant from our database
         tenantRepository.delete(tenant);
     }
 

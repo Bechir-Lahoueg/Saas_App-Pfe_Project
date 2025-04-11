@@ -24,7 +24,6 @@ import java.util.UUID;
 public class TenantService {
 
     private final TenantRepository tenantRepository;
-    private final NeonDatabaseService neonDatabaseService;
     private final PasswordEncoder passwordEncoder;
 
     public Tenant provisionTenant(TenantRegistrationRequest request) {
@@ -47,35 +46,8 @@ public class TenantService {
                 .zipcode(request.getZipcode())
                 .country(request.getCountry())
                 .city(request.getCity())
-
                 .databases(new ArrayList<>())
                 .build();
-
-        tenant = tenantRepository.save(tenant);
-
-        // Create databases for each service
-        List<String> services = List.of(
-                "schedule-service",
-                "notification-service"
-//                "reporting-service",
-//                "clientbooking-service"
-        );
-        for (String service : services) {
-            String dbName = service + "-" + tenant.getSubdomain();
-
-            // Actually create the database in Neon
-            log.info("Creating database {} for tenant {}", dbName, tenant.getId());
-            String databaseId = neonDatabaseService.createTenantDatabase(tenant.getSubdomain(), service);
-
-            // Store database information
-            TenantDatabase db = new TenantDatabase();
-            db.setTenant(tenant);
-            db.setServiceType(service);
-            db.setDatabaseName(dbName);
-            tenant.getDatabases().add(db);
-
-            log.info("Database created with ID: {}", databaseId);
-        }
         return tenantRepository.save(tenant);
     }
 }
