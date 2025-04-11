@@ -114,7 +114,8 @@ const completePayment = async (paymentRef) => {
         payment.tenantRegistrationId = registrationResult.tenantId;
 
         // Nettoyer les données d'enregistrement après utilisation
-        payment.registrationData = undefined;
+        const { firstName, lastName, phone, email } = payment.registrationData || {};
+        payment.registrationData = { firstName, lastName, phone, email };
 
         console.log('Tenant successfully registered with ID:', registrationResult.tenantId);
       } catch (registrationError) {
