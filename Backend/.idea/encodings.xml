@@ -22,6 +22,8 @@
     <file url="file://$PROJECT_DIR$/Schedule-Service/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/Service-Discovery/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/communs-library/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/multitenancy-lib/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/multitenancy-lib/src/main/resources" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/tenant-routing-library/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/tenant-routing-library/src/main/resources" charset="UTF-8" />
   </component>

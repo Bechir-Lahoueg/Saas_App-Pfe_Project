@@ -1,76 +1,86 @@
 package com.example.notification_service.config;
 
-import com.example.notification_service.service.TenantDatabaseService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.context.properties.ConfigurationProperties;
+import com.example.notification_service.routing.MultitenantDataSource;
+import com.zaxxer.hikari.HikariDataSource;
+import lombok.extern.slf4j.Slf4j;
+import org.flywaydb.core.Flyway;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Primary;
-import org.springframework.jdbc.datasource.DriverManagerDataSource;
-import org.springframework.orm.jpa.JpaTransactionManager;
-import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
-import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter;
+import org.springframework.jdbc.datasource.lookup.AbstractRoutingDataSource;
 
 import javax.sql.DataSource;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Properties;
+import java.util.concurrent.ConcurrentHashMap;
 
+@Slf4j
 @Configuration
 public class DataSourceConfig {
 
-    @Autowired
-    private TenantDatabaseService tenantDatabaseService;
+    @Value("${spring.datasource.username}")
+    private String username;
+
+    @Value("${spring.datasource.password}")
+    private String password;
+
+    // A concurrent map to store target datasources
+    private final Map<Object, Object> dataSources = new ConcurrentHashMap<>();
+
+    // Hold a reference to our routing datasource
+    private MultitenantDataSource routingDataSource;
 
     @Bean
-    @ConfigurationProperties(prefix = "spring.datasource")
-    public DataSource defaultDataSource() {
-        return new DriverManagerDataSource();
-    }
+    public DataSource dataSource() throws Exception {
+        routingDataSource = new MultitenantDataSource();
 
-    @Bean
-    @Primary
-    public DataSource dataSource() {
-        TenantAwareRoutingDataSource routingDataSource = new TenantAwareRoutingDataSource();
+        // Create and add the default tenant (tenant1)
+        DataSource defaultDataSource = createDataSource("tenant1");
+        dataSources.put("tenant1", defaultDataSource);
 
-        Map<Object, Object> dataSources = new HashMap<>();
-        tenantDatabaseService.getAllTenantDatabases().forEach((tenantId, connectionString) -> {
-            DriverManagerDataSource dataSource = new DriverManagerDataSource();
-            dataSource.setUrl(connectionString);
-            dataSource.setUsername("neondb_owner");
-            dataSource.setPassword("npg_2CPyrate1KLs");
-            dataSources.put(tenantId, dataSource);
-        });
-
-        routingDataSource.setDefaultTargetDataSource(defaultDataSource());
         routingDataSource.setTargetDataSources(dataSources);
+        routingDataSource.setDefaultTargetDataSource(defaultDataSource);
         routingDataSource.afterPropertiesSet();
 
         return routingDataSource;
     }
 
-    @Bean
-    public LocalContainerEntityManagerFactoryBean entityManagerFactory() {
-        LocalContainerEntityManagerFactoryBean em = new LocalContainerEntityManagerFactoryBean();
-        em.setDataSource(dataSource());
-        em.setPackagesToScan("com.example.notification_service.entities");
+    // Utility method to create a new datasource for a given tenant DB name.
+    public DataSource createDataSource(String tenantDbName) throws Exception {
+        HikariDataSource ds = new HikariDataSource();
+        ds.setJdbcUrl("jdbc:postgresql://localhost:5432/" + tenantDbName);
+        ds.setUsername(username);
+        ds.setPassword(password);
+        ds.setDriverClassName("org.postgresql.Driver");
 
-        HibernateJpaVendorAdapter vendorAdapter = new HibernateJpaVendorAdapter();
-        em.setJpaVendorAdapter(vendorAdapter);
+        // Test the connection to verify database exists
+        try {
+            ds.getConnection().close();
+            log.info("Successfully created datasource for tenant: {}", tenantDbName);
+        } catch (Exception e) {
+            log.error("Tenant database not found or inaccessible: {}", tenantDbName);
+            throw new Exception(e);
+        }
 
-        Properties properties = new Properties();
-        properties.setProperty("hibernate.hbm2ddl.auto", "update");
-        properties.setProperty("hibernate.dialect", "org.hibernate.dialect.PostgreSQLDialect");
-        properties.setProperty("hibernate.show_sql", "true");
-        em.setJpaProperties(properties);
-
-        return em;
+        return ds;
     }
 
-    @Bean
-    public JpaTransactionManager transactionManager() {
-        JpaTransactionManager transactionManager = new JpaTransactionManager();
-        transactionManager.setEntityManagerFactory(entityManagerFactory().getObject());
-        return transactionManager;
+    // Called dynamically when a tenant is not yet in the map.
+    public void addDataSourceIfMissing(String tenantId) throws Exception {
+        if (!dataSources.containsKey(tenantId)) {
+            DataSource ds = createDataSource(tenantId);
+
+            Flyway flyway = Flyway.configure()
+                    .dataSource(ds)
+                    .locations("classpath:db/migration")
+                    .load();
+            flyway.migrate();
+            log.info("Missing datasource config for Tenant" + tenantId);
+            log.info("Adding the missing datasource" + tenantId + "for tenant: " + tenantId);
+            dataSources.put(tenantId, ds);
+            // Use the existing routingDataSource instance instead of calling dataSource() again.
+            routingDataSource.setTargetDataSources(new HashMap<>(dataSources));
+            routingDataSource.afterPropertiesSet();
+        }
     }
 }

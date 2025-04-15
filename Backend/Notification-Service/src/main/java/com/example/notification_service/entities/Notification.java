@@ -1,14 +1,13 @@
 package com.example.notification_service.entities;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import java.util.Date;
 
 
+@Data
+@Builder
 @Entity
 @Table(name = "notifications")
 @Getter
@@ -20,10 +19,11 @@ public class Notification {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id")
     private Long id;
     private String title;
     private String message;
-//    private Date sendingDate;
+    private Date sendingDate;
     private boolean read;
 
 }

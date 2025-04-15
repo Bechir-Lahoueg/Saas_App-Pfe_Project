@@ -2,19 +2,14 @@ package com.example.register_service.service;
 
 
 import com.example.register_service.entities.Tenant;
-import com.example.register_service.entities.TenantDatabase;
 import com.example.register_service.dto.TenantRegistrationRequest;
 import com.example.register_service.repository.TenantRepository;
+import com.example.register_service.util.DatabaseCreator;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
 
 
 @Service
@@ -25,15 +20,22 @@ public class TenantService {
 
     private final TenantRepository tenantRepository;
     private final PasswordEncoder passwordEncoder;
+    private final DatabaseCreator databaseCreator;
 
     public Tenant provisionTenant(TenantRegistrationRequest request) {
         if (tenantRepository.findByEmail(request.getEmail()).isPresent()) {
             throw new RuntimeException("Email already registered!");
         }
         if (tenantRepository.findBySubdomain(request.getSubdomain()).isPresent()) {
-            throw new RuntimeException("subdomain already exists!");
+            throw new RuntimeException("Subdomain already exists!");
         }
-        // Create tenant record
+
+        // Step 1: Create DB first
+        String dbName = request.getSubdomain(); // "tenant4"
+        databaseCreator.createDatabase(dbName);
+        log.info("Creating database for tenant {}", dbName);
+
+        // Step 2: Create Tenant entity
         Tenant tenant = Tenant.builder()
                 .email(request.getEmail())
                 .password(passwordEncoder.encode(request.getPassword()))
@@ -46,8 +48,8 @@ public class TenantService {
                 .zipcode(request.getZipcode())
                 .country(request.getCountry())
                 .city(request.getCity())
-                .databases(new ArrayList<>())
                 .build();
+
         return tenantRepository.save(tenant);
     }
 }

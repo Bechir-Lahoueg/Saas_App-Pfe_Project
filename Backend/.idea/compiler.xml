@@ -21,6 +21,7 @@
     <bytecodeTargetLevel>
       <module name="communs-library" target="17" />
       <module name="Integration-Service" target="17" />
+      <module name="multitenancy-lib" target="19" />
       <module name="Payment-Service" target="17" />
       <module name="SubscriberManagement-service" target="17" />
       <module name="tenant-routing-library" target="19" />
