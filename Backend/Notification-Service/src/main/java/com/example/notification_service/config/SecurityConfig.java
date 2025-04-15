@@ -17,22 +17,19 @@ import java.util.Arrays;
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
-
-
-
-
         @Bean
         public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
             http
                     .csrf(csrf->csrf.disable())
                     .authorizeHttpRequests(auth -> auth
-                            .requestMatchers("/notification/**").permitAll()
+                            .requestMatchers("/notification/**",
+                            "/employee/**",
+                                    "/api/**"
+                            ).permitAll()
                             .anyRequest().authenticated()
                     );
 
             return http.build();
         }
-
-
 }
 

@@ -35,7 +35,6 @@ public class TenantController {
                 .zipcode(tenant.getZipcode())
                 .country(tenant.getCountry())
                 .city(tenant.getCity())
-
                 .build();
     }
 }

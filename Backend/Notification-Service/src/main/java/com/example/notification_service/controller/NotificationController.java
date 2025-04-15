@@ -2,6 +2,7 @@ package com.example.notification_service.controller;
 
 import com.example.notification_service.entities.Notification;
 import com.example.notification_service.service.NotificationService;
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -9,7 +10,8 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/notification")
+@Transactional
+@RequestMapping("/api")
 public class NotificationController {
 
     @Autowired
