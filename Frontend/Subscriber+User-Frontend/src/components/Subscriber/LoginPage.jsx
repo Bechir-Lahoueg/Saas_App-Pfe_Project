@@ -23,7 +23,7 @@ const LoginPage = () => {
     setError('');
     
     try {
-      const response = await fetch('http://localhost:8888/auth/subscriber/login', {
+      const response = await fetch('http://localhost:8888/auth/tenant/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -40,7 +40,7 @@ const LoginPage = () => {
       // Store tokens in local storage
       localStorage.setItem('accessToken', data.accessToken);
       localStorage.setItem('refreshToken', data.refreshToken);
-      localStorage.setItem('user', JSON.stringify(data.subscriber));
+      localStorage.setItem('user', JSON.stringify(data.tenant));
       
       // Redirect to dashboard or home
       navigate('/dashbord');
