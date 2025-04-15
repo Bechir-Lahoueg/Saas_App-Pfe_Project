@@ -32,13 +32,14 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
-                                "/subscriber/login",
                                 "/oauth2/**",
                                 "/forgot-password/**",
                                 "/reset-password/**",
                                 "/admin/login",
                                 "/tenant/**",
-                                "/tenant/databases"
+                                "/tenant/databases",
+                                "/tenant/forgot-password",
+                                "/tenant/reset-password"
                         ).permitAll()
                         .anyRequest()
                         .authenticated()

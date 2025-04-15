@@ -10,8 +10,8 @@ import java.util.function.Predicate;
 public class RouteValidator {
 
     public static final List<String> unprotectedUrls = List.of(
-            "/auth/forgot-password",
-            "/auth/reset-password",
+            "/auth/tenant/forgot-password",
+            "/auth/tenant/reset-password",
             "/auth/admin/login",
             "/auth/tenant/login",
             "/register/tenant/signup"

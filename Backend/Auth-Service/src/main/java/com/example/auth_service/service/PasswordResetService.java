@@ -49,7 +49,7 @@ public class PasswordResetService {
             PasswordResetToken resetToken = new PasswordResetToken();
             resetToken.setToken(token);
             resetToken.setTenant(Tenant);
-            resetToken.setExpiryDate(LocalDateTime.now().plusHours(1));
+            resetToken.setExpiryDate(LocalDateTime.now().plusMinutes(15));
             tokenRepository.save(resetToken);
 
             // Send email
