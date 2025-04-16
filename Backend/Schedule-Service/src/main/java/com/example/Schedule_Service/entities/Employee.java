@@ -16,28 +16,13 @@ import java.util.UUID;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
+
 public class Employee {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @Column(name = "subscriber_id", nullable = false)
-    private UUID subscriberId;
-
     @Column(nullable = false)
     private String name;
 
-    @JsonProperty("is_available") // Add this annotation
-    @Column(name = "is_available")
-    private Boolean isAvailable;
-
-    @ManyToOne
-    @JoinColumn(name = "calendar_id")
-    private Calendar calendar;
-
-    @OneToMany(mappedBy = "employee")
-    private List<TimeBlock> timeBlocks;
-
-    @OneToMany(mappedBy = "employee")
-    private List<ExceptionTimeBlock> exceptionTimeBlocks;
 }
