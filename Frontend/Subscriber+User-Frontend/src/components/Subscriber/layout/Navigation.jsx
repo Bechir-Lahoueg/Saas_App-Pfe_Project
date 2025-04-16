@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { Search, Bell, Calendar, Menu, ChevronDown, Moon, Sun, Filter, LayoutGrid, FileText, Users, MessageCircle, Settings as SettingsIcon, ChevronRight, LogOut, ChevronLeft, User, CreditCard, X, Building, ChevronsRight, Home, LineChart, BarChart3, Clock, Star, Shield } from 'lucide-react';
 import { UserCircle } from 'lucide-react'; // Import icon
+// Import logo
+import logoImage from "../../../assets/LogoPlanifygoPNG.png"; // Adjust the path as needed
 // Import page components
 import DashboardContent from "../pages/DashboardContent";
 import Analytics from "../pages/Analytics";
@@ -78,6 +80,18 @@ useEffect(() => {
     document.documentElement.classList.remove("dark");
     localStorage.setItem("darkMode", "false");
   }, []);
+
+// Mise à jour de la fonction handleLogoClick
+const handleLogoClick = () => {
+  const logo = document.getElementById('logo');
+  if (logo.classList.contains('scale-150')) {
+    logo.classList.replace('scale-150', 'scale-175');
+  } else if (logo.classList.contains('scale-175')) {
+    logo.classList.replace('scale-175', 'scale-200');
+  } else if (logo.classList.contains('scale-200')) {
+    logo.classList.replace('scale-200', 'scale-150');
+  }
+};
 
   // Navigation
   const navigateTo = (pageId) => {
@@ -213,27 +227,23 @@ const getUserName = () => {
           )}
         </button>
 
+        {/* Logo Section - Modified for centered and larger logo */}
         <div
-          className={`p-5 flex items-center justify-between ${
+          className={`p-6 flex items-center justify-center ${
             isDarkMode ? "border-slate-700" : "border-gray-200"
-          } border-b`}
+          } border-b overflow-visible`}
         >
-          <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 rounded-lg bg-blue-600 flex items-center justify-center shadow-md">
-              <Shield className="text-white" size={20} />
-            </div>
-            {isSidebarExpanded && (
-              <span
-                className={`font-bold text-xl ${
-                  isDarkMode ? "text-white" : "text-gray-800"
-                } tracking-tight`}
-              >
-                PlanifyGo
-              </span>
-            )}
+          <div className="flex items-center justify-center w-full relative">
+            <img 
+              src={logoImage} 
+              alt="PlanifyGo Logo" 
+              className={`${isSidebarExpanded ? 'w-full max-h-32 object-contain' : 'w-full max-h-20 object-contain'} transition-all duration-300 cursor-pointer scale-150`} 
+              id="logo"
+              onClick={handleLogoClick}
+            />
           </div>
           <button
-            className={`md:hidden p-1.5 rounded-lg ${
+            className={`md:hidden absolute top-4 right-4 p-1.5 rounded-lg ${
               isDarkMode
                 ? "text-gray-400 hover:text-gray-200 hover:bg-slate-700"
                 : "text-gray-400 hover:text-gray-600 hover:bg-gray-100"
@@ -473,7 +483,7 @@ const getUserName = () => {
         </div>
       </aside>
 
-      {/* Main content */}
+      {/* Main content area */}
       <div
         className={`flex-1 flex flex-col ${
           isSidebarExpanded ? "md:ml-64" : "md:ml-20"
@@ -481,7 +491,6 @@ const getUserName = () => {
       >
         {/* Navbar */}
         <header
-        
           className={`${
             isDarkMode
               ? "bg-slate-800 border-slate-700"
@@ -586,8 +595,6 @@ const getUserName = () => {
                 <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-red-500 ring-2 ring-white animate-pulse"></span>
               </button>
             </div>
-
-
           </div>
         </header>
 
