@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from "react";
+// Import the logo image
+import logoImage from "../../../assets/LogoPlanifygoPNG.png"; // Adjust the path as necessary
 
 const Navbar = () => {
   const [scrolled, setScrolled] = useState(false);
@@ -76,39 +78,25 @@ const Navbar = () => {
     <nav
       className={`fixed top-0 left-0 w-full z-50 transition-all duration-500 ${
         scrolled
-          ? "py-2 bg-white/95 backdrop-blur-md shadow-lg"
-          : "py-4 bg-transparent backdrop-blur-none"
+          ? "py-0 bg-white/95 backdrop-blur-md shadow-lg"
+          : "py-2 bg-transparent backdrop-blur-none"
       }`}
     >
       <div className="max-w-7xl mx-auto px-6 relative">
         <div className="flex items-center justify-between">
-          {/* Logo avec animation */}
+          {/* Logo avec image et texte */}
           <div className="flex items-center space-x-2 group">
-            <div
-              className={`relative w-10 h-10 rounded-xl overflow-hidden transition-all duration-300 ${
-                scrolled ? "shadow-md" : "shadow-lg"
-              }`}
-            >
-              <div className="absolute inset-0 bg-gradient-to-br from-blue-600 via-blue-500 to-indigo-600 group-hover:animate-gradient-xy"></div>
-              <div className="absolute inset-0 flex items-center justify-center text-white font-bold text-lg group-hover:scale-110 transition-transform duration-300">
-                F
-              </div>
-              <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-            </div>
-
-            <span className="font-bold text-xl relative">
-              <span
-                className={`transition-colors duration-300 ${
-                  scrolled ? "text-gray-800" : "text-gray-800"
-                }`}
-              >
-                Planify
+            <a href="/" className="flex items-center">
+              <img 
+                src={logoImage} 
+                alt="PlanifyGo Logo" 
+                className="h-20 w-auto scale-125 transition-transform duration-300 group-hover:scale-130"
+              />
+              <span className="ml-4 text-xl font-bold">
+                <span className="text-blue-600">P</span>lanify<span className="text-blue-600">G</span>o
               </span>
-              <span className="bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-                Go
-              </span>
-              <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-blue-600 group-hover:w-full transition-all duration-300"></span>
-            </span>
+            </a>
+            <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-blue-600 group-hover:w-full transition-all duration-300"></span>
           </div>
 
           {/* Navigation principale - Desktop */}
@@ -283,10 +271,23 @@ const Navbar = () => {
               Connexion
             </button>
             <button
-              className="w-full py-3 px-4 bg-blue-600 text-white rounded-md font-medium text-sm"
+              className="w-full py-3 px-4 bg-blue-600 text-white rounded-md font-medium text-sm flex items-center justify-center"
               onClick={() => (window.location.href = "/paiement")}
             >
-              Démarrer
+              <span>Démarrer</span>
+              <svg
+                className="w-4 h-4 ml-1.5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d="M14 5l7 7m0 0l-7 7m7-7H3"
+                />
+              </svg>
             </button>
           </div>
         </div>

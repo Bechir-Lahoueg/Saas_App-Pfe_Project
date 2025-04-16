@@ -44,7 +44,8 @@ const LandingPage = () => {
         <div className="sparkles absolute inset-0 opacity-40"></div>
       </div>
 
-      <div className="relative z-10 pt-10 pb-32 md:pt-16 md:pb-40">
+      {/* Ajusté le pt (padding-top) de 10 à 24 (et de 16 à 32 pour écrans medium) pour laisser de l'espace à la navbar */}
+      <div className="relative z-10 pt-14 pb-32 md:pt-28 md:pb-40">
         <div className="max-w-7xl mx-auto px-6">
           {/* J'ai retiré la div avec le logo BookSync et les liens de connexion/inscription qui ressemblait à une navbar */}
           

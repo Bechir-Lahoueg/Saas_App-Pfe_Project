@@ -10,13 +10,20 @@ const Footer = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8">
           {/* Company Info */}
           <div className="lg:col-span-2">
-            <div className="mb-6">
-              <h2 className="text-2xl font-bold text-blue-400">PlanifyGo</h2>
-              <p className="mt-2 text-gray-400">
-                Système de réservation en ligne simple et puissant pour les entreprises de toutes tailles.
-              </p>
+            <div className="mb-6 flex items-center">
+              <img 
+                src="src\assets\LogoPlanifygoPNG.png" 
+                alt="PlanifyGo Logo" 
+                className="h-40 w-55 mr-6"
+              />
+              <h2 className="text-2xl font-bold">
+                <span className="text-blue-400">P</span>lanify<span className="text-blue-400">G</span>o
+              </h2>
             </div>
-            <div className="flex space-x-4 mb-6">
+            <p className="mt-2 text-gray-400">
+              Système de réservation en ligne simple et puissant pour les entreprises de toutes tailles.
+            </p>
+            <div className="flex space-x-4 mb-6 mt-6">
               <a href="#" className="text-gray-400 hover:text-blue-400">
                 <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                   <path fillRule="evenodd" d="M22 12c0-5.523-4.477-10-10-10S2 6.477 2 12c0 4.991 3.657 9.128 8.438 9.878v-6.987h-2.54V12h2.54V9.797c0-2.506 1.492-3.89 3.777-3.89 1.094 0 2.238.195 2.238.195v2.46h-1.26c-1.243 0-1.63.771-1.63 1.562V12h2.773l-.443 2.89h-2.33v6.988C18.343 21.128 22 16.991 22 12z" clipRule="evenodd" />
@@ -80,13 +87,7 @@ const Footer = () => {
       <div className="border-t border-gray-800">
         <div className="max-w-6xl mx-auto px-4 py-6 flex flex-col md:flex-row justify-between items-center">
           <div className="mb-4 md:mb-0">
-            <select className="bg-gray-800 text-gray-400 px-3 py-2 rounded">
-              <option value="fr">Français</option>
-              <option value="en">English</option>
-              <option value="es">Español</option>
-              <option value="de">Deutsch</option>
-              <option value="it">Italiano</option>
-            </select>
+            
           </div>
           
           {/* Bottom Links */}
@@ -110,12 +111,7 @@ const Footer = () => {
               </svg>
               Paiements sécurisés
             </div>
-            <div className="text-gray-500 flex items-center mb-2 md:mb-0">
-              <svg className="w-5 h-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
-                <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z" />
-              </svg>
-              +1 million d'utilisateurs
-            </div>
+            
             <div className="text-gray-500 flex items-center mb-2 md:mb-0">
               <svg className="w-5 h-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
                 <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
