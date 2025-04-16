@@ -63,6 +63,8 @@ public class TenantService {
     public void deleteTenant(UUID tenantId) {
         Tenant tenant = tenantRepository.findById(tenantId)
                 .orElseThrow(() -> new RuntimeException("Tenant not found"));
+        // Delete the tenant's databases
+
         tenantRepository.delete(tenant);
     }
 

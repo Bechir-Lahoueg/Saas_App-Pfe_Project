@@ -1,6 +1,5 @@
 package com.example.register_service.service;
 
-
 import com.example.register_service.entities.Tenant;
 import com.example.register_service.dto.TenantRegistrationRequest;
 import com.example.register_service.repository.TenantRepository;
@@ -8,9 +7,10 @@ import com.example.register_service.util.DatabaseCreator;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.flywaydb.core.Flyway;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-
 
 @Service
 @RequiredArgsConstructor
@@ -22,6 +22,13 @@ public class TenantService {
     private final PasswordEncoder passwordEncoder;
     private final DatabaseCreator databaseCreator;
 
+    // Inject the database credentials from the application properties
+    @Value("${spring.datasource.username}")
+    private String dbUser;
+
+    @Value("${spring.datasource.password}")
+    private String dbPass;
+
     public Tenant provisionTenant(TenantRegistrationRequest request) {
         if (tenantRepository.findByEmail(request.getEmail()).isPresent()) {
             throw new RuntimeException("Email already registered!");
@@ -30,12 +37,22 @@ public class TenantService {
             throw new RuntimeException("Subdomain already exists!");
         }
 
-        // Step 1: Create DB first
-        String dbName = request.getSubdomain(); // "tenant4"
+        // Step 1: Create the database first
+        String dbName = request.getSubdomain(); // e.g. "tenant4"
         databaseCreator.createDatabase(dbName);
-        log.info("Creating database for tenant {}", dbName);
+        log.info("Created database for tenant {}", dbName);
 
-        // Step 2: Create Tenant entity
+        // Step 2: Run Flyway migrations on the newly created database
+        String tenantDbUrl = "jdbc:postgresql://localhost:5432/" + dbName;
+        Flyway flyway = Flyway.configure()
+                .dataSource(tenantDbUrl, dbUser, dbPass)
+                .locations("classpath:db/migration")
+                .baselineOnMigrate(true) // if needed for non-empty schemas
+                .load();
+        flyway.migrate();
+        log.info("Applied migrations for tenant database: {}", dbName);
+
+        // Step 3: Create the tenant entity
         Tenant tenant = Tenant.builder()
                 .email(request.getEmail())
                 .password(passwordEncoder.encode(request.getPassword()))

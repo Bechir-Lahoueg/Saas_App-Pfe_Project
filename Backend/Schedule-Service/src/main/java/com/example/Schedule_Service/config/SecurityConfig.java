@@ -36,7 +36,8 @@ public class SecurityConfig {
                                 "/schedule-exception/**",
                                 "/exception-time-block/**",
                                 "/break/**",
-                                "/slots/**"
+                                "/slots/**",
+                                "/working-day/**"
                         )
                         .permitAll()  // Include context path
                         .anyRequest().authenticated()

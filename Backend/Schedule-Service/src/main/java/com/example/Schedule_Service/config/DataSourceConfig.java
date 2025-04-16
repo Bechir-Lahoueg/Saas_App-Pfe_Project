@@ -1,6 +1,6 @@
-package com.example.notification_service.config;
+package com.example.Schedule_Service.config;
 
-import com.example.notification_service.routing.MultitenantDataSource;
+import com.example.Schedule_Service.routing.MultitenantDataSource;
 import com.zaxxer.hikari.HikariDataSource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -67,9 +67,8 @@ public class DataSourceConfig {
     public void addDataSourceIfMissing(String tenantId) throws Exception {
         if (!dataSources.containsKey(tenantId)) {
             DataSource ds = createDataSource(tenantId);
-
-            log.info("Missing datasource config for Tenant" + tenantId);
-            log.info("Adding the missing datasource" + tenantId + "for tenant: " + tenantId);
+            log.info("Missing datasource config for Tenant :" + tenantId);
+            log.info("Adding the missing datasource " + tenantId + " for tenant: " + tenantId);
             dataSources.put(tenantId, ds);
             // Use the existing routingDataSource instance instead of calling dataSource() again.
             routingDataSource.setTargetDataSources(new HashMap<>(dataSources));
