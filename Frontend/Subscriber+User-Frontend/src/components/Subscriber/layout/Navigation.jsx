@@ -21,40 +21,85 @@ const Navigation = () => {
   const [activePage, setActivePage] = useState("dashboard");
   const [windowWidth, setWindowWidth] = useState(window.innerWidth);
   const [hoveredMenu, setHoveredMenu] = useState(null);
-  const [adminData, setadminData] = useState(null);
+  const [tenantData, setTenantData] = useState(null);
+  const [currentDateTime, setCurrentDateTime] = useState(new Date());
 
-// Fetch user data on component mount
-useEffect(() => {
-  // Check if user is logged in by looking for the access token
-  const accessToken = localStorage.getItem('accessToken');
-  const stringAdminData = localStorage.getItem('admin');
+  // Update date and time every minute
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentDateTime(new Date());
+    }, 60000);
+    
+    return () => clearInterval(timer);
+  }, []);
+
+  // Format the date and time
+  const formatDate = (date) => {
+    const options = { 
+      weekday: 'long', 
+      year: 'numeric', 
+      month: 'long', 
+      day: 'numeric' 
+    };
+    return date.toLocaleDateString('fr-FR', options);
+  };
   
-  if (!accessToken) {
-    // Redirect to login if no token found
-    window.location.href = '/connexionadmin';
-    return;
-  }
-  
-  if (stringAdminData) {
+  const formatTime = (date) => {
+    return date.toLocaleTimeString('fr-FR', { 
+      hour: '2-digit', 
+      minute: '2-digit' 
+    });
+  };
+
+  // Fetch user data on component mount
+  useEffect(() => {
+    // Check if user is logged in by looking for the access token
+    const accessToken = localStorage.getItem('accessToken');
+    
+    if (!accessToken) {
+      // Redirect to login if no token found
+      window.location.href = '/connexion';
+      return;
+    }
+    
+    // Load all user data from separate localStorage items
     try {
-      const parsedAdminData = JSON.parse(stringAdminData);
-      setadminData(parsedAdminData);
+      const userData = {
+        id: localStorage.getItem('userId'),
+        firstName: localStorage.getItem('userFirstName'),
+        lastName: localStorage.getItem('userLastName'),
+        businessName: localStorage.getItem('businessName'),
+      };
+      
+      setTenantData(userData);
+      
+      // Logging specified items to console
+      console.log("accessToken:", localStorage.getItem('accessToken'));
+      console.log("refreshToken:", localStorage.getItem('refreshToken'));
+      console.log("darkMode:", localStorage.getItem('darkMode'));
+      console.log("userFirstName:", localStorage.getItem('userFirstName'));
+      console.log("userLastName:", localStorage.getItem('userLastName'));
+      
     } catch (error) {
-      console.error('Error parsing user data:', error);
+      console.error('Error loading user data:', error);
       handleLogout(); // Logout if data is corrupted
     }
-  }
-}, []);
+  }, []);
 
   // Handle logout function
   const handleLogout = () => {
-    // Remove tokens and user data from localStorage
+    // Remove tokens from localStorage
     localStorage.removeItem('accessToken');
     localStorage.removeItem('refreshToken');
-    localStorage.removeItem('admin');
+    
+    // Remove all user data items
+    localStorage.removeItem('userId');
+    localStorage.removeItem('userFirstName');
+    localStorage.removeItem('userLastName');
+    localStorage.removeItem('businessName');
     
     // Redirect to login page
-    window.location.href = '/connexionadmin';
+    window.location.href = '/connexion';
   };
 
   // Monitor window width for responsive behavior
@@ -81,17 +126,17 @@ useEffect(() => {
     localStorage.setItem("darkMode", "false");
   }, []);
 
-// Mise à jour de la fonction handleLogoClick
-const handleLogoClick = () => {
-  const logo = document.getElementById('logo');
-  if (logo.classList.contains('scale-150')) {
-    logo.classList.replace('scale-150', 'scale-175');
-  } else if (logo.classList.contains('scale-175')) {
-    logo.classList.replace('scale-175', 'scale-200');
-  } else if (logo.classList.contains('scale-200')) {
-    logo.classList.replace('scale-200', 'scale-150');
-  }
-};
+  // Handle logo click function
+  const handleLogoClick = () => {
+    const logo = document.getElementById('logo');
+    if (logo.classList.contains('scale-125')) {
+      logo.classList.replace('scale-125', 'scale-150');
+    } else if (logo.classList.contains('scale-150')) {
+      logo.classList.replace('scale-150', 'scale-125');
+    } else {
+      logo.classList.add('scale-125');
+    }
+  };
 
   // Navigation
   const navigateTo = (pageId) => {
@@ -138,13 +183,21 @@ const handleLogoClick = () => {
     }
   };
 
-// Get user's name
-const getUserName = () => {
-  if (adminData && adminData.name) {
-    return adminData.name;
-  }
-  return "Utilisateur";
-};
+  // Get user's name
+  const getUserName = () => {
+    const firstName = localStorage.getItem('userFirstName');
+    const lastName = localStorage.getItem('userLastName');
+    
+    if (firstName && lastName) {
+      return `${firstName} ${lastName}`;
+    } else if (firstName) {
+      return firstName;
+    } else if (tenantData && tenantData.firstName) {
+      return tenantData.firstName + ' ' + (tenantData.lastName || '');
+    }
+    
+    return "Utilisateur";
+  };
 
   // Menu items definition
   const menuItems = [
@@ -227,9 +280,9 @@ const getUserName = () => {
           )}
         </button>
 
-        {/* Logo Section - Modified for centered and larger logo */}
+        {/* Logo Section - Made logo smaller */}
         <div
-          className={`p-6 flex items-center justify-center ${
+          className={`p-4 flex flex-col items-center justify-center ${
             isDarkMode ? "border-slate-700" : "border-gray-200"
           } border-b overflow-visible`}
         >
@@ -237,11 +290,23 @@ const getUserName = () => {
             <img 
               src={logoImage} 
               alt="PlanifyGo Logo" 
-              className={`${isSidebarExpanded ? 'w-full max-h-32 object-contain' : 'w-full max-h-20 object-contain'} transition-all duration-300 cursor-pointer scale-150`} 
+              className={`${isSidebarExpanded ? 'w-3/4 max-h-20 object-contain' : 'w-3/4 max-h-16 object-contain'} transition-all duration-300 cursor-pointer scale-125`} 
               id="logo"
               onClick={handleLogoClick}
             />
           </div>
+          
+          {/* Clock/Date display under logo */}
+          <div className={`mt-2 text-center ${!isSidebarExpanded && 'hidden'}`}>
+            <div className={`flex items-center justify-center text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+              <Clock size={14} className="mr-1.5 text-blue-500" />
+              <span>{formatTime(currentDateTime)}</span>
+            </div>
+            <div className={`text-xs mt-0.5 ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+              {formatDate(currentDateTime)}
+            </div>
+          </div>
+          
           <button
             className={`md:hidden absolute top-4 right-4 p-1.5 rounded-lg ${
               isDarkMode
