@@ -12,6 +12,7 @@ import CalendarPage from "../pages/Calendar";
 import Messages from "../pages/Messages";
 import Notifications from "../pages/Notifications";
 import SettingsPage from "../pages/Settings";
+import axios from 'axios'; // Import axios for API calls
 
 const Navigation = () => {
   // States for various features
@@ -51,10 +52,18 @@ const Navigation = () => {
     });
   };
 
-  // Fetch user data on component mount
+  // Helper function to get cookies by name
+  const getCookie = (name) => {
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; ${name}=`);
+    if (parts.length === 2) return parts.pop().split(';').shift();
+    return null;
+  };
+
+  // Fetch user data from cookies on component mount
   useEffect(() => {
-    // Check if user is logged in by looking for the access token
-    const accessToken = localStorage.getItem('accessToken');
+    // Check if user is logged in by looking for the access token in cookies
+    const accessToken = getCookie('accessToken');
     
     if (!accessToken) {
       // Redirect to login if no token found
@@ -62,44 +71,52 @@ const Navigation = () => {
       return;
     }
     
-    // Load all user data from separate localStorage items
+    // Load all user data from cookies
     try {
+      const firstName = decodeURIComponent(getCookie('userFirstName') || '');
+      const lastName = decodeURIComponent(getCookie('userLastName') || '');
+      const subdomain = getCookie('subdomain') || '';
+      const refreshToken = getCookie('refreshToken');
+      
+      // Set up axios defaults for API calls
+      axios.defaults.baseURL = 'http://localhost:8888';
+      axios.defaults.withCredentials = true;
+      axios.defaults.headers.common['Authorization'] = `Bearer ${accessToken}`;
+      axios.defaults.headers.common['X-Tenant-ID'] = subdomain;
+      
       const userData = {
-        id: localStorage.getItem('userId'),
-        firstName: localStorage.getItem('userFirstName'),
-        lastName: localStorage.getItem('userLastName'),
-        businessName: localStorage.getItem('businessName'),
+        firstName,
+        lastName,
+        subdomain,
+        businessName: subdomain, // Using subdomain as business name for now
       };
       
       setTenantData(userData);
-      
-      // Logging specified items to console
-      console.log("accessToken:", localStorage.getItem('accessToken'));
-      console.log("refreshToken:", localStorage.getItem('refreshToken'));
-      console.log("darkMode:", localStorage.getItem('darkMode'));
-      console.log("userFirstName:", localStorage.getItem('userFirstName'));
-      console.log("userLastName:", localStorage.getItem('userLastName'));
+    
       
     } catch (error) {
-      console.error('Error loading user data:', error);
+      console.error('Error loading user data from cookies:', error);
       handleLogout(); // Logout if data is corrupted
     }
   }, []);
 
-  // Handle logout function
+  function getRootHost() {
+    const host = window.location.host.split(':')[0];
+    const [, ...rest] = host.split('.');
+    return rest.join('.');
+  }
+
+  function deleteCookie(name) {
+    document.cookie = `${name}=; Domain=.127.0.0.1.nip.io; Path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT`;
+  }
+
   const handleLogout = () => {
-    // Remove tokens from localStorage
-    localStorage.removeItem('accessToken');
-    localStorage.removeItem('refreshToken');
-    
-    // Remove all user data items
-    localStorage.removeItem('userId');
-    localStorage.removeItem('userFirstName');
-    localStorage.removeItem('userLastName');
-    localStorage.removeItem('businessName');
-    
-    // Redirect to login page
-    window.location.href = '/connexion';
+    ['accessToken','refreshToken','userFirstName','userLastName','subdomain']
+      .forEach(deleteCookie);
+
+    const rootHost = getRootHost();
+    const port = window.location.port ? `:${window.location.port}` : '';
+    window.location.href = `${window.location.protocol}//${rootHost}${port}/connexion`;
   };
 
   // Monitor window width for responsive behavior
@@ -121,9 +138,17 @@ const Navigation = () => {
 
   // Theme management - initialize with light mode
   useEffect(() => {
-    setIsDarkMode(false);
-    document.documentElement.classList.remove("dark");
-    localStorage.setItem("darkMode", "false");
+    // Check if there's a darkMode cookie
+    const darkModeCookie = getCookie('darkMode');
+    const darkModeValue = darkModeCookie === 'true';
+    
+    setIsDarkMode(darkModeValue);
+    
+    if (darkModeValue) {
+      document.documentElement.classList.add("dark");
+    } else {
+      document.documentElement.classList.remove("dark");
+    }
   }, []);
 
   // Handle logo click function
@@ -150,7 +175,15 @@ const Navigation = () => {
   const toggleDarkMode = () => {
     const newDarkMode = !isDarkMode;
     setIsDarkMode(newDarkMode);
-    localStorage.setItem("darkMode", newDarkMode.toString());
+    
+    // Save dark mode preference in a cookie
+    const cookieOpts = [
+      'Domain=.127.0.0.1.nip.io',
+      'Path=/',
+      'SameSite=Lax'
+    ].join('; ');
+    
+    document.cookie = `darkMode=${newDarkMode.toString()}; ${cookieOpts}`;
 
     if (newDarkMode) {
       document.documentElement.classList.add("dark");
@@ -183,17 +216,20 @@ const Navigation = () => {
     }
   };
 
-  // Get user's name
+  // Get user's name from cookies
   const getUserName = () => {
-    const firstName = localStorage.getItem('userFirstName');
-    const lastName = localStorage.getItem('userLastName');
+    if (tenantData && tenantData.firstName) {
+      return `${tenantData.firstName} ${tenantData.lastName || ''}`;
+    }
+    
+    // Fallback to direct cookie check
+    const firstName = decodeURIComponent(getCookie('userFirstName') || '');
+    const lastName = decodeURIComponent(getCookie('userLastName') || '');
     
     if (firstName && lastName) {
       return `${firstName} ${lastName}`;
     } else if (firstName) {
       return firstName;
-    } else if (tenantData && tenantData.firstName) {
-      return tenantData.firstName + ' ' + (tenantData.lastName || '');
     }
     
     return "Utilisateur";
