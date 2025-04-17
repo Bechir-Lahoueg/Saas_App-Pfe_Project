@@ -52,14 +52,15 @@ const AppRouter = () => {
         <Route path="/services-publics" element={<PublicServices />} />
         <Route path="/commerce-de-detail" element={<Retail />} />
         <Route path="/sports-fitness" element={<SportsFitness />} />
+        <Route path="/dashboard" element={<Dashboard />} />
 
 
 
 
         {/* Routes protégées */}
-        <Route element={<ProtectedRoute />}>
+        {/* <Route element={<ProtectedRoute />}>
           <Route path="/dashbord" element={<Dashboard />} />
-        </Route>
+        </Route> */}
       </Routes>
     </Suspense>
   );
