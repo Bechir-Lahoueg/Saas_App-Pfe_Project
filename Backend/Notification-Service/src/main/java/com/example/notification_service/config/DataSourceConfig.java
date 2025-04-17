@@ -33,8 +33,8 @@ public class DataSourceConfig {
         routingDataSource = new MultitenantDataSource();
 
         // Create and add the default tenant (tenant1)
-        DataSource defaultDataSource = createDataSource("tenant1");
-        dataSources.put("tenant1", defaultDataSource);
+        DataSource defaultDataSource = createDataSource("saas_app");
+        dataSources.put("saas_app", defaultDataSource);
 
         routingDataSource.setTargetDataSources(dataSources);
         routingDataSource.setDefaultTargetDataSource(defaultDataSource);

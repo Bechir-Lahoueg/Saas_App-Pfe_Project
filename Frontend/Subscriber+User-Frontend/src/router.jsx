@@ -42,10 +42,6 @@ const AppRouter = () => {
         <Route path="/demo" element={<Demo />} />
         <Route path="/paiement/presentation/adresse/identifiants/verification" element={<Verification />} />
         <Route path="/app" element={<Processres />} />
-
-
-
-
         <Route path="/toutes-industries" element={<AllIndustries />} />
         <Route path="/beaute-bien-etre" element={<BeautyWellness />} />
         <Route path="/education" element={<Education />} />
@@ -56,14 +52,6 @@ const AppRouter = () => {
         <Route path="/services-publics" element={<PublicServices />} />
         <Route path="/commerce-de-detail" element={<Retail />} />
         <Route path="/sports-fitness" element={<SportsFitness />} />
-
-
-
-
-
-
-
-
 
 
 
