@@ -1,7 +1,7 @@
 import React, { Suspense, lazy } from "react";
 import { Route, Routes } from "react-router-dom";
 import LoadingSpinner from "./Utils/LoadingSpinner";
-import ProtectedRoute from "./Utils/ProtectedRoute";
+// import ProtectedRoute from "./Utils/ProtectedRoute";
 
 // Importez vos composants lazy
 const LandingPage = lazy(() => import("./components/Landing/LandingPage"));
