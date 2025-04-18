@@ -1,10 +1,29 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 
 const LoginPage = () => {
   const [creds, setCreds]   = useState({ email: '', password: '' });
   const [error, setError]   = useState('');
   const [loading, setLoading] = useState(false);
+
+  // Check if user is already logged in on component mount
+  useEffect(() => {
+    // Function to get cookie value by name
+    const getCookie = (name) => {
+      const value = `; ${document.cookie}`;
+      const parts = value.split(`; ${name}=`);
+      if (parts.length === 2) return parts.pop().split(';').shift();
+      return null;
+    };
+
+    const accessToken = getCookie('accessToken');
+    const subdomain = getCookie('subdomain');
+    
+    if (accessToken && subdomain) {
+      // User is already logged in, redirect to dashboard
+      window.location.href = `http://${subdomain}.127.0.0.1.nip.io:5173/dashboard`;
+    }
+  }, []);
 
   const handleChange = e => {
     setCreds(prev => ({ ...prev, [e.target.id]: e.target.value }));
@@ -48,7 +67,7 @@ const LoginPage = () => {
       axios.defaults.headers.common['Authorization'] = `Bearer ${accessToken}`;
       axios.defaults.headers.common['X-Tenant-ID']    = subdomain;
 
-      // Redirect to the tenant’s subdomain dashboard
+      // Redirect to the tenant's subdomain dashboard
       window.location.href = `http://${subdomain}.127.0.0.1.nip.io:5173/dashboard`;
     } catch (err) {
       setError(err.response?.data?.message || err.message);

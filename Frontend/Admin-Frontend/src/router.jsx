@@ -23,7 +23,7 @@ const AppRouter = () => {
           <Route path="/dashbord" element={<Dashbord />} />
         </Route>
 
-        <Route path="/connexionadmin" element={<LogAdmin />} />
+        <Route path="/connexion" element={<LogAdmin />} />
       </Routes>
     </Suspense>
   );

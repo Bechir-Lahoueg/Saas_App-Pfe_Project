@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 
@@ -8,6 +8,17 @@ const Login = () => {
     const [error, setError] = useState('');
     const navigate = useNavigate();
 
+    // Check if user is already logged in on component mount
+    useEffect(() => {
+        const accessToken = localStorage.getItem('accessToken');
+        const admin = localStorage.getItem('admin');
+        
+        if (accessToken && admin) {
+            // User is already logged in, redirect to dashboard
+            navigate('/dashbord');
+        }
+    }, [navigate]);
+
     const handleSubmit = async (e) => {
         e.preventDefault();
 
@@ -15,9 +26,7 @@ const Login = () => {
             const response = await axios.post('http://localhost:8888/auth/admin/login', {
                 email,
                 password
-            },
-    
-        );
+            });
 
             const { accessToken, refreshToken, admin } = response.data;
 

@@ -7,6 +7,27 @@ const Navbar = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [activeSection, setActiveSection] = useState("accueil");
   const [openDropdown, setOpenDropdown] = useState(null);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [subdomain, setSubdomain] = useState('');
+
+  // Vérifier si l'utilisateur est connecté
+  useEffect(() => {
+    // Function to get cookie value by name
+    const getCookie = (name) => {
+      const value = `; ${document.cookie}`;
+      const parts = value.split(`; ${name}=`);
+      if (parts.length === 2) return parts.pop().split(';').shift();
+      return null;
+    };
+
+    const accessToken = getCookie('accessToken');
+    const tenantSubdomain = getCookie('subdomain');
+    
+    if (accessToken && tenantSubdomain) {
+      setIsLoggedIn(true);
+      setSubdomain(tenantSubdomain);
+    }
+  }, []);
 
   const handleNavClick = (sectionId) => {
     setActiveSection(sectionId);
@@ -49,6 +70,15 @@ const Navbar = () => {
       setOpenDropdown(null);
     } else {
       setOpenDropdown(id);
+    }
+  };
+
+  // Gérer le clic sur le bouton connexion/dashboard
+  const handleConnectionClick = () => {
+    if (isLoggedIn && subdomain) {
+      window.location.href = `http://${subdomain}.127.0.0.1.nip.io:5173/dashboard`;
+    } else {
+      window.location.href = "/connexion";
     }
   };
 
@@ -150,7 +180,7 @@ const Navbar = () => {
           <div className="hidden lg:flex items-center space-x-3">
             <button
               className="relative overflow-hidden px-5 py-2 rounded-md bg-transparent group"
-              onClick={() => (window.location.href = "/connexion")}
+              onClick={handleConnectionClick}
             >
               <span className="absolute inset-0 w-full h-full transition-all duration-300 ease-out transform translate-y-full bg-gradient-to-t from-blue-50 to-blue-100 group-hover:translate-y-0"></span>
               <span
@@ -158,7 +188,7 @@ const Navbar = () => {
                   scrolled ? "text-gray-700" : "text-gray-700"
                 } group-hover:text-blue-600`}
               >
-                Connexion
+                {isLoggedIn ? "Dashboard" : "Connexion"}
                 <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-blue-600 group-hover:w-full transition-all duration-300 ease-out"></span>
               </span>
             </button>
@@ -266,9 +296,9 @@ const Navbar = () => {
           <div className="space-y-3">
             <button
               className="w-full py-3 px-4 bg-blue-50 text-blue-600 rounded-md font-medium text-sm"
-              onClick={() => (window.location.href = "/connexion")}
+              onClick={handleConnectionClick}
             >
-              Connexion
+              {isLoggedIn ? "Dashboard" : "Connexion"}
             </button>
             <button
               className="w-full py-3 px-4 bg-blue-600 text-white rounded-md font-medium text-sm flex items-center justify-center"
