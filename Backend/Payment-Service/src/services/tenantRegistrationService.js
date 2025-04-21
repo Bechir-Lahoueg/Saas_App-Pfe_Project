@@ -1,28 +1,29 @@
-// Payment-Service/src/services/tenantRegistrationService.js
+// src/services/tenantRegistrationService.js
 const axios = require('axios');
 const EurekaServiceFinder = require('../utils/eurekaServiceFinder');
 
 const REGISTER_SERVICE_NAME = 'register-service';
 
+/**
+ * Enregistre un nouveau locataire après un paiement réussi
+ * @param {Object} tenantData - Données du locataire
+ * @returns {Promise} - Résultat de l'enregistrement
+ */
 const registerTenant = async (tenantData) => {
     try {
-        console.log('Registering tenant after successful payment:', tenantData);
-
-        // Get service URL from Eureka
+        // Obtenir l'URL du service depuis Eureka
         const serviceUrl = await EurekaServiceFinder.getServiceUrl(REGISTER_SERVICE_NAME);
         const registrationEndpoint = `${serviceUrl}/register/tenant/signup`;
-        console.log(`Calling registration service at: ${registrationEndpoint}`);
 
-        // Call registration service
+        // Appeler le service d'enregistrement
         const response = await axios.post(registrationEndpoint, tenantData, {
             headers: { 'Content-Type': 'application/json' },
-            timeout: 30000 // 30-second timeout is sufficient
+            timeout: 30000
         });
 
-        console.log('Tenant registration successful:', response.data);
         return response.data;
     } catch (error) {
-        // Improved error handling
+        // Gestion des erreurs
         if (error.response) {
             console.error('Registration API error:', error.response.status, error.response.data);
         } else if (error.request) {

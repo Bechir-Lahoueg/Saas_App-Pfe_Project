@@ -1,45 +1,11 @@
+// src/controllers/paymentController.js
 const konnectService = require('../services/konnectService');
+const paymentService = require('../services/paymentService');
 const Payment = require('../models/Payment');
 
 const initiatePayment = async (req, res) => {
-  const {
-    receiverWalletId,
-    token,
-    amount,
-    type,
-    description,
-    acceptedPaymentMethods,
-    lifespan,
-    checkoutForm,
-    addPaymentFeesToAmount,
-    orderId,
-    webhook,
-    silentWebhook,
-    successUrl,
-    failUrl,
-    theme
-  } = req.body;
-
-  const paymentData = {
-    receiverWalletId,
-    token,
-    amount,
-    type,
-    description,
-    acceptedPaymentMethods,
-    lifespan,
-    checkoutForm,
-    addPaymentFeesToAmount,
-    orderId,
-    webhook,
-    silentWebhook,
-    successUrl,
-    failUrl,
-    theme
-  };
-
   try {
-    const paymentResponse = await konnectService.initiatePayment(paymentData);
+    const paymentResponse = await konnectService.initiatePayment(req.body);
     res.status(200).json(paymentResponse);
   } catch (error) {
     console.error('Error in paymentController:', error);
@@ -48,10 +14,8 @@ const initiatePayment = async (req, res) => {
 };
 
 const verifyPayment = async (req, res) => {
-  const { paymentId } = req.params;
-
   try {
-    const verificationResult = await konnectService.verifyPayment(paymentId);
+    const verificationResult = await konnectService.verifyPayment(req.params.paymentId);
     res.status(200).json(verificationResult);
   } catch (error) {
     console.error('Error verifying payment:', error);
@@ -60,10 +24,8 @@ const verifyPayment = async (req, res) => {
 };
 
 const completePayment = async (req, res) => {
-  const { paymentId } = req.params;
-
   try {
-    const result = await konnectService.completePayment(paymentId);
+    const result = await paymentService.completePayment(req.params.paymentId);
     res.status(200).json(result);
   } catch (error) {
     console.error('Error completing payment:', error);
@@ -72,10 +34,8 @@ const completePayment = async (req, res) => {
 };
 
 const getPaymentDetails = async (req, res) => {
-  const { orderId } = req.params;
-
   try {
-    const payment = await konnectService.getPaymentDetails(orderId);
+    const payment = await paymentService.getPaymentDetails(req.params.orderId);
     res.status(200).json(payment);
   } catch (error) {
     console.error('Error getting payment details:', error);
@@ -84,10 +44,8 @@ const getPaymentDetails = async (req, res) => {
 };
 
 const getPaymentsByStatus = async (req, res) => {
-  const { status } = req.params;
-
   try {
-    const payments = await Payment.find({ status });
+    const payments = await Payment.find({ status: req.params.status });
     res.status(200).json(payments);
   } catch (error) {
     console.error('Error getting payments by status:', error);
@@ -124,7 +82,6 @@ const initiateRegistrationPayment = async (req, res) => {
       });
     }
 
-    // Créer un objet de données d'enregistrement
     const registrationData = {
       email,
       firstName,
