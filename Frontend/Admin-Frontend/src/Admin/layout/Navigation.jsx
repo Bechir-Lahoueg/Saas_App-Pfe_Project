@@ -18,7 +18,11 @@ const Navigation = () => {
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [isSidebarExpanded, setSidebarExpanded] = useState(true);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
-  const [activePage, setActivePage] = useState("dashboard");
+  // Initialiser activePage depuis localStorage ou avec valeur par défaut
+  const [activePage, setActivePage] = useState(() => {
+    const savedPage = localStorage.getItem('activePage');
+    return savedPage || "dashboard";
+  });
   const [windowWidth, setWindowWidth] = useState(window.innerWidth);
   const [hoveredMenu, setHoveredMenu] = useState(null);
   const [adminData, setadminData] = useState(null);
@@ -52,6 +56,7 @@ useEffect(() => {
     localStorage.removeItem('accessToken');
     localStorage.removeItem('refreshToken');
     localStorage.removeItem('admin');
+    localStorage.removeItem('activePage'); // Also clear active page
     
     // Redirect to login page
     window.location.href = '/connexion';
@@ -93,9 +98,11 @@ const handleLogoClick = () => {
   }
 };
 
-  // Navigation
+  // Navigation - Mise à jour pour stocker la page dans localStorage
   const navigateTo = (pageId) => {
     setActivePage(pageId);
+    localStorage.setItem('activePage', pageId); // Sauvegarder dans localStorage
+    
     if (windowWidth < 768) {
       setIsMobileOpen(false);
     }
@@ -138,12 +145,28 @@ const handleLogoClick = () => {
     }
   };
 
-// Get user's name
+// Get user's name - Updated to handle admin without tenant
 const getUserName = () => {
-  if (adminData && adminData.name) {
-    return adminData.name;
+  if (adminData) {
+    if (adminData.name) {
+      return adminData.name;
+    } else if (adminData.email) {
+      // Extraire le nom à partir de l'email si name n'est pas disponible
+      return adminData.email.split('@')[0];
+    }
   }
   return "Utilisateur";
+};
+
+// Get user role - For admin without tenant
+const getUserRole = () => {
+  if (adminData) {
+    if (!adminData.tenant) {
+      return "Administrateur";
+    }
+    return "Utilisateur";
+  }
+  return "";
 };
 
   // Menu items definition
@@ -286,8 +309,15 @@ const getUserName = () => {
                   {getUserName()}
                 </p>
                 <p className="text-xs text-gray-500 flex items-center">
-                  <span className="inline-block w-1.5 h-1.5 rounded-full bg-green-500 mr-1.5"></span>
-                  En ligne
+                  {/* Afficher le rôle d'administrateur si pas de tenant */}
+                  {adminData && !adminData.tenant ? (
+                    <span className="text-orange-500 font-medium">{getUserRole()}</span>
+                  ) : (
+                    <>
+                      <span className="inline-block w-1.5 h-1.5 rounded-full bg-green-500 mr-1.5"></span>
+                      En ligne
+                    </>
+                  )}
                 </p>
               </div>
             )}
@@ -524,6 +554,15 @@ const getUserName = () => {
                   ${isDarkMode ? 'border-slate-600 text-slate-400' : 'border-gray-300 text-gray-500'}`}
                 >
                   Enterprise
+                </div>
+              )}
+              
+              {/* Badge Admin pour les utilisateurs sans tenant */}
+              {adminData && !adminData.tenant && (
+                <div
+                  className={`hidden sm:block px-2 py-0.5 rounded-lg text-xs font-medium bg-orange-100 text-orange-800 border border-orange-200`}
+                >
+                  Admin
                 </div>
               )}
             </div>

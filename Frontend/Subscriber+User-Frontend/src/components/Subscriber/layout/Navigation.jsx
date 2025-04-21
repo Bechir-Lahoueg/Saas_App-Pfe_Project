@@ -47,7 +47,12 @@ const Navigation = () => {
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [isSidebarExpanded, setSidebarExpanded] = useState(true);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
-  const [activePage, setActivePage] = useState("dashboard");
+  // Get active page from localStorage or default to dashboard
+  const [activePage, setActivePage] = useState(() => {
+    // Try to get the saved page from localStorage
+    const savedPage = localStorage.getItem('activePage');
+    return savedPage || "dashboard";
+  });
   const [windowWidth, setWindowWidth] = useState(window.innerWidth);
   const [hoveredMenu, setHoveredMenu] = useState(null);
   const [userData, setUserData] = useState(null);
@@ -61,6 +66,11 @@ const Navigation = () => {
     
     return () => clearInterval(timer);
   }, []);
+
+  // Save active page to localStorage whenever it changes
+  useEffect(() => {
+    localStorage.setItem('activePage', activePage);
+  }, [activePage]);
 
   // Format the date and time
   const formatDate = (date) => {
@@ -134,24 +144,20 @@ const Navigation = () => {
     }
   }, []);
 
-  function getRootHost() {
-    const host = window.location.host.split(':')[0];
-    const [, ...rest] = host.split('.');
-    return rest.join('.');
-  }
-
-  function deleteCookie(name) {
-    document.cookie = `${name}=; Domain=.127.0.0.1.nip.io; Path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT`;
-  }
-
-  const handleLogout = () => {
-    ['accessToken','refreshToken','username','userLastName','subdomain','userEmail']
-      .forEach(deleteCookie);
-
-    const rootHost = getRootHost();
-    const port = window.location.port ? `:${window.location.port}` : '';
-    window.location.href = `${window.location.protocol}//${rootHost}${port}/connexion`;
-  };
+  // Load dark mode preference from localStorage at startup
+  useEffect(() => {
+    // Check if there's a darkMode cookie
+    const darkModeCookie = getCookie('darkMode');
+    const darkModeValue = darkModeCookie === 'true';
+    
+    setIsDarkMode(darkModeValue);
+    
+    if (darkModeValue) {
+      document.documentElement.classList.add("dark");
+    } else {
+      document.documentElement.classList.remove("dark");
+    }
+  }, []);
 
   // Monitor window width for responsive behavior
   useEffect(() => {
@@ -170,20 +176,27 @@ const Navigation = () => {
     };
   }, []);
 
-  // Theme management - initialize with light mode
-  useEffect(() => {
-    // Check if there's a darkMode cookie
-    const darkModeCookie = getCookie('darkMode');
-    const darkModeValue = darkModeCookie === 'true';
+  function getRootHost() {
+    const host = window.location.host.split(':')[0];
+    const [, ...rest] = host.split('.');
+    return rest.join('.');
+  }
+
+  function deleteCookie(name) {
+    document.cookie = `${name}=; Domain=.127.0.0.1.nip.io; Path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT`;
+  }
+
+  const handleLogout = () => {
+    // Clear saved page on logout
+    localStorage.removeItem('activePage');
     
-    setIsDarkMode(darkModeValue);
-    
-    if (darkModeValue) {
-      document.documentElement.classList.add("dark");
-    } else {
-      document.documentElement.classList.remove("dark");
-    }
-  }, []);
+    ['accessToken','refreshToken','username','userLastName','subdomain','userEmail']
+      .forEach(deleteCookie);
+
+    const rootHost = getRootHost();
+    const port = window.location.port ? `:${window.location.port}` : '';
+    window.location.href = `${window.location.protocol}//${rootHost}${port}/connexion`;
+  };
 
   // Handle logo click function
   const handleLogoClick = () => {
@@ -239,7 +252,7 @@ const Navigation = () => {
         return "Équipe";
       case "calendar":
         return "Calendrier";
-      case "messages":
+      case "Management":
         return "Messages";
       case "notifications":
         return "Notifications";
