@@ -5,7 +5,7 @@ import ProtectedRoute from "./Utils/ProtectedRoute";
 // Import lazy-loaded components
 const Erreur = lazy(() => import("./Pages/ErreurPage"));
 const Dashbord = lazy(() =>
-  import("./components/Admin/pages/Configuration/Dashboard")
+  import("../src/Admin/pages/Configuration/Dashboard")
 );
 const LogAdmin = lazy(() => import("./Pages/loginadmin"));
 

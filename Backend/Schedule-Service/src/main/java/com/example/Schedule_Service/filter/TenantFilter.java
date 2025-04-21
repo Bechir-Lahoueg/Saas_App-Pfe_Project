@@ -25,14 +25,11 @@ public class TenantFilter implements Filter {
         String tenantId = req.getHeader("X-Tenant-ID");
         log.info("Tenant ID: " + tenantId);
         if (tenantId != null && !tenantId.isEmpty()) {
-            // Ensure the datasource for the tenant exists
             try {
                 dataSourceConfig.addDataSourceIfMissing(tenantId);
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
-
-            // Set the TenantContext so the routing datasource can pick it up
             TenantContext.setCurrentTenant(tenantId);
         }
 
