@@ -28,23 +28,26 @@ public class JwtService {
     @Value("${spring.security.jwt.refresh-token.expiration}")
     private Long REFRESH_TOKEN_EXPIRATION;
 
-    public String createToken(Map<String, Object> extraClaims, String subject, long expiration) {
+    public String createToken(Map<String, Object> claims, String subject, long expirationTime) {
+        // Set the subject in the claims map directly
+        claims.put("sub", subject);
+
         return Jwts
                 .builder()
                 .signWith(getSignInKey(), SignatureAlgorithm.HS256)
                 .setHeaderParam("typ", "JWT")
-                .setClaims(extraClaims)
-                .setSubject(subject)
+                .setClaims(claims)  // Set all claims at once, including subject
                 .setIssuedAt(new Date(System.currentTimeMillis()))
-                .setExpiration(new Date(System.currentTimeMillis() + expiration))
-
+                .setExpiration(new Date(System.currentTimeMillis() + expirationTime))
                 .compact();
     }
 
     public String generateToken(Tenant tenant) {
         Map<String, Object> claims = new HashMap<>();
-        claims.put("id", tenant.getId().toString());
-        return createToken(claims, tenant.getEmail(), EXPIRATION);
+        claims.put("id", tenant.getId());
+        claims.put("email", tenant.getEmail());
+        claims.put("subdomain", tenant.getSubdomain());
+        return createToken(claims, tenant.getFirstName()+" "+ tenant.getLastName(), EXPIRATION);
     }
 
     public String generateRefreshToken(Tenant tenant) {
@@ -69,7 +72,11 @@ public class JwtService {
     }
 
     private Claims extractAllClaims(String jwtToken) {
-        return Jwts.parserBuilder().setSigningKey(getSignInKey()).build().parseClaimsJws(jwtToken).getBody();
+        return Jwts
+                .parserBuilder()
+                .setSigningKey(getSignInKey())
+                .build().parseClaimsJws(jwtToken)
+                .getBody();
     }
 
     public Boolean isTokenValid(String jwtToken, UserDetails userDetails) {

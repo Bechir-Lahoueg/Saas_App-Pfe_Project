@@ -1,10 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 
-const API_BASE_URL = 'http://localhost:8888/schedule/working-day';
+function getCookie(name) {
+  const value = `; ${document.cookie}`;
+  const parts = value.split(`; ${name}=`);
+  if (parts.length === 2) return parts.pop().split(';').shift();
+  return null;
+}
 
 const TenantConfigPage = () => {
   const [activeTab, setActiveTab] = useState('workingHours');
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
   const [workingHours, setWorkingHours] = useState({
     monday: { isActive: true, start: '09:00', end: '17:00' },
     tuesday: { isActive: true, start: '09:00', end: '17:00' },
@@ -14,7 +21,8 @@ const TenantConfigPage = () => {
     saturday: { isActive: false, start: '09:00', end: '17:00' },
     sunday: { isActive: false, start: '09:00', end: '17:00' },
   });
-  const [workingDayIds, setWorkingDayIds] = useState({
+
+ const [workingDayIds, setWorkingDayIds] = useState({
     monday: null,
     tuesday: null,
     wednesday: null,
@@ -23,6 +31,113 @@ const TenantConfigPage = () => {
     saturday: null,
     sunday: null,
   });
+
+    // On mount: configure axios with our tenant header and auth token
+    useEffect(() => {
+      const subdomain = getCookie('subdomain');
+      const token = getCookie('accessToken');
+      
+      // Set up axios defaults for all requests
+      if (token) {
+        axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+      }
+      if (subdomain) {
+        axios.defaults.headers.common['X-Tenant-ID'] = subdomain;
+      }
+      axios.defaults.baseURL = 'http://localhost:8888';
+      axios.defaults.withCredentials = true;
+      
+      fetchWorkingDays();
+    }, []);
+
+    const handleWorkingHoursChange = (day, field, value) => {
+      setWorkingHours(prev => ({
+        ...prev,
+        [day]: { ...prev[day], [field]: value }
+      }));
+    };
+
+
+    const saveWorkingDay = async (day, dayData) => {
+      const dayOfWeek = day.toUpperCase();
+      const timeSlot = { startTime: dayData.start, endTime: dayData.end };
+      const active    = dayData.isActive;
+
+      try {
+        if (workingDayIds[day]) {
+          // update existing
+          await axios.put(
+            `/schedule/working-day/update/${workingDayIds[day]}`,
+            { dayOfWeek, active, timeSlots: dayData.isActive ? [timeSlot] : [] }
+          );
+          
+        } else if (dayData.isActive) {
+          // create new
+          const { data } = await axios.post(
+            `/schedule/working-day/create`,
+            { dayOfWeek, active, timeSlots: [timeSlot] }
+          );
+          setWorkingDayIds(prev => ({ ...prev, [day]: data.id }));
+        }
+        return true;
+      } catch (err) {
+        console.error(`Error saving working day ${day}:`, err);
+        return false;
+      }
+    };
+
+    const handleSubmit = async () => {
+      setIsLoading(true);
+      setError(null);
+      try {
+        for (const day of Object.keys(workingHours)) {
+          const ok = await saveWorkingDay(day, workingHours[day]);
+          if (!ok) {
+            setError(`Failed to save working hours for ${day}`);
+            break;
+          }
+        }
+        if (!error) {
+          alert('Configuration sauvegardée avec succès !');
+        }
+      } catch (err) {
+        console.error('Error during save:', err);
+        setError('Une erreur est survenue lors de la sauvegarde');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    const fetchWorkingDays = async () => {
+      try {
+        setIsLoading(true);
+        // No need to add headers here, they are already set in axios defaults
+        const { data } = await axios.get(`/schedule/working-day/getall`);
+        
+        const updatedHours = { ...workingHours };
+        const updatedIds = { ...workingDayIds };
+        
+        data.forEach(day => {
+          const key = day.dayOfWeek.toLowerCase();
+          if (updatedHours[key]) {
+            updatedHours[key].isActive = day.active;
+            if (day.timeSlots?.length) {
+              const slot = day.timeSlots[0];
+              updatedHours[key] = { isActive: true, start: slot.startTime, end: slot.endTime };
+            }
+            updatedIds[key] = day.id;
+          }
+        });
+        
+        setWorkingHours(updatedHours);
+        setWorkingDayIds(updatedIds);
+      } catch (err) {
+        console.error('Error fetching working days:', err);
+        setError('Failed to load working hours data');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
   const [services, setServices] = useState([
     { id: 1, name: 'Consultation', duration: 60, price: 50 }
   ]);
@@ -35,56 +150,12 @@ const TenantConfigPage = () => {
     companyName: '',
     businessType: '',
   });
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState(null);
+
 
   // Fetch existing working days on component mount
   useEffect(() => {
     fetchWorkingDays();
   }, []);
-
-  const fetchWorkingDays = async () => {
-    try {
-      setIsLoading(true);
-      const response = await axios.get(`${API_BASE_URL}/getall`);
-      
-      // Process the data and update state
-      const workingDaysData = response.data;
-      const updatedWorkingHours = { ...workingHours };
-      const updatedWorkingDayIds = { ...workingDayIds };
-      
-      workingDaysData.forEach(day => {
-        const dayName = day.dayOfWeek.toLowerCase();
-        if (updatedWorkingHours[dayName]) {
-          // If there are time slots
-          if (day.timeSlots && day.timeSlots.length > 0) {
-            const firstSlot = day.timeSlots[0];
-            updatedWorkingHours[dayName] = {
-              isActive: true,
-              start: firstSlot.startTime,
-              end: firstSlot.endTime
-            };
-          }
-          updatedWorkingDayIds[dayName] = day.id;
-        }
-      });
-      
-      setWorkingHours(updatedWorkingHours);
-      setWorkingDayIds(updatedWorkingDayIds);
-      setIsLoading(false);
-    } catch (err) {
-      console.error('Error fetching working days:', err);
-      setError('Failed to load working hours data');
-      setIsLoading(false);
-    }
-  };
-
-  const handleWorkingHoursChange = (day, field, value) => {
-    setWorkingHours(prev => ({
-      ...prev,
-      [day]: { ...prev[day], [field]: value }
-    }));
-  };
 
   const addService = () => {
     const newId = services.length > 0 ? Math.max(...services.map(s => s.id)) + 1 : 1;
@@ -122,73 +193,9 @@ const TenantConfigPage = () => {
     }));
   };
 
-  const saveWorkingDay = async (day, dayData) => {
-    const dayOfWeek = day.toUpperCase();
-    const timeSlot = {
-      startTime: dayData.start,
-      endTime: dayData.end
-    };
-
-    try {
-      // If the day already has an ID, update it
-      if (workingDayIds[day]) {
-        await axios.put(`${API_BASE_URL}/update/${workingDayIds[day]}`, {
-          dayOfWeek: dayOfWeek,
-          timeSlots: dayData.isActive ? [timeSlot] : []
-        });
-      } 
-      // Otherwise create a new working day
-      else if (dayData.isActive) {
-        const response = await axios.post(`${API_BASE_URL}/create`, {
-          dayOfWeek: dayOfWeek,
-          timeSlots: [timeSlot]
-        });
-        // Update the ID in state
-        setWorkingDayIds(prev => ({
-          ...prev,
-          [day]: response.data.id
-        }));
-      }
-    } catch (err) {
-      console.error(`Error saving working day ${day}:`, err);
-      return false;
-    }
-    return true;
-  };
-
-  const handleSubmit = async () => {
-    setIsLoading(true);
-    setError(null);
-    
-    try {
-      // Save working hours for each day
-      const days = Object.keys(workingHours);
-      for (const day of days) {
-        const success = await saveWorkingDay(day, workingHours[day]);
-        if (!success) {
-          setError(`Failed to save working hours for ${day}`);
-          break;
-        }
-      }
-      
-      // Here you would also handle saving services, breaks, etc.
-      // For now, just focusing on working hours
-      
-      if (!error) {
-        alert('Configuration sauvegardée avec succès!');
-      }
-    } catch (err) {
-      console.error('Error during save:', err);
-      setError('Une erreur est survenue lors de la sauvegarde');
-    }
-    
-    setIsLoading(false);
-  };
-
   const renderWorkingHours = () => (
     <div className="space-y-4">
       <h3 className="font-semibold text-lg">Définir vos heures de travail</h3>
-      
       {Object.entries(workingHours).map(([day, hours]) => (
         <div key={day} className="flex items-center gap-4 p-2 border rounded">
           <div className="w-28 capitalize">{day}</div>
@@ -196,36 +203,38 @@ const TenantConfigPage = () => {
             <input
               type="checkbox"
               checked={hours.isActive}
-              onChange={(e) => handleWorkingHoursChange(day, 'isActive', e.target.checked)}
+              onChange={e => handleWorkingHoursChange(day, 'isActive', e.target.checked)}
               className="sr-only peer"
             />
-            <div className="relative w-11 h-6 bg-gray-200 rounded-full peer peer-checked:bg-blue-600">
-              <div className="absolute top-0.5 left-0.5 bg-white w-5 h-5 rounded-full transition-all peer-checked:translate-x-5"></div>
+            <div className="relative w-11 h-6 bg-gray-200 rounded-full peer-checked:bg-blue-600">
+              <div className="absolute top-0.5 left-0.5 bg-white w-5 h-5 rounded-full transition-all peer-checked:translate-x-5"/>
             </div>
             <span className="ml-2 text-sm">{hours.isActive ? 'Actif' : 'Inactif'}</span>
           </label>
-          
           {hours.isActive && (
             <div className="flex items-center gap-2">
               <input
                 type="time"
                 value={hours.start}
-                onChange={(e) => handleWorkingHoursChange(day, 'start', e.target.value)}
+                onChange={e => handleWorkingHoursChange(day, 'start', e.target.value)}
                 className="border rounded p-1"
               />
               <span>à</span>
               <input
                 type="time"
                 value={hours.end}
-                onChange={(e) => handleWorkingHoursChange(day, 'end', e.target.value)}
+                onChange={e => handleWorkingHoursChange(day, 'end', e.target.value)}
                 className="border rounded p-1"
               />
             </div>
           )}
         </div>
       ))}
+      
+
     </div>
   );
+
 
   const renderServices = () => (
     <div className="space-y-4">

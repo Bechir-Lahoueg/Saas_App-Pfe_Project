@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { useNavigate, useLocation } from "react-router-dom";
+import Navbar from "../../components/Landing/components/Navbar";
+import Footer from "../../components/Landing/components/Footer";
 
 const TenantRegistrationPage = () => {
   const navigate = useNavigate();
@@ -90,7 +92,7 @@ const TenantRegistrationPage = () => {
       };
 
       const response = await fetch(
-        "http://localhost:5001/payment/tenant-registration",
+        "http://localhost:8888/payment/tenant-registration",
         {
           method: "POST",
           headers: {
@@ -138,7 +140,7 @@ const TenantRegistrationPage = () => {
     if (paymentStatus === "success" && paymentInfo?.paymentId) {
       try {
         const response = await fetch(
-          `http://localhost:5001/payment/complete/${paymentInfo.paymentId}`,
+          `http://localhost:8888/payment/complete/${paymentInfo.paymentId}`,
           {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -197,14 +199,29 @@ const TenantRegistrationPage = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {[
           { id: "email", label: "Email*", type: "email", required: true },
-          { id: "password", label: "Password*", type: "password", required: true },
-          { id: "firstName", label: "First Name*", type: "text", required: true },
+          {
+            id: "password",
+            label: "Password*",
+            type: "password",
+            required: true,
+          },
+          {
+            id: "firstName",
+            label: "First Name*",
+            type: "text",
+            required: true,
+          },
           { id: "lastName", label: "Last Name*", type: "text", required: true },
           { id: "phone", label: "Phone", type: "tel", required: false },
-          { id: "businessName", label: "Business Name*", type: "text", required: true },
+          {
+            id: "businessName",
+            label: "Business Name*",
+            type: "text",
+            required: true,
+          },
           { id: "city", label: "City*", type: "text", required: true },
           { id: "zipcode", label: "Zipcode*", type: "text", required: true },
-          { id: "country", label: "Country", type: "text", required: false },
+          { id: "country", label: "Country", type: "text", required: true },
         ].map((field) => (
           <div key={field.id}>
             <label className="block text-gray-700 mb-2" htmlFor={field.id}>
@@ -426,67 +443,77 @@ const TenantRegistrationPage = () => {
   );
 
   return (
-    <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-3xl mx-auto">
-        {/* Barre de progression */}
-        <div className="flex items-center justify-between mb-12">
-          {[1, 2, 3].map((stepNumber) => (
-            <React.Fragment key={stepNumber}>
-              <div
-                className={`flex items-center ${
-                  step >= stepNumber ? "text-blue-600" : "text-gray-400"
-                }`}
-              >
+    <div>
+      <Navbar />
+      <br />
+      <br />
+      <br />
+
+      <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-3xl mx-auto">
+          {/* Barre de progression */}
+          <div className="flex items-center justify-between mb-12">
+            {[1, 2, 3].map((stepNumber) => (
+              <React.Fragment key={stepNumber}>
                 <div
-                  className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                    step >= stepNumber ? "bg-blue-600 text-white" : "bg-gray-200"
+                  className={`flex items-center ${
+                    step >= stepNumber ? "text-blue-600" : "text-gray-400"
                   }`}
                 >
-                  {stepNumber}
-                </div>
-                <span className="ml-2">
-                  {stepNumber === 1
-                    ? "Information"
-                    : stepNumber === 2
-                    ? "Payment"
-                    : "Complete"}
-                </span>
-              </div>
-              {stepNumber < 3 && (
-                <div className="flex-1 mx-4 h-1 bg-gray-200">
                   <div
-                    className={`h-full transition-all duration-500 ${
-                      step > stepNumber ? "bg-blue-600" : "bg-gray-200"
+                    className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                      step >= stepNumber
+                        ? "bg-blue-600 text-white"
+                        : "bg-gray-200"
                     }`}
-                    style={{ width: step > stepNumber ? "100%" : "0%" }}
-                  ></div>
+                  >
+                    {stepNumber}
+                  </div>
+                  <span className="ml-2">
+                    {stepNumber === 1
+                      ? "Information"
+                      : stepNumber === 2
+                      ? "Payment"
+                      : "Complete"}
+                  </span>
                 </div>
-              )}
-            </React.Fragment>
-          ))}
+                {stepNumber < 3 && (
+                  <div className="flex-1 mx-4 h-1 bg-gray-200">
+                    <div
+                      className={`h-full transition-all duration-500 ${
+                        step > stepNumber ? "bg-blue-600" : "bg-gray-200"
+                      }`}
+                      style={{ width: step > stepNumber ? "100%" : "0%" }}
+                    ></div>
+                  </div>
+                )}
+              </React.Fragment>
+            ))}
+          </div>
+
+          {/* Conteneur principal */}
+          <motion.div
+            className="bg-white rounded-xl shadow-md overflow-hidden"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3 }}
+          >
+            <div className="bg-blue-600 p-6 text-white">
+              <h1 className="text-2xl font-bold">Business Registration</h1>
+              <p className="opacity-90">
+                Create your tenant account in few simple steps
+              </p>
+            </div>
+
+            <div className="p-6 sm:p-8">
+              {step === 1 && renderStep1()}
+              {step === 2 && renderStep2()}
+              {step === 3 && renderStep3()}
+            </div>
+          </motion.div>
         </div>
-
-        {/* Conteneur principal */}
-        <motion.div
-          className="bg-white rounded-xl shadow-md overflow-hidden"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3 }}
-        >
-          <div className="bg-blue-600 p-6 text-white">
-            <h1 className="text-2xl font-bold">Business Registration</h1>
-            <p className="opacity-90">
-              Create your tenant account in few simple steps
-            </p>
-          </div>
-
-          <div className="p-6 sm:p-8">
-            {step === 1 && renderStep1()}
-            {step === 2 && renderStep2()}
-            {step === 3 && renderStep3()}
-          </div>
-        </motion.div>
       </div>
+      <Footer />
     </div>
   );
 };

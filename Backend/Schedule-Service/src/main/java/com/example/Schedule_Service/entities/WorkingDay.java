@@ -19,13 +19,9 @@ public class WorkingDay {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
     @Enumerated(EnumType.STRING)
     private DayOfWeek dayOfWeek;
-
     private boolean active;
-
     @ElementCollection
     private List<TimeSlot> timeSlots;
-
 }

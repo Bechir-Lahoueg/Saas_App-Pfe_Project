@@ -37,12 +37,12 @@ public class TenantService {
             throw new RuntimeException("Subdomain already exists!");
         }
 
-        // Step 1: Create the database first
-        String dbName = request.getSubdomain(); // e.g. "tenant4"
+        // Create the database
+        String dbName = request.getSubdomain();
         databaseCreator.createDatabase(dbName);
         log.info("Created database for tenant {}", dbName);
 
-        // Step 2: Run Flyway migrations on the newly created database
+        // Run Flyway migrations on the created database
         String tenantDbUrl = "jdbc:postgresql://localhost:5432/" + dbName;
         Flyway flyway = Flyway.configure()
                 .dataSource(tenantDbUrl, dbUser, dbPass)
@@ -52,7 +52,7 @@ public class TenantService {
         flyway.migrate();
         log.info("Applied migrations for tenant database: {}", dbName);
 
-        // Step 3: Create the tenant entity
+        // Create the tenant entity
         Tenant tenant = Tenant.builder()
                 .email(request.getEmail())
                 .password(passwordEncoder.encode(request.getPassword()))
@@ -61,6 +61,7 @@ public class TenantService {
                 .phone(request.getPhone())
                 .businessName(request.getBusinessName())
                 .subdomain(request.getSubdomain())
+                .workCategory(request.getWorkCategory())
                 .address(request.getAddress())
                 .zipcode(request.getZipcode())
                 .country(request.getCountry())

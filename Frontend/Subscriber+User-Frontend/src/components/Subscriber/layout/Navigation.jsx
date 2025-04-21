@@ -14,6 +14,34 @@ import Notifications from "../pages/Notifications";
 import SettingsPage from "../pages/Settings";
 import axios from 'axios'; // Import axios for API calls
 
+// Quick-and-dirty JWT parser (no external deps) - copied from LoginPage
+function parseJwt(token) {
+  try {
+    const payload = token.split('.')[1];
+    return JSON.parse(atob(payload));
+  } catch (e) {
+    return null;
+  }
+}
+
+// Read cookie by name - copied from LoginPage
+function getCookie(name) {
+  const value = `; ${document.cookie}`;
+  const parts = value.split(`; ${name}=`);
+  if (parts.length === 2) return parts.pop().split(';').shift();
+  return null;
+}
+
+// Set cookie (shared across *.127.0.0.1.nip.io) - copied from LoginPage
+function setCookie(name, val) {
+  document.cookie = [
+    `${name}=${encodeURIComponent(val)}`,
+    'Domain=.127.0.0.1.nip.io',
+    'Path=/',
+    'SameSite=Lax'
+  ].join('; ');
+}
+
 const Navigation = () => {
   // States for various features
   const [isDarkMode, setIsDarkMode] = useState(false);
@@ -22,7 +50,7 @@ const Navigation = () => {
   const [activePage, setActivePage] = useState("dashboard");
   const [windowWidth, setWindowWidth] = useState(window.innerWidth);
   const [hoveredMenu, setHoveredMenu] = useState(null);
-  const [tenantData, setTenantData] = useState(null);
+  const [userData, setUserData] = useState(null);
   const [currentDateTime, setCurrentDateTime] = useState(new Date());
 
   // Update date and time every minute
@@ -52,15 +80,7 @@ const Navigation = () => {
     });
   };
 
-  // Helper function to get cookies by name
-  const getCookie = (name) => {
-    const value = `; ${document.cookie}`;
-    const parts = value.split(`; ${name}=`);
-    if (parts.length === 2) return parts.pop().split(';').shift();
-    return null;
-  };
-
-  // Fetch user data from cookies on component mount
+  // Fetch user data from JWT token on component mount
   useEffect(() => {
     // Check if user is logged in by looking for the access token in cookies
     const accessToken = getCookie('accessToken');
@@ -71,31 +91,45 @@ const Navigation = () => {
       return;
     }
     
-    // Load all user data from cookies
+    // Parse the JWT token to get user data
     try {
-      const firstName = decodeURIComponent(getCookie('userFirstName') || '');
-      const lastName = decodeURIComponent(getCookie('userLastName') || '');
-      const subdomain = getCookie('subdomain') || '';
-      const refreshToken = getCookie('refreshToken');
+      const payload = parseJwt(accessToken);
       
+      if (!payload) {
+        throw new Error('Invalid token payload');
+      }
+      
+      // Extract user data from payload
+      const { subdomain, id, email, sub } = payload;
+      
+      // Optional: Extract name from sub (assuming format like "JohnDoe")
+      let username = sub || '';
+      
+  
       // Set up axios defaults for API calls
       axios.defaults.baseURL = 'http://localhost:8888';
       axios.defaults.withCredentials = true;
       axios.defaults.headers.common['Authorization'] = `Bearer ${accessToken}`;
       axios.defaults.headers.common['X-Tenant-ID'] = subdomain;
       
-      const userData = {
-        firstName,
-        lastName,
+      const extractedUserData = {
+        id,
+        email,
+        username,
         subdomain,
-        businessName: subdomain, // Using subdomain as business name for now
+        businessName: subdomain // Using subdomain as business name for now
       };
       
-      setTenantData(userData);
-    
+      // Store user data in state
+      setUserData(extractedUserData);
+      
+      // Optionally store extracted user data in cookies for other components
+      setCookie('username', username);
+      setCookie('subdomain', subdomain);
+      setCookie('userEmail', email);
       
     } catch (error) {
-      console.error('Error loading user data from cookies:', error);
+      console.error('Error parsing JWT token:', error);
       handleLogout(); // Logout if data is corrupted
     }
   }, []);
@@ -111,7 +145,7 @@ const Navigation = () => {
   }
 
   const handleLogout = () => {
-    ['accessToken','refreshToken','userFirstName','userLastName','subdomain']
+    ['accessToken','refreshToken','username','userLastName','subdomain','userEmail']
       .forEach(deleteCookie);
 
     const rootHost = getRootHost();
@@ -216,23 +250,35 @@ const Navigation = () => {
     }
   };
 
-  // Get user's name from cookies
+  // Get user's name from userData state or fallback to cookies
   const getUserName = () => {
-    if (tenantData && tenantData.firstName) {
-      return `${tenantData.firstName} ${tenantData.lastName || ''}`;
+    if (userData && userData.username) {
+      return `${userData.username} ${userData.lastName || ''}`;
     }
     
     // Fallback to direct cookie check
-    const firstName = decodeURIComponent(getCookie('userFirstName') || '');
-    const lastName = decodeURIComponent(getCookie('userLastName') || '');
+    const username = decodeURIComponent(getCookie('username') || '');
     
-    if (firstName && lastName) {
-      return `${firstName} ${lastName}`;
-    } else if (firstName) {
-      return firstName;
+    if (username) {
+      return `${username}`;
+    } 
+  
+    return "Utilisateur";
+  };
+
+  // Get user's business/tenant name
+  const getBusinessName = () => {
+    if (userData && userData.subdomain) {
+      // Capitalize first letter of subdomain for display
+      return userData.subdomain.charAt(0).toUpperCase() + userData.subdomain.slice(1);
     }
     
-    return "Utilisateur";
+    const subdomain = getCookie('subdomain');
+    if (subdomain) {
+      return subdomain.charAt(0).toUpperCase() + subdomain.slice(1);
+    }
+    
+    return "Entreprise";
   };
 
   // Menu items definition
@@ -242,7 +288,7 @@ const Navigation = () => {
     { id: "invoice", icon: CreditCard, label: "Factures", notification: 2 },
     { id: "hr", icon: Users, label: "Équipe" },
     { id: "calendar", icon: Calendar, label: "Calendrier" },
-    { id: "messages", icon: MessageCircle, label: "Messages", notification: 5 },
+    { id: "Management", icon: MessageCircle, label: "Management", notification: 5 },
   ];
 
   const secondaryMenuItems = [
@@ -254,23 +300,23 @@ const Navigation = () => {
   const renderPage = () => {
     switch (activePage) {
       case "dashboard":
-        return <DashboardContent sidebarExpanded={isSidebarExpanded} />;
+        return <DashboardContent sidebarExpanded={isSidebarExpanded} userData={userData} />;
       case "analytics":
-        return <Analytics />;
+        return <Analytics userData={userData} />;
       case "invoice":
-        return <Invoice />;
+        return <Invoice userData={userData} />;
       case "hr":
-        return <HR />;
+        return <HR userData={userData} />;
       case "calendar":
-        return <CalendarPage />;
-      case "messages":
-        return <Messages />;
+        return <CalendarPage userData={userData} />;
+      case "Management":
+        return <Messages userData={userData} />;
       case "notifications":
-        return <Notifications />;
+        return <Notifications userData={userData} />;
       case "settings":
-        return <SettingsPage />;
+        return <SettingsPage userData={userData} />;
       default:
-        return <DashboardContent sidebarExpanded={isSidebarExpanded} />;
+        return <DashboardContent sidebarExpanded={isSidebarExpanded} userData={userData} />;
     }
   };
 
@@ -331,6 +377,13 @@ const Navigation = () => {
               onClick={handleLogoClick}
             />
           </div>
+          
+          {/* Business name under logo */}
+          {isSidebarExpanded && userData && (
+            <div className={`mt-2 text-center text-sm font-medium ${isDarkMode ? 'text-blue-400' : 'text-blue-600'}`}>
+              {getBusinessName()}
+            </div>
+          )}
           
           {/* Clock/Date display under logo */}
           <div className={`mt-2 text-center ${!isSidebarExpanded && 'hidden'}`}>

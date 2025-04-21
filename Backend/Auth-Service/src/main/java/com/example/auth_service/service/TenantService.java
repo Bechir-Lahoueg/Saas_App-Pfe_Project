@@ -2,10 +2,13 @@ package com.example.auth_service.service;
 
 
 import com.example.auth_service.entities.Tenant;
-import com.example.auth_service.entities.TenantDatabase;
 import com.example.auth_service.repository.TenantRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -20,6 +23,10 @@ public class TenantService {
     private final TenantRepository tenantRepository;
     private final PasswordEncoder passwordEncoder;
 
+    @Autowired
+    AuthenticationManager authManager;
+    @Autowired
+    private JwtService jwtService;
 
 
     @Transactional
@@ -53,32 +60,30 @@ public class TenantService {
                 );
     }
 
-    public List<TenantDatabase> getTenantDatabases(UUID tenantId){
-        Tenant tenant = tenantRepository.findById(tenantId)
-                .orElseThrow(() -> new RuntimeException("Tenant not found"));
-        return tenant.getDatabases();
+    public List<Tenant> getTenantsByWorkingCategory(String workingCategory) {
+        return tenantRepository.findAllByWorkCategory(workingCategory)
+                .orElseThrow(() ->
+                        new RuntimeException("Tenant not found with working category: " + workingCategory)
+                );
     }
 
     @Transactional
     public void deleteTenant(UUID tenantId) {
         Tenant tenant = tenantRepository.findById(tenantId)
                 .orElseThrow(() -> new RuntimeException("Tenant not found"));
-        // Delete the tenant's databases
-
         tenantRepository.delete(tenant);
     }
 
-
-    // Add this method to TenantService class
-    public Tenant authenticateTenant(String email, String password) {
-        Tenant tenant = tenantRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("Invalid email or password"));
-
-        if (!passwordEncoder.matches(password, tenant.getPassword())) {
-            throw new RuntimeException("Invalid email or password");
-        }
-
-        return tenant;
+    public String verify(String email,String password) {
+        Authentication authentication =
+                authManager.authenticate(new UsernamePasswordAuthenticationToken(email, password));
+                if(authentication.isAuthenticated()) {
+                    Tenant tenant = tenantRepository.findByEmail(email)
+                            .orElseThrow(() -> new RuntimeException("Invalid email or password"));
+                    return jwtService.generateToken(tenant);
+                } else {
+                    throw new RuntimeException("Authentication failed");
+                }
     }
 }
 
