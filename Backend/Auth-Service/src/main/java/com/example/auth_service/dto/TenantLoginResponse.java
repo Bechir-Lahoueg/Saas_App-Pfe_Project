@@ -7,6 +7,6 @@ import lombok.Data;
 @Builder
 public class TenantLoginResponse {
     private String accessToken;
-    private String refreshToken;
-    private TenantDTO tenant;
+//    private String refreshToken;
+//    private TenantDTO tenant;
 }

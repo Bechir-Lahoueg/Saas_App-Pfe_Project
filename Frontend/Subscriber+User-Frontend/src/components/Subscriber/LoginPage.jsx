@@ -1,81 +1,105 @@
-import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import React, { useState, useEffect } from 'react'
+import axios from 'axios'
+import Footer from "../Landing/components/Footer"
+import Navbar from "../Landing/components/Navbar"
+
+
+// Quick-and-dirty JWT parser (no external deps)
+function parseJwt (token) {
+  try {
+    const payload = token.split('.')[1]
+    return JSON.parse(atob(payload))
+  } catch (e) {
+    return null
+  }
+}
+
+// Read cookie by name
+function getCookie (name) {
+  const value = `; ${document.cookie}`
+  const parts = value.split(`; ${name}=`)
+  if (parts.length === 2) return parts.pop().split(';').shift()
+  return null
+}
+
+// Set cookie (shared across *.127.0.0.1.nip.io)
+function setCookie (name, val) {
+  document.cookie = [
+    `${name}=${encodeURIComponent(val)}`,
+    'Domain=.127.0.0.1.nip.io',
+    'Path=/',
+    'SameSite=Lax'
+  ].join('; ')
+}
 
 const LoginPage = () => {
-  const [creds, setCreds]   = useState({ email: '', password: '' });
-  const [error, setError]   = useState('');
-  const [loading, setLoading] = useState(false);
+  const [creds, setCreds]   = useState({ email: '', password: '' })
+  const [error, setError]   = useState('')
+  const [loading, setLoading] = useState(false)
 
-  // Check if user is already logged in on component mount
+  // If already have a token, decode and go straight to dashboard
   useEffect(() => {
-    // Function to get cookie value by name
-    const getCookie = (name) => {
-      const value = `; ${document.cookie}`;
-      const parts = value.split(`; ${name}=`);
-      if (parts.length === 2) return parts.pop().split(';').shift();
-      return null;
-    };
+    const token = getCookie('accessToken')
+    if (!token) return
 
-    const accessToken = getCookie('accessToken');
-    const subdomain = getCookie('subdomain');
-    
-    if (accessToken && subdomain) {
-      // User is already logged in, redirect to dashboard
-      window.location.href = `http://${subdomain}.127.0.0.1.nip.io:5173/dashboard`;
+    const payload = parseJwt(token)
+    if (payload && payload.subdomain) {
+      // set up axios defaults again (in case)
+      axios.defaults.baseURL                = 'http://localhost:8888'
+      axios.defaults.withCredentials        = true
+      axios.defaults.headers.common['Authorization'] = `Bearer ${token}`
+      axios.defaults.headers.common['X-Tenant-ID']    = payload.subdomain
+
+      // redirect
+      window.location.href = `http://${payload.subdomain}.127.0.0.1.nip.io:5173/dashboard`
     }
-  }, []);
+  }, [])
 
   const handleChange = e => {
-    setCreds(prev => ({ ...prev, [e.target.id]: e.target.value }));
-  };
+    setCreds(prev => ({ ...prev, [e.target.id]: e.target.value }))
+  }
 
   const handleSubmit = async e => {
-    e.preventDefault();
-    setLoading(true);
-    setError('');
+    e.preventDefault()
+    setLoading(true)
+    setError('')
 
     try {
       const res = await axios.post(
         'http://localhost:8888/auth/tenant/login',
         creds,
         { headers: { 'Content-Type': 'application/json' }, withCredentials: true }
-      );
+      )
 
-      const {
-        accessToken,
-        refreshToken,
-        tenant: { firstName, lastName, subdomain }
-      } = res.data;
+      const { accessToken } = res.data
+      // parse subdomain from token itself
+      const payload = parseJwt(accessToken)
+      const subdomain = payload?.subdomain
 
-      // Build a cookie string that shares across *.127.0.0.1.nip.io
-      const cookieOpts = [
-        'Domain=.127.0.0.1.nip.io',
-        'Path=/',
-        'SameSite=Lax'
-      ].join('; ');
+      if (!subdomain) {
+        throw new Error('No subdomain in token payload')
+      }
 
-      // Persist tokens & user info in cookies
-      document.cookie = `accessToken=${accessToken}; ${cookieOpts}`;
-      document.cookie = `refreshToken=${refreshToken}; ${cookieOpts}`;
-      document.cookie = `userFirstName=${encodeURIComponent(firstName)}; ${cookieOpts}`;
-      document.cookie = `userLastName=${encodeURIComponent(lastName)}; ${cookieOpts}`;
-      document.cookie = `subdomain=${subdomain}; ${cookieOpts}`;
+      // persist token in cookie
+      setCookie('accessToken', accessToken)
 
-      // Configure axios for API calls (still sends Auth header)
-      axios.defaults.baseURL                = 'http://localhost:8888';
-      axios.defaults.withCredentials        = true;
-      axios.defaults.headers.common['Authorization'] = `Bearer ${accessToken}`;
-      axios.defaults.headers.common['X-Tenant-ID']    = subdomain;
+      // configure axios defaults
+      axios.defaults.baseURL                = 'http://localhost:8888'
+      axios.defaults.withCredentials        = true
+      axios.defaults.headers.common['Authorization'] = `Bearer ${accessToken}`
+      axios.defaults.headers.common['X-Tenant-ID']    = subdomain
 
-      // Redirect to the tenant's subdomain dashboard
-      window.location.href = `http://${subdomain}.127.0.0.1.nip.io:5173/dashboard`;
+      // redirect to tenant subdomain dashboard
+      window.location.href = `http://${subdomain}.127.0.0.1.nip.io:5173/dashboard`
     } catch (err) {
-      setError(err.response?.data?.message || err.message);
+      setError(err.response?.data?.message || err.message)
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
   return (
+    <div>
+      <Navbar />
     <div className="bg-blue-500 min-h-screen flex items-center justify-center relative overflow-hidden">
       {/* Background shapes */}
       <div className="absolute top-0 right-0 w-96 h-96 bg-blue-400 rounded-full -translate-y-1/4 translate-x-1/4"></div>
@@ -135,6 +159,8 @@ const LoginPage = () => {
           </button>
         </form>
       </div>
+    </div>
+        <Footer />
     </div>
   );
 };

@@ -13,21 +13,16 @@ import java.util.Optional;
 @Service
 @RequiredArgsConstructor
 public class WorkingDayService {
-
     private final WorkingDayRepository workingDayRepository;
-
     public List<WorkingDay> getAllWorkingDays() {
         return workingDayRepository.findAll();
     }
-
     public Optional<WorkingDay> getWorkingDayById(Long id) {
         return workingDayRepository.findById(id);
     }
-
     public WorkingDay createWorkingDay(WorkingDay workingDay) {
         return workingDayRepository.save(workingDay);
     }
-
     public void deleteWorkingDay(Long id) {
         if (workingDayRepository.existsById(id)) {
             workingDayRepository.deleteById(id);
@@ -35,7 +30,6 @@ public class WorkingDayService {
             throw new RuntimeException("Working day not found");
         }
     }
-
     public WorkingDay updateWorkingDay(Long id, WorkingDay workingDay) {
         if (workingDayRepository.existsById(id)) {
             workingDay.setId(id);
@@ -44,7 +38,6 @@ public class WorkingDayService {
             throw new RuntimeException("Working day not found");
         }
     }
-
     @Transactional
     public Optional<WorkingDay> addTimeSlotToWorkingDay(Long id, TimeSlot timeSlot) {
         return workingDayRepository.findById(id)
@@ -53,7 +46,6 @@ public class WorkingDayService {
                     return workingDayRepository.save(workingDay);
                 });
     }
-
     @Transactional
     public Optional<WorkingDay> removeTimeSlotFromWorkingDay(Long id, int timeSlotId) {
         return workingDayRepository.findById(id)

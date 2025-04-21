@@ -24,20 +24,20 @@ public class Tenant implements UserDetails {
     @Column(name = "id_tenant", nullable = false)
 
     private UUID id;
-    private String email;
-    private String password;
     private String firstName;
     private String lastName;
     private String phone;
-    private String zipcode;
+    private String email;
+    private String password;
     private String country;
     private String city;
-    private String businessName;
-    private String subdomain;
     private String address;
+    private String zipcode;
+    private String workCategory;
+    private String subdomain;
+    private String businessName;
 
-    @OneToMany(cascade = CascadeType.ALL, mappedBy = "tenant")
-    private List<TenantDatabase> databases;
+
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
