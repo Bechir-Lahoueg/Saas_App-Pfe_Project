@@ -17,7 +17,7 @@ const initiatePayment = async (paymentData) => {
       amount: paymentData.amount,
       type: paymentData.type || "immediate",
       description: paymentData.description,
-      acceptedPaymentMethods: paymentData.acceptedPaymentMethods || ["wallet", "bank_card", "e-DINAR"],
+      acceptedPaymentMethods: paymentData.acceptedPaymentMethods || ["wallet", "e-DINAR"],
       lifespan: paymentData.lifespan || 10,
       addPaymentFeesToAmount: paymentData.addPaymentFeesToAmount || true,
       webhook: `${process.env.BASE_URL || 'http://localhost:5001'}/payments/webhook`,

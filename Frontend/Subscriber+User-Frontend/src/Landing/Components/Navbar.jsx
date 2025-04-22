@@ -188,7 +188,7 @@ const Navbar = () => {
                   scrolled ? "text-gray-700" : "text-gray-700"
                 } group-hover:text-blue-600`}
               >
-                {isLoggedIn ? "Dashboard" : "Connexion"}
+                {isLoggedIn ? "Tableau de bord" : "Connexion"}
                 <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-blue-600 group-hover:w-full transition-all duration-300 ease-out"></span>
               </span>
             </button>
@@ -298,7 +298,7 @@ const Navbar = () => {
               className="w-full py-3 px-4 bg-blue-50 text-blue-600 rounded-md font-medium text-sm"
               onClick={handleConnectionClick}
             >
-              {isLoggedIn ? "Dashboard" : "Connexion"}
+              {isLoggedIn ? "Tableau de bord" : "Connexion"}
             </button>
             <button
               className="w-full py-3 px-4 bg-blue-600 text-white rounded-md font-medium text-sm flex items-center justify-center"

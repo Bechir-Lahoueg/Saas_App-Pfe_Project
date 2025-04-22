@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Footer } from "../Landing/Index";
+import Footer from "../../Landing/Components/Footer.jsx";
 
 // Cette page est utilisée pour saisir l'email et demander la réinitialisation
 const ForgotPasswordPage = () => {

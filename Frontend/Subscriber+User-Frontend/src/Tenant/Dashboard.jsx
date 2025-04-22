@@ -37,9 +37,15 @@ import Analytics from "./components/Analytics";
 import Invoice from "./components/Invoice";
 import HR from "./components/HR";
 import CalendarPage from "./components/Calendar";
-import Messages from "./components/Messages";
+import Messages from "./components/Secours(backup)";
 import Notifications from "./components/Notifications";
 import SettingsPage from "./components/Settings";
+import Informations from "./components/Informations";
+import WorkingHours from "./components/WorkingHours";
+import Services from "./components/Services";
+import Break from "./components/Break";
+
+
 import axios from "axios"; // Import axios for API calls
 
 // Quick-and-dirty JWT parser (no external deps) - copied from LoginPage
@@ -284,7 +290,7 @@ const Dashbaord = () => {
         return "Équipe";
       case "calendar":
         return "Calendrier";
-      case "Management":
+      case "Backup":
         return "Messages";
       case "notifications":
         return "Notifications";
@@ -336,11 +342,15 @@ const Dashbaord = () => {
     { id: "hr", icon: Users, label: "Équipe" },
     { id: "calendar", icon: Calendar, label: "Calendrier" },
     {
-      id: "Management",
+      id: "Backup",
       icon: MessageCircle,
-      label: "Management",
+      label: "Backup",
       notification: 5,
     },
+    { id: "break", icon: Clock, label: "Pauses" },
+    { id: "information", icon: FileText, label: "Informations" },
+    { id: "workinghours", icon: Clock, label: "Heures de travail" },
+    { id: "services", icon: Star, label: "Services" },
   ];
 
   const secondaryMenuItems = [
@@ -366,12 +376,20 @@ const Dashbaord = () => {
         return <HR userData={userData} />;
       case "calendar":
         return <CalendarPage userData={userData} />;
-      case "Management":
+      case "Backup":
         return <Messages userData={userData} />;
       case "notifications":
         return <Notifications userData={userData} />;
       case "settings":
         return <SettingsPage userData={userData} />;
+      case "break":
+        return <Break userData={userData} />;
+      case "information":
+        return <Informations userData={userData} />;
+      case "workinghours":
+        return <WorkingHours userData={userData} />;
+      case "services":
+        return <Services userData={userData} />;
       default:
         return (
           <DashboardContent

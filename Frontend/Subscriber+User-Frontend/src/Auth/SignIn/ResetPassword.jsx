@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useLocation } from "react-router-dom";
-import { Footer } from "../Landing/Index";
+import Footer from "../../Landing/Components/Footer.jsx";
 
 // Cette page est utilisée pour créer un nouveau mot de passe après avoir cliqué sur le lien dans l'email
 const ResetPasswordPage = () => {
