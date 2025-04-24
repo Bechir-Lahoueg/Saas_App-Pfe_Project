@@ -45,7 +45,6 @@ import WorkingHours from "./components/WorkingHours";
 import Services from "./components/Services";
 import Break from "./components/Break";
 
-
 import axios from "axios"; // Import axios for API calls
 
 // Quick-and-dirty JWT parser (no external deps) - copied from LoginPage
