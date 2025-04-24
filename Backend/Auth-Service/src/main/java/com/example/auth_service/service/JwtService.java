@@ -36,7 +36,7 @@ public class JwtService {
                 .builder()
                 .signWith(getSignInKey(), SignatureAlgorithm.HS256)
                 .setHeaderParam("typ", "JWT")
-                .setClaims(claims)  // Set all claims at once, including subject
+                .setClaims(claims)
                 .setIssuedAt(new Date(System.currentTimeMillis()))
                 .setExpiration(new Date(System.currentTimeMillis() + expirationTime))
                 .compact();
@@ -45,9 +45,8 @@ public class JwtService {
     public String generateToken(Tenant tenant) {
         Map<String, Object> claims = new HashMap<>();
         claims.put("id", tenant.getId());
-        claims.put("email", tenant.getEmail());
         claims.put("subdomain", tenant.getSubdomain());
-        return createToken(claims, tenant.getFirstName()+" "+ tenant.getLastName(), EXPIRATION);
+        return createToken(claims, tenant.getFirstName()+ " "+ tenant.getLastName() , EXPIRATION);
     }
 
     public String generateRefreshToken(Tenant tenant) {

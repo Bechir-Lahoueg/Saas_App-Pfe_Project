@@ -14,7 +14,8 @@ public class RouteValidator {
             "/auth/tenant/reset-password",
             "/auth/admin/login",
             "/auth/tenant/login",
-            "/register/tenant/signup"
+            "/register/tenant/signup",
+            "/auth/tenant/getTenantByCategory"
     );
 
     public Predicate<ServerHttpRequest> isSecured = request -> unprotectedUrls.stream().noneMatch(uri -> request.getURI().getPath().contains(uri));

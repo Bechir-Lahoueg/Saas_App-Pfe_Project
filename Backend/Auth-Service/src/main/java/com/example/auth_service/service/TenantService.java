@@ -29,6 +29,10 @@ public class TenantService {
     private JwtService jwtService;
 
 
+    public List<Tenant> getTenantsByCategoryName(String categoryName) {
+        return tenantRepository.findByCategory_CategoryName(categoryName);
+    }
+
     @Transactional
     public Tenant updateTenant(UUID tenantId, Tenant tenantDetails) {
         Tenant tenant = tenantRepository.findById(tenantId)
@@ -60,12 +64,7 @@ public class TenantService {
                 );
     }
 
-    public List<Tenant> getTenantsByWorkingCategory(String workingCategory) {
-        return tenantRepository.findAllByWorkCategory(workingCategory)
-                .orElseThrow(() ->
-                        new RuntimeException("Tenant not found with working category: " + workingCategory)
-                );
-    }
+
 
     @Transactional
     public void deleteTenant(UUID tenantId) {

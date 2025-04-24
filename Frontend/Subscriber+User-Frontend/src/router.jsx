@@ -16,32 +16,36 @@ const MailSender = lazy(() => import("./Auth/SignIn/ForgotPassword"));
 const PasswordChanger = lazy(() => import("./Auth/SignIn/ResetPassword"));
 const Processres = lazy(() => import("./Client/app"));
 const AllIndustries = lazy(() =>
-  import("./Landing/Components/SectorPages/AllIndustries")
+  import("./Landing/SectorPages/AllIndustries")
 );
 const BeautyWellness = lazy(() =>
-  import("./Landing/Components/SectorPages/BeautyWellness")
+  import("./Landing/SectorPages/BeautyWellness")
 );
 const Education = lazy(() =>
-  import("./Landing/Components/SectorPages/Education")
+  import("./Landing/SectorPages/Education")
 );
 const EventsEntertainment = lazy(() =>
-  import("./Landing/Components/SectorPages/EventsEntertainment")
+  import("./Landing/SectorPages/EventsEntertainment")
 );
 const Healthcare = lazy(() =>
-  import("./Landing/Components/SectorPages/Healthcare")
+  import("./Landing/SectorPages/Healthcare")
 );
 const Photographers = lazy(() =>
-  import("./Landing/Components/SectorPages/Photographers")
+  import("./Landing/SectorPages/Photographers")
 );
 const ProfessionnelServices = lazy(() =>
-  import("./Landing/Components/SectorPages/ProfessionalServices")
+  import("./Landing/SectorPages/ProfessionalServices")
 );
 const PublicServices = lazy(() =>
-  import("./Landing/Components/SectorPages/PublicServices")
+  import("./Landing/SectorPages/PublicServices")
 );
-const Retail = lazy(() => import("./Landing/Components/SectorPages/Retail"));
+const Retail = lazy(() => import("./Landing/SectorPages/Retail"));
 const SportsFitness = lazy(() =>
-  import("./Landing/Components/SectorPages/SportsFitness")
+  import("./Landing/SectorPages/SportsFitness")
+);
+const Catgeories = lazy(() => import("./Landing/Categories/Catgeories"));
+const CategoriesTenants = lazy(() =>
+  import("./Landing/Categories/TenantsByCategory")
 );
 
 const AppRouter = () => {
@@ -79,6 +83,9 @@ const AppRouter = () => {
         <Route path="/commerce-de-detail" element={<Retail />} />
         <Route path="/sports-fitness" element={<SportsFitness />} />
         <Route path="/dashboard" element={<Dashboard />} />
+
+        <Route path="/secteurs" element={<Catgeories />} />
+        <Route path="/secteurs/:categoryName" element={<CategoriesTenants />} />
       </Routes>
     </Suspense>
   );
