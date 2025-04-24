@@ -1,8 +1,7 @@
 ﻿// pages/Home.jsx
 import React from "react";
-import Navbar from "../Components/Navbar";
-import Footer from "../Components/Footer";
-
+import Navbar from "../Navbar";
+import Footer from "../Footer";
 const Home = () => {
   return (
     <div className="bg-white text-gray-800">

@@ -139,7 +139,15 @@ const Navbar = () => {
                 scrolled={scrolled}
                 redirectTo="/"
               />
-              <NavItemWithDropdown
+              <NavItem
+                id="Secteurs"
+                label="Secteurs"
+                // isActive={activeSection === "accueil"}
+                scrolled={scrolled}
+                redirectTo="/secteurs"
+              />
+
+              {/* <NavItemWithDropdown
                 id="secteurs"
                 label="Secteurs"
                 isActive={activeSection === "secteurs"}
@@ -147,7 +155,7 @@ const Navbar = () => {
                 isOpen={openDropdown === "secteurs"}
                 onToggle={handleDropdownToggle}
                 items={dropdownContent.secteurs}
-              />
+              /> */}
               <NavItem
                 id="fonctionnalites"
                 label="Fonctionnalités"

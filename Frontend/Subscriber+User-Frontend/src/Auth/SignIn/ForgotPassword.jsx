@@ -1,5 +1,7 @@
 import { useState } from "react";
 import Footer from "../../Landing/Components/Footer.jsx";
+import Navbar from "../../Landing/Components/Navbar.jsx";
+
 
 // Cette page est utilisée pour saisir l'email et demander la réinitialisation
 const ForgotPasswordPage = () => {
@@ -58,6 +60,11 @@ const ForgotPasswordPage = () => {
   };
 
   return (
+    <div>
+    <Navbar/>
+    <br />
+    <br />
+    <br />
     <div className="flex flex-col min-h-screen">
       {/* Contenu principal qui prend tout l'espace disponible sauf celui du footer */}
       <div className="flex-grow flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
@@ -228,6 +235,7 @@ const ForgotPasswordPage = () => {
       <div className="mt-auto">
         <Footer />
       </div>
+    </div>
     </div>
   );
 };

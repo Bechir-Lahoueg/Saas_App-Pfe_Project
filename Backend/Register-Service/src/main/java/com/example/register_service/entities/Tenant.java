@@ -33,7 +33,7 @@ public class Tenant implements UserDetails {
     private String city;
     private String address;
     private String zipcode;
-    private String workCategory;
+
     private String subdomain;
     private String businessName;
 

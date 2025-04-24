@@ -50,12 +50,6 @@ public class TenantController {
 //        );
 //    }
 
-    @GetMapping("/getTenantByWorkCategory/{workCategory}")
-    public ResponseEntity<List<Tenant>> getTenantByWorkCategory(@PathVariable String workCategory) {
-        return ResponseEntity.ok(
-                tenantService.getTenantsByWorkingCategory(workCategory)
-        );
-    }
 
     @GetMapping("/getall")
     public ResponseEntity<List<Tenant>> getAllTenants() {
@@ -83,19 +77,10 @@ public class TenantController {
         return ResponseEntity.ok((tenant));
     }
 
-//    private TenantDTO mapToDTO(Tenant tenant) {
-//        return TenantDTO.builder()
-//                .id(tenant.getId())
-//                .email(tenant.getEmail())
-//                .firstName(tenant.getFirstName())
-//                .lastName(tenant.getLastName())
-//                .businessName(tenant.getBusinessName())
-//                .subdomain(tenant.getSubdomain())
-//                .address(tenant.getAddress())
-//                .phone(tenant.getPhone())
-//                .zipcode(tenant.getZipcode())
-//                .country(tenant.getCountry())
-//                .city(tenant.getCity())
-//                .build();
-//    }
+    @GetMapping("/getTenantByCategory/{categoryName}")
+    public ResponseEntity<List<Tenant>> getByCategory(
+            @PathVariable String categoryName) {
+        List<Tenant> tenants = tenantService.getTenantsByCategoryName(categoryName);
+        return ResponseEntity.ok(tenants);
+    }
 }

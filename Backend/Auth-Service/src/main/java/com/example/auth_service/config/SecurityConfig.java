@@ -32,20 +32,20 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
-                                "/oauth2/**",
                                 "/forgot-password/**",
                                 "/reset-password/**",
                                 "/admin/login",
-                                "/tenant/getTenantByWorkCategory/**",
                                 "/tenant/getall",
                                 "/tenant/forgot-password",
                                 "/tenant/reset-password",
-                                "/tenant/login"
+                                "/tenant/login",
+                                "/category/**",
+                                "/tenant/getTenantByCategory/**"
                         ).permitAll()
+
                         .anyRequest()
                         .authenticated()
                 )
-
                 .authenticationProvider(authenticationProvider)
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 

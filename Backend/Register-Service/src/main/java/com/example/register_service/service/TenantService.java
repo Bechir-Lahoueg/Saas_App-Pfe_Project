@@ -61,7 +61,6 @@ public class TenantService {
                 .phone(request.getPhone())
                 .businessName(request.getBusinessName())
                 .subdomain(request.getSubdomain())
-                .workCategory(request.getWorkCategory())
                 .address(request.getAddress())
                 .zipcode(request.getZipcode())
                 .country(request.getCountry())
