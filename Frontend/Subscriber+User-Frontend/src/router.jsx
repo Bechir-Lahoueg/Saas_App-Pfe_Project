@@ -8,7 +8,7 @@ const LandingPage = lazy(() => import("./Landing/LandingPage"));
 const PricingPage = lazy(() => import("./Landing/Components/PricingPage"));
 const Login = lazy(() => import("./Auth/SignIn/LoginPage"));
 const Erreur = lazy(() => import("./Utils/ErreurPage"));
-const GetStarted = lazy(() => import("./Auth/Signup/PaiementPage"));
+const GetStarted = lazy(() => import("./Auth/Signup/PaiementPremuim"));
 const Demo = lazy(() => import("./Demo/Demo"));
 const Verification = lazy(() => import("./Auth/SignIn/MailVerification"));
 const Dashboard = lazy(() => import("./Tenant/Dashboard"));

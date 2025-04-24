@@ -1,13 +1,25 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Navbar from './Navbar';
 import Footer from './Footer';
 
 const PricingPage = () => {
   const [billingCycle, setBillingCycle] = useState('annual');
+  
+  // Configuration des prix et taux de remise
+  const prices = {
+    essential: { monthly: 20, annual: 16 },
+    professional: { monthly: 50, annual: 40 },
+    enterprise: { monthly: 90, annual: 75 }
+  };
+  
+  // Calculer les prix en fonction du cycle de facturation
+  const calculatePrice = (basePrice, cycle) => {
+    return cycle === 'annual' ? basePrice * 12 : basePrice;
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-white to-blue-50 font-sans relative overflow-hidden">
-        <Navbar />
+      <Navbar />
       {/* Éléments de fond animés */}
       <div className="absolute inset-0 overflow-hidden">
         <div className="absolute top-0 left-1/4 w-64 h-64 bg-blue-100 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob"></div>
@@ -21,41 +33,49 @@ const PricingPage = () => {
       <div className="relative z-10 max-w-7xl mx-auto px-6 py-16 md:py-24 text-center">
         {/* Header Banner */}
         <div className="inline-block px-4 py-2 mb-6 rounded-full bg-blue-100 text-blue-700 font-medium text-sm">
-          COMMENCEZ AUJOURD'HUI—VOTRE FACTURATION, À VOTRE FAÇON
+          DÉMARREZ AVEC PLANIFYGO AUJOURD'HUI — CHOISISSEZ VOTRE FORMULE
         </div>
         
         {/* Title Section */}
         <h1 className="text-4xl md:text-5xl font-bold leading-tight mb-6">
-          Trouvez <span className="text-blue-600">le bon plan</span> pour gérer
-          <span className="block">votre site de réservation</span>
+          Choisissez <span className="text-blue-600">la formule idéale</span> pour gérer
+          <span className="block">vos réservations avec PlanifyGo</span>
         </h1>
         
         {/* Subtitle */}
         <p className="text-lg text-gray-600 mb-10 max-w-2xl mx-auto leading-relaxed">
-          Que vous soyez freelance ou à la tête d'une équipe, notre plateforme propose des plans adaptés à votre
-          croissance. Trouvez l'offre idéale et gérez vos réservations en toute simplicité ! ❤️
+          Que vous soyez indépendant ou responsable d'une équipe, PlanifyGo propose des formules adaptées à vos besoins
+          de réservation. Simplifiez la gestion de votre agenda et optimisez votre activité !
         </p>
         
-        {/* Billing Toggle */}
-        <div className="flex items-center justify-center space-x-4 mb-16">
-          <span className={`font-medium ${billingCycle === 'annual' ? 'text-gray-900' : 'text-gray-500'}`}>
-            Facture annuelle
-          </span>
-          
-          <div 
-            className="w-16 h-8 bg-blue-600 rounded-full p-1 cursor-pointer shadow-md"
-            onClick={() => setBillingCycle(billingCycle === 'annual' ? 'monthly' : 'annual')}
-          >
+        {/* Billing Toggle avec économies affichées */}
+        <div className="flex flex-col items-center mb-16">
+          <div className="flex items-center justify-center space-x-4 mb-2">
+            <span className={`font-medium ${billingCycle === 'annual' ? 'text-gray-900' : 'text-gray-500'}`}>
+              Facturation annuelle
+            </span>
+            
             <div 
-              className={`bg-white w-6 h-6 rounded-full transform transition-transform ${
-                billingCycle === 'monthly' ? 'translate-x-8' : ''
-              }`} 
-            />
+              className="w-16 h-8 bg-blue-600 rounded-full p-1 cursor-pointer shadow-md"
+              onClick={() => setBillingCycle(billingCycle === 'annual' ? 'monthly' : 'annual')}
+            >
+              <div 
+                className={`bg-white w-6 h-6 rounded-full transform transition-transform ${
+                  billingCycle === 'monthly' ? 'translate-x-8' : ''
+                }`} 
+              />
+            </div>
+            
+            <span className={`font-medium ${billingCycle === 'monthly' ? 'text-gray-900' : 'text-gray-500'}`}>
+              Facturation mensuelle
+            </span>
           </div>
           
-          <span className={`font-medium ${billingCycle === 'monthly' ? 'text-gray-900' : 'text-gray-500'}`}>
-            Facture mensuelle
-          </span>
+          {billingCycle === 'annual' && (
+            <div className="bg-green-50 text-green-600 px-4 py-2 rounded-full text-sm font-medium animate-pulse">
+              Économisez 20% avec la facturation annuelle
+            </div>
+          )}
         </div>
         
         {/* Pricing Cards */}
@@ -69,35 +89,50 @@ const PricingPage = () => {
               </svg>
             </div>
             
-            <h3 className="text-2xl font-bold mb-2 text-gray-800">Starter</h3>
-            <p className="text-gray-600 mb-6">Libérez la puissance de l'automatisation.</p>
+            <h3 className="text-2xl font-bold mb-2 text-gray-800">Essentiel</h3>
+            <p className="text-gray-600 mb-6">Pour commencer à gérer vos réservations efficacement</p>
             
-            <h2 className="text-5xl font-bold mb-1 text-gray-900">20 Dt</h2>
-            <p className="text-gray-500 mb-6">{billingCycle === 'annual' ? '/mois, facturé annuellement' : '/mois'}</p>
+            <div className="flex items-baseline mb-1">
+              <h2 className="text-5xl font-bold text-gray-900">
+                {billingCycle === 'annual' ? calculatePrice(prices.essential.annual, billingCycle) : prices.essential.monthly}
+              </h2>
+              <span className="text-lg text-gray-600 ml-1">Dt</span>
+            </div>
+            <p className="text-gray-500 mb-2">
+              {billingCycle === 'annual' 
+                ? `${prices.essential.annual} Dt/mois, facturé annuellement` 
+                : `/mois`}
+            </p>
+            
+            {billingCycle === 'annual' && (
+              <p className="text-green-600 text-sm font-medium mb-6">
+                Économisez {(prices.essential.monthly - prices.essential.annual) * 12} Dt par an
+              </p>
+            )}
             
             <ul className="space-y-4 mb-16">
               <li className="flex items-start">
                 <svg className="w-5 h-5 text-blue-600 mr-2 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
                   <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                 </svg>
-                <span>Multi-étapes d'automatisation</span>
+                <span>Calendrier de réservation simple</span>
               </li>
               <li className="flex items-start">
                 <svg className="w-5 h-5 text-blue-600 mr-2 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
                   <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                 </svg>
-                <span>3 Applications Premium</span>
+                <span>3 services réservables</span>
               </li>
               <li className="flex items-start">
                 <svg className="w-5 h-5 text-blue-600 mr-2 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
                   <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                 </svg>
-                <span>Équipe de 2 utilisateurs</span>
+                <span>Jusqu'à 2 utilisateurs</span>
               </li>
             </ul>
             
             <button className="absolute bottom-8 left-8 right-8 bg-white text-blue-600 font-medium py-3 px-6 rounded-lg border border-blue-200 hover:border-blue-400 hover:bg-blue-50 transition-all shadow-sm">
-              Choisir ce plan
+              Choisir cette formule
             </button>
           </div>
           
@@ -109,41 +144,56 @@ const PricingPage = () => {
               </svg>
             </div>
             
-            <h3 className="text-2xl font-bold mb-2 text-gray-800">Professional</h3>
-            <p className="text-gray-600 mb-6">Des outils avancés pour améliorer votre travail.</p>
+            <h3 className="text-2xl font-bold mb-2 text-gray-800">Professionnel</h3>
+            <p className="text-gray-600 mb-6">Optimisez la gestion de vos réservations</p>
             
-            <h2 className="text-5xl font-bold mb-1 text-gray-900">50 Dt</h2>
-            <p className="text-gray-500 mb-6">{billingCycle === 'annual' ? '/mois, facturé annuellement' : '/mois'}</p>
+            <div className="flex items-baseline mb-1">
+              <h2 className="text-5xl font-bold text-gray-900">
+                {billingCycle === 'annual' ? calculatePrice(prices.professional.annual, billingCycle) : prices.professional.monthly}
+              </h2>
+              <span className="text-lg text-gray-600 ml-1">Dt</span>
+            </div>
+            <p className="text-gray-500 mb-2">
+              {billingCycle === 'annual' 
+                ? `${prices.professional.annual} Dt/mois, facturé annuellement` 
+                : `/mois`}
+            </p>
+            
+            {billingCycle === 'annual' && (
+              <p className="text-green-600 text-sm font-medium mb-6">
+                Économisez {(prices.professional.monthly - prices.professional.annual) * 12} Dt par an
+              </p>
+            )}
             
             <ul className="space-y-4 mb-16">
               <li className="flex items-start">
                 <svg className="w-5 h-5 text-blue-600 mr-2 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
                   <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                 </svg>
-                <span>Multi-étapes d'automatisation</span>
+                <span>Réservations automatisées avancées</span>
               </li>
               <li className="flex items-start">
                 <svg className="w-5 h-5 text-blue-600 mr-2 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
                   <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                 </svg>
-                <span>Applications Premium illimitées</span>
+                <span>Services réservables illimités</span>
               </li>
               <li className="flex items-start">
                 <svg className="w-5 h-5 text-blue-600 mr-2 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
                   <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                 </svg>
-                <span>Équipe de 50 utilisateurs</span>
+                <span>Jusqu'à 50 utilisateurs</span>
               </li>
               <li className="flex items-start">
                 <svg className="w-5 h-5 text-blue-600 mr-2 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
                   <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                 </svg>
-                <span>Espace de travail partagé</span>
+                <span>Tableau de bord collaboratif</span>
               </li>
             </ul>
             
             <button className="absolute bottom-8 left-8 right-8 bg-white text-blue-600 font-medium py-3 px-6 rounded-lg border border-blue-200 hover:border-blue-400 hover:bg-blue-50 transition-all shadow-sm">
-              Choisir ce plan
+              Choisir cette formule
             </button>
           </div>
           
@@ -159,67 +209,92 @@ const PricingPage = () => {
               </svg>
             </div>
             
-            <h3 className="text-2xl font-bold mb-2">Company</h3>
-            <p className="text-blue-100 mb-6">Automatisation et fonctionnalités professionnelles.</p>
+            <h3 className="text-2xl font-bold mb-2">Entreprise</h3>
+            <p className="text-blue-100 mb-6">Solution complète de gestion des réservations</p>
             
-            <h2 className="text-5xl font-bold mb-1">90 Dt</h2>
-            <p className="text-blue-200 mb-6">{billingCycle === 'annual' ? '/mois, facturé annuellement' : '/mois'}</p>
+            <div className="flex items-baseline mb-1">
+              <h2 className="text-5xl font-bold text-white">
+                {billingCycle === 'annual' ? calculatePrice(prices.enterprise.annual, billingCycle) : prices.enterprise.monthly}
+              </h2>
+              <span className="text-lg text-blue-200 ml-1">Dt</span>
+            </div>
+            <p className="text-blue-200 mb-2">
+              {billingCycle === 'annual' 
+                ? `${prices.enterprise.annual} Dt/mois, facturé annuellement` 
+                : `/mois`}
+            </p>
+            
+            {billingCycle === 'annual' && (
+              <p className="text-green-300 text-sm font-medium mb-6">
+                Économisez {(prices.enterprise.monthly - prices.enterprise.annual) * 12} Dt par an
+              </p>
+            )}
             
             <ul className="space-y-4 mb-16">
               <li className="flex items-start">
                 <svg className="w-5 h-5 text-white mr-2 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
                   <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                 </svg>
-                <span>Multi-étapes d'automatisation</span>
+                <span>Système de réservation personnalisable</span>
               </li>
               <li className="flex items-start">
                 <svg className="w-5 h-5 text-white mr-2 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
                   <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                 </svg>
-                <span>Applications Premium illimitées</span>
+                <span>Fonctionnalités premium illimitées</span>
               </li>
               <li className="flex items-start">
                 <svg className="w-5 h-5 text-white mr-2 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
                   <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                 </svg>
-                <span>Utilisateurs illimités</span>
+                <span>Nombre d'utilisateurs illimité</span>
               </li>
               <li className="flex items-start">
                 <svg className="w-5 h-5 text-white mr-2 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
                   <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                 </svg>
-                <span>Administration avancée</span>
+                <span>Outils d'analyse et statistiques</span>
               </li>
               <li className="flex items-start">
                 <svg className="w-5 h-5 text-white mr-2 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
                   <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                 </svg>
-                <span>Conservation de données personnalisée</span>
+                <span>Support client prioritaire</span>
               </li>
             </ul>
             
-            <button className="absolute bottom-8 left-8 right-8 bg-white text-blue-600 font-bold py-3 px-6 rounded-lg hover:bg-blue-50 transition-colors shadow-lg">
-              Choisir ce plan
-            </button>
+            <a 
+              href="/paiement" 
+              className="absolute bottom-8 left-8 right-8 bg-white text-blue-600 font-bold py-3 px-6 rounded-lg hover:bg-blue-50 transition-colors shadow-lg text-center block"
+            >
+              Choisir cette formule
+            </a>
           </div>
         </div>
         
         {/* FAQ Link */}
         <div className="mt-12 text-center">
           <p className="text-gray-600">
-            Vous avez des questions ? Consultez notre 
-            <a href="#" className="text-blue-600 font-medium ml-1 hover:underline">
+            Vous avez des questions sur nos formules ? Consultez notre 
+            <a href="/#faq" className="text-blue-600 font-medium ml-1 hover:underline">
               FAQ
             </a>
             {" "}ou 
             <a href="#" className="text-blue-600 font-medium ml-1 hover:underline">
-              contactez-nous
+              contactez notre équipe
             </a>
           </p>
+          
+          {/* Garantie de remboursement */}
+          <div className="mt-6 flex items-center justify-center space-x-2 text-green-600">
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+            </svg>
+            <span className="font-medium">Garantie satisfait ou remboursé pendant 14 jours</span>
+          </div>
         </div>
       </div>
       <Footer />
-
     </div>
   );
 };
