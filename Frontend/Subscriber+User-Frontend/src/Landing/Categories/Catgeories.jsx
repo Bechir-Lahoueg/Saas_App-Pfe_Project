@@ -28,343 +28,219 @@ export default function Catgeories() {
   }, []);
 
   return (
-    <div className="bg-white text-gray-800">
+    <div className="bg-slate-50 text-gray-800 min-h-screen">
       {/* Navbar avec effet de fond au défilement */}
-      <div className="sticky top-0 z-50 bg-white/95 backdrop-blur-sm shadow-sm">
+      <div className="sticky top-0 z-50 bg-white shadow-sm">
         <Navbar />
       </div>
 
-      {/* Spacer - Élément pour créer le décalage sous la navbar */}
-      <div className="h-[80px] bg-gray-50 "></div>
+      {/* Hero Section - Nouveau design */}
+      <section className="relative bg-gradient-to-br from-blue-600 to-indigo-700 py-16">
+        <div className="absolute inset-0 bg-grid-white/[0.05] [mask-image:linear-gradient(0deg,transparent,rgba(255,255,255,0.5),transparent)]"></div>
+        <div className="absolute bottom-0 left-0 right-0 h-24 bg-slate-50 clip-hero"></div>
+        <div className="container mx-auto px-4 relative z-10">
+          <div className="max-w-4xl mx-auto text-center text-white">
+            <h1 className="text-4xl md:text-5xl font-bold mb-6" data-aos="fade-up">
+              Explorez nos secteurs d'activité
+            </h1>
+            <p className="text-xl text-blue-100 mb-8" data-aos="fade-up" data-aos-delay="100">
+              Trouvez rapidement des professionnels qualifiés dans le domaine qui vous intéresse
+            </p>
+            <div className="w-24 h-1 bg-white/30 mx-auto rounded-full"></div>
+          </div>
+        </div>
+      </section>
 
-      {/* Présentation des Services Professionnels - Design amélioré */}
-      <section className="py-20 bg-white relative ">
-        <div className="absolute top-0 left-0 w-full h-20 bg-white"></div>
-        <div className="container mx-auto px-4 relative">
-          <h2
-            className="text-3xl font-bold text-center mb-4"
-            data-aos="fade-up"
-          >
-            Secteurs d'activité disponibles
-          </h2>
-          <p
-            className="text-gray-600 text-center max-w-3xl mx-auto mb-12"
-            data-aos="fade-up"
-            data-aos-delay="100"
-          >
-            Trouvez et réservez facilement des services professionnels dans ces
-            différents secteurs.
-          </p>
-
+      {/* Categories Section - Design moderne et compact */}
+      <section className="py-16 -mt-10">
+        <div className="container mx-auto px-4">
           {loading ? (
-            <div className="text-center py-10">
-              <p className="text-lg text-gray-600">
-                Chargement des catégories...
-              </p>
+            <div className="flex justify-center items-center h-64">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
             </div>
           ) : error ? (
-            <div className="text-center py-10">
-              <p className="text-lg text-red-600">{error}</p>
+            <div className="bg-red-50 border-l-4 border-red-500 p-4 rounded-md">
+              <p className="text-red-700">{error}</p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              {categories.map((category, index) => (
-                <div
-                  key={category.id}
-                  className="flex flex-col md:flex-row bg-white rounded-xl overflow-hidden shadow-md hover:shadow-lg transition-all duration-300"
-                  data-aos="fade-up"
-                  data-aos-delay={`${(index + 1) * 100}`}
-                >
-                  <img
-                    src="https://images.unsplash.com/photo-1573164713988-8665fc963095?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80"
-                    alt={category.categoryName}
-                    className="w-full md:w-2/5 h-60 md:h-auto object-cover"
-                  />
-                  <div className="p-6 md:p-8 flex flex-col justify-center">
-                    <h3 className="text-xl font-semibold mb-3">
-                      {category.categoryName}
-                    </h3>
-                    <p className="text-gray-600 mb-4">{category.description}</p>
-                    <a
-                      href={`/secteurs/${category.categoryName
-                        .toLowerCase()
-                        .replace(/\s+/g, "-")}`}
-                      className="inline-flex items-center text-blue-600 font-medium hover:text-blue-800"
-                    >
-                      Consulter les prestataires
-                      <svg
-                        className="ml-2 w-4 h-4"
-                        fill="currentColor"
-                        viewBox="0 0 20 20"
-                        xmlns="http://www.w3.org/2000/svg"
+            <>
+              <div className="flex justify-between items-center mb-10">
+                <h2 className="text-2xl font-bold text-gray-800" data-aos="fade-right">
+                  Nos secteurs d'activité
+                </h2>
+                <p className="text-blue-600" data-aos="fade-left">
+                  {categories.length} secteurs disponibles
+                </p>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                {categories.map((category, index) => (
+                  <div
+                    key={category.id}
+                    className="group bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-all duration-300"
+                    data-aos="fade-up"
+                    data-aos-delay={`${index * 50}`}
+                  >
+                    {/* Image Section */}
+                    <div className="relative h-48 overflow-hidden">
+                      <img
+                        src={category.imageUrl || "https://images.unsplash.com/photo-1573164713988-8665fc963095?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"}
+                        alt={category.categoryName}
+                        className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-500 ease-out"
+                        onError={(e) => {
+                          e.target.onerror = null;
+                          e.target.src = "https://images.unsplash.com/photo-1573164713988-8665fc963095?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80";
+                        }}
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                      <div className="absolute top-3 right-3">
+                        <span className="inline-flex items-center rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-medium text-blue-800">
+                          Secteur
+                        </span>
+                      </div>
+                    </div>
+                    
+                    {/* Content Section */}
+                    <div className="p-5">
+                      <h3 className="text-lg font-semibold text-gray-900 mb-2 group-hover:text-blue-600 transition-colors duration-300">
+                        {category.categoryName}
+                      </h3>
+                      <p className="text-sm text-gray-600 mb-4 line-clamp-2">
+                        {category.description || "Découvrez les professionnels disponibles dans ce secteur d'activité."}
+                      </p>
+                      
+                      <a
+                        href={`/secteurs/${category.categoryName.toLowerCase().replace(/\s+/g, "-")}`}
+                        className="inline-flex items-center text-sm font-medium text-blue-600 hover:text-blue-800"
                       >
-                        <path
-                          fillRule="evenodd"
-                          d="M10.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L12.586 11H5a1 1 0 110-2h7.586l-2.293-2.293a1 1 0 010-1.414z"
-                          clipRule="evenodd"
-                        ></path>
-                      </svg>
-                    </a>
+                        <span>Voir les prestataires</span>
+                        <svg className="w-4 h-4 ml-1 transform transition-transform group-hover:translate-x-1" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M10.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L12.586 11H5a1 1 0 110-2h7.586l-2.293-2.293a1 1 0 010-1.414z" clipRule="evenodd"></path>
+                        </svg>
+                      </a>
+                    </div>
                   </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            </>
           )}
         </div>
       </section>
-      {/* <section className="py-20 bg-white">
-        <div className="container mx-auto px-4">
-          <h2
-            className="text-3xl font-bold text-center mb-4"
-            data-aos="fade-up"
-          >
-            Services Professionnels Disponibles
-          </h2>
-          <p
-            className="text-gray-600 text-center max-w-3xl mx-auto mb-12"
-            data-aos="fade-up"
-            data-aos-delay="100"
-          >
-            Réservez facilement ces services professionnels proposés par des
-            experts qualifiés dans leur domaine.
-          </p>
 
-          {loading ? (
-            <div className="text-center py-10">
-              <p className="text-lg text-gray-600">
-                Chargement des catégories...
-              </p>
-            </div>
-          ) : error ? (
-            <div className="text-center py-10">
-              <p className="text-lg text-red-600">{error}</p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-              {categories.map((category) => (
-                <div
-                  key={category.id}
-                  className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300"
-                  data-aos="fade-up"
-                  data-aos-delay="100"
-                >
-                  <img
-                    src="https://images.unsplash.com/photo-1507679799987-c73779587ccf?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80"
-                    alt={category.categoryName}
-                    className="w-full h-56 object-cover transition duration-300 hover:scale-105"
-                  />
-                  <div className="p-6">
-                    <h3 className="text-xl font-semibold mb-3">
-                      {category.categoryName}
-                    </h3>
-                    <p className="text-gray-600">{category.description}</p>
-                    <a
-                      href={`/booking-industries/${category.categoryName
-                        .toLowerCase()
-                        .replace(/\s+/g, "-")}`}
-                      className="mt-4 inline-flex items-center text-blue-600 font-medium hover:text-blue-800"
-                    >
-                      Réserver
-                      <svg
-                        className="ml-2 w-4 h-4"
-                        fill="currentColor"
-                        viewBox="0 0 20 20"
-                        xmlns="http://www.w3.org/2000/svg"
-                      >
-                        <path
-                          fillRule="evenodd"
-                          d="M10.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L12.586 11H5a1 1 0 110-2h7.586l-2.293-2.293a1 1 0 010-1.414z"
-                          clipRule="evenodd"
-                        ></path>
-                      </svg>
-                    </a>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      </section> */}
-
-      {/* Avantages - Design amélioré avec icônes et cards */}
-      <section className="bg-gray-50 py-20">
+      {/* Features Section - Nouveau design avec icônes */}
+      <section className="py-16 bg-white">
         <div className="container mx-auto px-4">
-          <h2
-            className="text-3xl font-bold text-center mb-4"
-            data-aos="fade-up"
-          >
-            Pourquoi choisir PlanifyGo pour vos réservations professionnelles
-          </h2>
-          <p
-            className="text-gray-600 text-center max-w-3xl mx-auto mb-12"
-            data-aos="fade-up"
-            data-aos-delay="100"
-          >
-            Notre plateforme facilite la mise en relation avec des
-            professionnels qualifiés dans tous les secteurs d'activité.
-          </p>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {/* Avantage 1 */}
-            <div
-              className="bg-white p-6 rounded-xl shadow-md hover:shadow-lg transition-all duration-300"
-              data-aos="fade-up"
-              data-aos-delay="100"
-            >
-              <div className="bg-blue-100 rounded-full p-4 inline-block mb-4">
-                <svg
-                  className="h-8 w-8 text-blue-600"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-                  ></path>
+          <div className="text-center max-w-3xl mx-auto mb-12">
+            <span className="text-blue-600 font-semibold text-sm uppercase tracking-wider" data-aos="fade-up">Pourquoi nous choisir</span>
+            <h2 className="text-3xl font-bold mt-2 mb-4" data-aos="fade-up" data-aos-delay="100">
+              Une plateforme optimisée pour les réservations professionnelles
+            </h2>
+            <div className="w-16 h-1 bg-blue-600/30 mx-auto rounded-full mb-6"></div>
+            <p className="text-gray-600" data-aos="fade-up" data-aos-delay="150">
+              Notre plateforme facilite la mise en relation avec des professionnels qualifiés dans tous les secteurs d'activité.
+            </p>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {/* Feature 1 */}
+            <div className="p-6 rounded-lg transition-all hover:bg-blue-50/50" data-aos="fade-up" data-aos-delay="200">
+              <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-blue-100 text-blue-600 mb-4">
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                 </svg>
               </div>
-              <h3 className="text-xl font-semibold mb-3">
-                Réservation simplifiée
-              </h3>
-              <p className="text-gray-600">
-                Planifiez vos rendez-vous rapidement avec une interface
-                intuitive accessible à tout moment.
+              <h3 className="text-lg font-semibold mb-2">Réservation simplifiée</h3>
+              <p className="text-gray-600 text-sm">
+                Planifiez vos rendez-vous en quelques clics avec notre interface intuitive.
               </p>
             </div>
-            {/* Avantage 2 */}
-            <div
-              className="bg-white p-6 rounded-xl shadow-md hover:shadow-lg transition-all duration-300"
-              data-aos="fade-up"
-              data-aos-delay="200"
-            >
-              <div className="bg-blue-100 rounded-full p-4 inline-block mb-4">
-                <svg
-                  className="h-8 w-8 text-blue-600"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-                  ></path>
+            
+            {/* Feature 2 */}
+            <div className="p-6 rounded-lg transition-all hover:bg-blue-50/50" data-aos="fade-up" data-aos-delay="250">
+              <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-blue-100 text-blue-600 mb-4">
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                 </svg>
               </div>
-              <h3 className="text-xl font-semibold mb-3">Experts vérifiés</h3>
-              <p className="text-gray-600">
-                Tous les prestataires sur notre plateforme sont sélectionnés et
-                vérifiés pour des services de qualité.
+              <h3 className="text-lg font-semibold mb-2">Experts vérifiés</h3>
+              <p className="text-gray-600 text-sm">
+                Tous nos prestataires sont rigoureusement sélectionnés et vérifiés.
               </p>
             </div>
-            {/* Avantage 3 */}
-            <div
-              className="bg-white p-6 rounded-xl shadow-md hover:shadow-lg transition-all duration-300"
-              data-aos="fade-up"
-              data-aos-delay="300"
-            >
-              <div className="bg-blue-100 rounded-full p-4 inline-block mb-4">
-                <svg
-                  className="h-8 w-8 text-blue-600"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"
-                  ></path>
+            
+            {/* Feature 3 */}
+            <div className="p-6 rounded-lg transition-all hover:bg-blue-50/50" data-aos="fade-up" data-aos-delay="300">
+              <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-blue-100 text-blue-600 mb-4">
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path>
                 </svg>
               </div>
-              <h3 className="text-xl font-semibold mb-3">
-                Transactions sécurisées
-              </h3>
-              <p className="text-gray-600">
-                Réservez et payez en toute sécurité avec nos systèmes de
-                paiement protégés et fiables.
+              <h3 className="text-lg font-semibold mb-2">Transactions sécurisées</h3>
+              <p className="text-gray-600 text-sm">
+                Réservez et payez en toute sécurité avec nos systèmes protégés.
               </p>
             </div>
-            {/* Avantage 4 */}
-            <div
-              className="bg-white p-6 rounded-xl shadow-md hover:shadow-lg transition-all duration-300"
-              data-aos="fade-up"
-              data-aos-delay="400"
-            >
-              <div className="bg-blue-100 rounded-full p-4 inline-block mb-4">
-                <svg
-                  className="h-8 w-8 text-blue-600"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-                  ></path>
+            
+            {/* Feature 4 */}
+            <div className="p-6 rounded-lg transition-all hover:bg-blue-50/50" data-aos="fade-up" data-aos-delay="350">
+              <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-blue-100 text-blue-600 mb-4">
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
                 </svg>
               </div>
-              <h3 className="text-xl font-semibold mb-3">
-                Large réseau d'experts
-              </h3>
-              <p className="text-gray-600">
-                Accédez à notre vaste réseau de professionnels couvrant tous les
-                secteurs d'activité.
+              <h3 className="text-lg font-semibold mb-2">Large réseau d'experts</h3>
+              <p className="text-gray-600 text-sm">
+                Accédez à notre vaste réseau de professionnels dans divers domaines.
               </p>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Appel à l'Action - Design amélioré */}
-      <section
-        className="relative py-16 overflow-hidden"
-        style={{
-          backgroundImage:
-            'linear-gradient(rgba(37, 99, 235, 0.9), rgba(29, 78, 216, 0.95)), url("https://images.unsplash.com/photo-1600880292089-90a7e086ee0c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1470&q=80")',
-          backgroundSize: "cover",
-          backgroundAttachment: "fixed",
-          backgroundPosition: "center",
-        }}
-      >
-        <div className="absolute inset-0 bg-gradient-to-r from-blue-600 to-blue-800 opacity-50 mix-blend-multiply"></div>
-        <div className="container mx-auto px-4 relative text-center text-white">
-          <h2
-            className="text-3xl md:text-4xl font-bold mb-6"
-            data-aos="fade-up"
-          >
-            Prêt(e) à réserver un service professionnel ?
-          </h2>
-          <p
-            className="text-xl mb-8 max-w-3xl mx-auto"
-            data-aos="fade-up"
-            data-aos-delay="100"
-          >
-            Rejoignez des milliers de clients satisfaits et trouvez l'expert qui
-            répond à vos besoins professionnels.
-          </p>
-          {/* <a
-            href="/booking-industries"
-            className="inline-block bg-white text-blue-700 font-semibold py-4 px-8 rounded-lg transition duration-300 hover:bg-gray-100 hover:shadow-lg transform hover:-translate-y-1 shadow"
-            data-aos="fade-up"
-            data-aos-delay="200"
-          >
-            Explorer nos services
-          </a> */}
+      {/* CTA Section - Design moderne */}
+      <section className="py-16 relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-r from-blue-600 to-indigo-700 opacity-90"></div>
+        <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1600880292089-90a7e086ee0c?ixlib=rb-4.0.3&auto=format&fit=crop&w=1470&q=80')] bg-cover bg-center mix-blend-overlay"></div>
+        <div className="absolute top-0 left-0 right-0 h-20 bg-white clip-bottom-wave"></div>
+        
+        <div className="container mx-auto px-4 relative z-10">
+          <div className="max-w-xl mx-auto text-center">
+            <span className="inline-block px-4 py-1 rounded-full bg-white/20 text-white text-sm font-medium mb-4" data-aos="fade-up">
+              Commencez dès aujourd'hui
+            </span>
+            <h2 className="text-3xl font-bold text-white mb-4" data-aos="fade-up" data-aos-delay="100">
+              Prêt(e) à réserver un service professionnel ?
+            </h2>
+            <p className="text-blue-100 mb-8" data-aos="fade-up" data-aos-delay="150">
+              Rejoignez des milliers de clients satisfaits et trouvez l'expert qui répond à vos besoins.
+            </p>
+            <div className="flex flex-wrap justify-center gap-4" data-aos="zoom-in" data-aos-delay="200">
+              <a href="/signup" className="px-6 py-3 bg-white text-blue-700 font-medium rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
+                S'inscrire gratuitement
+              </a>
+              <a href="/categories" className="px-6 py-3 bg-transparent border border-white text-white font-medium rounded-lg hover:bg-white/10 transition-all duration-300">
+                En savoir plus
+              </a>
+            </div>
+          </div>
         </div>
       </section>
 
       <Footer />
+      
+      {/* CSS nécessaire pour les formes personnalisées */}
+      <style jsx>{`
+        .clip-hero {
+          clip-path: polygon(0 0, 100% 80%, 100% 100%, 0% 100%);
+        }
+        
+        .clip-bottom-wave {
+          clip-path: polygon(0 0, 100% 0, 100% 100%, 0 80%);
+        }
+        
+        .bg-grid-white {
+          background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32' width='32' height='32' fill='none' stroke='rgb(255 255 255 / 0.05)'%3e%3cpath d='M0 .5H31.5V32'/%3e%3c/svg%3e");
+        }
+      `}</style>
     </div>
   );
 }

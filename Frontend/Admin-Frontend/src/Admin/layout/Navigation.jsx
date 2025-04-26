@@ -2,14 +2,14 @@ import React, { useState, useEffect } from "react";
 import { Search, Bell, Calendar, Menu, ChevronDown, Moon, Sun, Filter, LayoutGrid, FileText, Users, MessageCircle, Settings as SettingsIcon, ChevronRight, LogOut, ChevronLeft, User, CreditCard, X, Building, ChevronsRight, Home, LineChart, BarChart3, Clock, Star, Shield } from 'lucide-react';
 import { UserCircle } from 'lucide-react'; // Import icon
 // Import logo
-import logoImage from "../../../assets/LogoPlanifygoPNG.png"; // Adjust the path as needed
+import logoImage from "../../assets/LogoPlanifygoPNG.png"; // Adjust the path as needed
 // Import page components
 import DashboardContent from "../pages/DashboardContent";
 import Analytics from "../pages/Analytics";
 import Invoice from "../pages/Invoice";
 import HR from "../pages/HR";
 import CalendarPage from "../pages/Calendar";
-import Messages from "../pages/Messages";
+import Catégorie from "../pages/Category";
 import Notifications from "../pages/Notifications";
 import SettingsPage from "../pages/Settings";
 
@@ -134,8 +134,8 @@ const handleLogoClick = () => {
         return "Équipe";
       case "calendar":
         return "Calendrier";
-      case "messages":
-        return "Messages";
+      case "Catégorie":
+        return "Catégorie";
       case "notifications":
         return "Notifications";
       case "settings":
@@ -176,7 +176,7 @@ const getUserRole = () => {
     { id: "invoice", icon: CreditCard, label: "Factures", notification: 2 },
     { id: "hr", icon: Users, label: "Équipe" },
     { id: "calendar", icon: Calendar, label: "Calendrier" },
-    { id: "messages", icon: MessageCircle, label: "Messages", notification: 5 },
+    { id: "Catégorie", icon: MessageCircle, label: "Catégorie", notification: 5 },
   ];
 
   const secondaryMenuItems = [
@@ -197,8 +197,8 @@ const getUserRole = () => {
         return <HR />;
       case "calendar":
         return <CalendarPage />;
-      case "messages":
-        return <Messages />;
+      case "Catégorie":
+        return <Catégorie />;
       case "notifications":
         return <Notifications />;
       case "settings":
