@@ -15,15 +15,9 @@ const Dashboard = lazy(() => import("./Tenant/Dashboard"));
 const MailSender = lazy(() => import("./Auth/SignIn/ForgotPassword"));
 const PasswordChanger = lazy(() => import("./Auth/SignIn/ResetPassword"));
 const Processres = lazy(() => import("./Client/app"));
-const AllIndustries = lazy(() =>
-  import("./Landing/SectorPages/AllIndustries")
-);
-const BeautyWellness = lazy(() =>
-  import("./Landing/SectorPages/BeautyWellness")
-);
-const Education = lazy(() =>
-  import("./Landing/SectorPages/Education")
-);
+const AllIndustries = lazy(() => import("./Landing/SectorPages/AllIndustries"));
+const BeautyWellness = lazy(() => import("./Landing/SectorPages/BeautyWellness"));
+const Education = lazy(() => import("./Landing/SectorPages/Education"));
 const EventsEntertainment = lazy(() =>
   import("./Landing/SectorPages/EventsEntertainment")
 );
