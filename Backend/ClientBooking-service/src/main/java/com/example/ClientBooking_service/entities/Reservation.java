@@ -6,6 +6,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.time.LocalDateTime;
 import java.util.Date;
 
 
@@ -21,8 +22,8 @@ public class Reservation {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    private Date date;
-    private String service;
-    private boolean status;
-
+    private Long serviceId;
+    private Long employeeId;
+    private LocalDateTime startTime;
+    private int numberOfAttendees;
 }

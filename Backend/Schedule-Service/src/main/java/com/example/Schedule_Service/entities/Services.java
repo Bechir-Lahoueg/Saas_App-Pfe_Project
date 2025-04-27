@@ -8,6 +8,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 
+import java.text.DecimalFormat;
 import java.util.UUID;
 
 @Entity
@@ -16,17 +17,26 @@ import java.util.UUID;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class ServiceEntity {
+public class Services {
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    private UUID id;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
     private String name;
+
+    private String description;
+
+    private Integer duration;
+
     private Integer price;
 
-    private Integer durationInMinutes = 60; // How long a reservation lasts
+    private boolean requiresEmployeeSelection;
 
-    private Integer maxConcurrentReservations = 1; // 1 = exclusive, >1 = shared (like half court)
+    private boolean allowSimultaneous;
 
-    private Boolean allowPartialReservation = false; // for playgrounds, etc.
+    private Integer capacity;
+
+
+
+
 }

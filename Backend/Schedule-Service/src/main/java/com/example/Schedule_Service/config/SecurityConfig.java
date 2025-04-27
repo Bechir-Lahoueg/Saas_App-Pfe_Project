@@ -25,18 +25,9 @@ public class SecurityConfig {
                 .csrf(csrf->csrf.disable())
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
-                                "/calendar/**",
-                                "/weekly-schedule/**",
-                                "/daily-schedule/**",
-                                "/time-block/**",
                                 "/reservation/**",
                                 "/employee/**",
-                                "/reservation-preferences/**",
                                 "/service/**",
-                                "/schedule-exception/**",
-                                "/exception-time-block/**",
-                                "/break/**",
-                                "/slots/**",
                                 "/working-day/**"
                         )
                         .permitAll()  // Include context path
