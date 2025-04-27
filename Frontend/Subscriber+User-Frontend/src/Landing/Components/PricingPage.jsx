@@ -131,9 +131,12 @@ const PricingPage = () => {
               </li>
             </ul>
             
-            <button className="absolute bottom-8 left-8 right-8 bg-white text-blue-600 font-medium py-3 px-6 rounded-lg border border-blue-200 hover:border-blue-400 hover:bg-blue-50 transition-all shadow-sm">
+            <a 
+              href="/paiement" 
+              className="absolute bottom-8 left-8 right-8 bg-white text-blue-600 font-medium py-3 px-6 rounded-lg border border-blue-200 hover:border-blue-400 hover:bg-blue-50 transition-all shadow-sm text-center block"
+            >
               Choisir cette formule
-            </button>
+            </a>
           </div>
           
           {/* Professional Plan */}
@@ -192,9 +195,12 @@ const PricingPage = () => {
               </li>
             </ul>
             
-            <button className="absolute bottom-8 left-8 right-8 bg-white text-blue-600 font-medium py-3 px-6 rounded-lg border border-blue-200 hover:border-blue-400 hover:bg-blue-50 transition-all shadow-sm">
+            <a 
+              href="/paiement" 
+              className="absolute bottom-8 left-8 right-8 bg-white text-blue-600 font-medium py-3 px-6 rounded-lg border border-blue-200 hover:border-blue-400 hover:bg-blue-50 transition-all shadow-sm text-center block"
+            >
               Choisir cette formule
-            </button>
+            </a>
           </div>
           
           {/* Company Plan */}
@@ -265,7 +271,7 @@ const PricingPage = () => {
             
             <a 
               href="/paiement" 
-              className="absolute bottom-8 left-8 right-8 bg-white text-blue-600 font-bold py-3 px-6 rounded-lg hover:bg-blue-50 transition-colors shadow-lg text-center block"
+              className="absolute bottom-8 left-8 right-8 bg-white text-blue-600 font-medium py-3 px-6 rounded-lg border border-blue-200 hover:border-blue-400 hover:bg-blue-50 transition-all shadow-sm text-center block"
             >
               Choisir cette formule
             </a>
