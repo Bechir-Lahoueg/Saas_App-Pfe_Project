@@ -312,7 +312,7 @@ const Navbar = () => {
               className="w-full py-3 px-4 bg-blue-600 text-white rounded-md font-medium text-sm flex items-center justify-center"
               onClick={() => (window.location.href = "/paiement")}
             >
-              <span>Démarrer</span>
+              <span>S'identifier</span>
               <svg
                 className="w-4 h-4 ml-1.5"
                 fill="none"
