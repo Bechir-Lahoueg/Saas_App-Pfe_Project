@@ -11,4 +11,5 @@ import java.util.UUID;
 public interface TenantRepository extends JpaRepository<Tenant, UUID> {
     Optional<Tenant> findByEmail(String email);
     List<Tenant> findByCategory_CategoryName(String categoryName);
+
 }
