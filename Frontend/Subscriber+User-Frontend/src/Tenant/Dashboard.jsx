@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import {
   Search,
   Bell,
@@ -7,31 +7,25 @@ import {
   ChevronDown,
   Moon,
   Sun,
-  Filter,
-  LayoutGrid,
-  FileText,
-  Users,
-  MessageCircle,
-  Settings as SettingsIcon,
   ChevronRight,
   LogOut,
   ChevronLeft,
-  User,
-  CreditCard,
-  X,
-  Building,
-  ChevronsRight,
-  Home,
-  LineChart,
-  BarChart3,
   Clock,
-  Star,
-  Shield,
+  X,
+  LayoutDashboard,
+  Settings,
+  MessageSquare,
+  FileText,
+  Users,
+  BarChart3,
+  PanelRight,
+  Info,
+  Coffee,
+  Clock8
 } from "lucide-react";
-import { UserCircle } from "lucide-react"; // Import icon
-// Import logo
-import logoImage from "../assets/LogoPlanifygoPNG.png"; // Adjust the path as needed
-// Import page components
+import { UserCircle } from "lucide-react";
+
+// Page components
 import DashboardContent from "./components/DashboardContent";
 import Analytics from "./components/Analytics";
 import Invoice from "./components/Invoice";
@@ -45,836 +39,699 @@ import WorkingHours from "./components/WorkingHours";
 import Services from "./components/Services";
 import Break from "./components/Break";
 
-import axios from "axios"; // Import axios for API calls
+// Constants and utilities
+import { parseJwt, getCookie, setCookie, deleteCookie, getRootHost } from "./components/ConfigurationDashboard/authUtils";
 
-// Quick-and-dirty JWT parser (no external deps) - copied from LoginPage
-function parseJwt(token) {
-  try {
-    const payload = token.split(".")[1];
-    return JSON.parse(atob(payload));
-  } catch (e) {
-    return null;
-  }
-}
+import axios from "axios";
 
-// Read cookie by name - copied from LoginPage
-function getCookie(name) {
-  const value = `; ${document.cookie}`;
-  const parts = value.split(`; ${name}=`);
-  if (parts.length === 2) return parts.pop().split(";").shift();
-  return null;
-}
+// Redefined menu items with new icons and structure
+const MAIN_MENU_ITEMS = [
+  { id: "dashboard", label: "Tableau de bord", icon: <LayoutDashboard size={20} /> },
+  { id: "calendar", label: "Calendrier", icon: <Calendar size={20} /> },
+  { id: "invoice", label: "Facturation", icon: <FileText size={20} /> },
+  { id: "analytics", label: "Statistiques", icon: <BarChart3 size={20} /> },
+  { id: "hr", label: "Ressources Humaines", icon: <Users size={20} /> },
+  { id: "Backup", label: "Messages", icon: <MessageSquare size={20} /> },
+];
 
-// Set cookie (shared across *.127.0.0.1.nip.io) - copied from LoginPage
-function setCookie(name, val) {
-  document.cookie = [
-    `${name}=${encodeURIComponent(val)}`,
-    "Domain=.127.0.0.1.nip.io",
-    "Path=/",
-    "SameSite=Lax",
-  ].join("; ");
-}
+const SECONDARY_MENU_ITEMS = [
+  { id: "services", label: "Services", icon: <PanelRight size={20} /> },
+  { id: "workinghours", label: "Horaires", icon: <Clock8 size={20} /> },
+  { id: "break", label: "Pause", icon: <Coffee size={20} /> },
+  { id: "information", label: "Informations", icon: <Info size={20} /> },
+  { id: "settings", label: "Paramètres", icon: <Settings size={20} /> },
+];
 
-const Dashbaord = () => {
-  // States for various features
-  const [isDarkMode, setIsDarkMode] = useState(false);
-  const [isSidebarExpanded, setSidebarExpanded] = useState(true);
+const PAGE_TITLES = {
+  dashboard: "Tableau de bord",
+  analytics: "Statistiques",
+  invoice: "Facturation",
+  hr: "Ressources Humaines",
+  calendar: "Calendrier",
+  Backup: "Messages",
+  notifications: "Notifications",
+  settings: "Paramètres",
+  break: "Pause",
+  information: "Informations",
+  workinghours: "Horaires",
+  services: "Services",
+};
+
+const Dashboard = () => {
+  // States with initial values from localStorage or defaults
+  const [isDarkMode, setIsDarkMode] = useState(() => getCookie("darkMode") === "true");
+  const [isSidebarExpanded, setSidebarExpanded] = useState(window.innerWidth >= 1024);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
-  // Get active page from localStorage or default to dashboard
-  const [activePage, setActivePage] = useState(() => {
-    // Try to get the saved page from localStorage
-    const savedPage = localStorage.getItem("activePage");
-    return savedPage || "dashboard";
-  });
+  const [activePage, setActivePage] = useState(() => localStorage.getItem("activePage") || "dashboard");
   const [windowWidth, setWindowWidth] = useState(window.innerWidth);
-  const [hoveredMenu, setHoveredMenu] = useState(null);
+  const [activeSubmenu, setActiveSubmenu] = useState(null);
   const [userData, setUserData] = useState(null);
   const [currentDateTime, setCurrentDateTime] = useState(new Date());
+  const [notificationCount, setNotificationCount] = useState(3);
 
-  // Update date and time every minute
+  // Memoized formatters
+  const formatDate = useCallback((date) => {
+    const options = { weekday: "long", year: "numeric", month: "long", day: "numeric" };
+    return date.toLocaleDateString("fr-FR", options);
+  }, []);
+
+  const formatTime = useCallback((date) => {
+    return date.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" });
+  }, []);
+
+  // Effect for updating time
   useEffect(() => {
-    const timer = setInterval(() => {
-      setCurrentDateTime(new Date());
-    }, 60000);
-
+    const timer = setInterval(() => setCurrentDateTime(new Date()), 60000);
     return () => clearInterval(timer);
   }, []);
 
-  // Save active page to localStorage whenever it changes
+  // Save active page to localStorage
   useEffect(() => {
     localStorage.setItem("activePage", activePage);
   }, [activePage]);
 
-  // Format the date and time
-  const formatDate = (date) => {
-    const options = {
-      weekday: "long",
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-    };
-    return date.toLocaleDateString("fr-FR", options);
-  };
-
-  const formatTime = (date) => {
-    return date.toLocaleTimeString("fr-FR", {
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-  };
-
-  // Fetch user data from JWT token on component mount
+  // Apply dark mode
   useEffect(() => {
-    // Check if user is logged in by looking for the access token in cookies
+    if (isDarkMode) {
+      document.documentElement.classList.add("dark");
+    } else {
+      document.documentElement.classList.remove("dark");
+    }
+    
+    // Update color theme in meta tag for mobile status bar
+    const metaThemeColor = document.querySelector("meta[name=theme-color]");
+    if (metaThemeColor) {
+      metaThemeColor.setAttribute("content", isDarkMode ? "#0f172a" : "#ffffff");
+    }
+  }, [isDarkMode]);
+
+  // Handle window resize
+  useEffect(() => {
+    const handleResize = () => {
+      const width = window.innerWidth;
+      setWindowWidth(width);
+      if (width < 1024) {
+        setSidebarExpanded(false);
+      } else if (width >= 1280) {
+        setSidebarExpanded(true);
+      }
+    };
+
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  // Authentication effect - fetch user data from JWT
+  useEffect(() => {
     const accessToken = getCookie("accessToken");
 
     if (!accessToken) {
-      // Redirect to login if no token found
       window.location.href = "/connexion";
       return;
     }
 
-    // Parse the JWT token to get user data
     try {
       const payload = parseJwt(accessToken);
+      if (!payload) throw new Error("Invalid token payload");
 
-      if (!payload) {
-        throw new Error("Invalid token payload");
-      }
-
-      // Extract user data from payload
+      // Extract user data
       const { subdomain, id, email, sub } = payload;
-
-      // Optional: Extract name from sub (assuming format like "JohnDoe")
       let username = sub || "";
 
-      // Set up axios defaults for API calls
+      // Configure axios
       axios.defaults.baseURL = "http://localhost:8888";
       axios.defaults.withCredentials = true;
       axios.defaults.headers.common["Authorization"] = `Bearer ${accessToken}`;
       axios.defaults.headers.common["X-Tenant-ID"] = subdomain;
 
-      const extractedUserData = {
+      setUserData({
         id,
         email,
         username,
         subdomain,
-        businessName: subdomain, // Using subdomain as business name for now
-      };
+        businessName: subdomain
+      });
 
-      // Store user data in state
-      setUserData(extractedUserData);
-
-      // Optionally store extracted user data in cookies for other components
+      // Store in cookies for other components
       setCookie("username", username);
       setCookie("subdomain", subdomain);
       setCookie("userEmail", email);
     } catch (error) {
       console.error("Error parsing JWT token:", error);
-      handleLogout(); // Logout if data is corrupted
+      handleLogout();
     }
   }, []);
 
-  // Load dark mode preference from localStorage at startup
-  useEffect(() => {
-    // Check if there's a darkMode cookie
-    const darkModeCookie = getCookie("darkMode");
-    const darkModeValue = darkModeCookie === "true";
+  // Event handlers using useCallback
+  const toggleDarkMode = useCallback(() => {
+    const newDarkMode = !isDarkMode;
+    setIsDarkMode(newDarkMode);
 
-    setIsDarkMode(darkModeValue);
+    const cookieOpts = [
+      "Domain=.127.0.0.1.nip.io",
+      "Path=/",
+      "SameSite=Lax"
+    ].join("; ");
 
-    if (darkModeValue) {
-      document.documentElement.classList.add("dark");
-    } else {
-      document.documentElement.classList.remove("dark");
-    }
-  }, []);
+    document.cookie = `darkMode=${newDarkMode.toString()}; ${cookieOpts}`;
+  }, [isDarkMode]);
 
-  // Monitor window width for responsive behavior
-  useEffect(() => {
-    const handleResize = () => {
-      setWindowWidth(window.innerWidth);
-      if (window.innerWidth < 768) {
-        setSidebarExpanded(false);
-      }
-    };
-
-    window.addEventListener("resize", handleResize);
-    handleResize();
-
-    return () => {
-      window.removeEventListener("resize", handleResize);
-    };
-  }, []);
-
-  function getRootHost() {
-    const host = window.location.host.split(":")[0];
-    const [, ...rest] = host.split(".");
-    return rest.join(".");
-  }
-
-  function deleteCookie(name) {
-    document.cookie = `${name}=; Domain=.127.0.0.1.nip.io; Path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT`;
-  }
-
-  const handleLogout = () => {
-    // Clear saved page on logout
+  const handleLogout = useCallback(() => {
     localStorage.removeItem("activePage");
 
-    [
-      "accessToken",
-      "refreshToken",
-      "username",
-      "userLastName",
-      "subdomain",
-      "userEmail",
-    ].forEach(deleteCookie);
+    ["accessToken", "refreshToken", "username", "userLastName", "subdomain", "userEmail"].forEach(deleteCookie);
 
     const rootHost = getRootHost();
     const port = window.location.port ? `:${window.location.port}` : "";
     window.location.href = `${window.location.protocol}//${rootHost}${port}/connexion`;
-  };
+  }, []);
 
-  // Handle logo click function
-  const handleLogoClick = () => {
-    const logo = document.getElementById("logo");
-    if (logo.classList.contains("scale-125")) {
-      logo.classList.replace("scale-125", "scale-150");
-    } else if (logo.classList.contains("scale-150")) {
-      logo.classList.replace("scale-150", "scale-125");
-    } else {
-      logo.classList.add("scale-125");
-    }
-  };
-
-  // Navigation
-  const navigateTo = (pageId) => {
+  const navigateTo = useCallback((pageId) => {
     setActivePage(pageId);
-    if (windowWidth < 768) {
+    if (windowWidth < 1024) {
       setIsMobileOpen(false);
     }
-  };
+  }, [windowWidth]);
 
-  // Toggle dark/light mode
-  const toggleDarkMode = () => {
-    const newDarkMode = !isDarkMode;
-    setIsDarkMode(newDarkMode);
+  // Memoized getters
+  const getTitle = useMemo(() => PAGE_TITLES[activePage] || "Tableau de bord", [activePage]);
 
-    // Save dark mode preference in a cookie
-    const cookieOpts = [
-      "Domain=.127.0.0.1.nip.io",
-      "Path=/",
-      "SameSite=Lax",
-    ].join("; ");
-
-    document.cookie = `darkMode=${newDarkMode.toString()}; ${cookieOpts}`;
-
-    if (newDarkMode) {
-      document.documentElement.classList.add("dark");
-    } else {
-      document.documentElement.classList.remove("dark");
-    }
-  };
-
-  // Get title based on active page
-  const getTitle = () => {
-    switch (activePage) {
-      case "dashboard":
-        return "Tableau de bord";
-      case "analytics":
-        return "Analytique";
-      case "invoice":
-        return "Factures";
-      case "hr":
-        return "Équipe";
-      case "calendar":
-        return "Calendrier";
-      case "Backup":
-        return "Messages";
-      case "notifications":
-        return "Notifications";
-      case "settings":
-        return "Paramètres";
-      default:
-        return "Tableau de bord";
-    }
-  };
-
-  // Get user's name from userData state or fallback to cookies
-  const getUserName = () => {
-    if (userData && userData.username) {
+  const getUserName = useMemo(() => {
+    if (userData?.username) {
       return `${userData.username} ${userData.lastName || ""}`;
     }
-
-    // Fallback to direct cookie check
     const username = decodeURIComponent(getCookie("username") || "");
+    return username || "Utilisateur";
+  }, [userData]);
 
-    if (username) {
-      return `${username}`;
+  const getBusinessName = useMemo(() => {
+    if (userData?.subdomain) {
+      return userData.subdomain.charAt(0).toUpperCase() + userData.subdomain.slice(1);
     }
-
-    return "Utilisateur";
-  };
-
-  // Get user's business/tenant name
-  const getBusinessName = () => {
-    if (userData && userData.subdomain) {
-      // Capitalize first letter of subdomain for display
-      return (
-        userData.subdomain.charAt(0).toUpperCase() + userData.subdomain.slice(1)
-      );
-    }
-
     const subdomain = getCookie("subdomain");
     if (subdomain) {
       return subdomain.charAt(0).toUpperCase() + subdomain.slice(1);
     }
-
     return "Entreprise";
+  }, [userData]);
+
+  // Memoized page renderer
+  const renderPage = useMemo(() => {
+    const components = {
+      dashboard: <DashboardContent sidebarExpanded={isSidebarExpanded} userData={userData} />,
+      analytics: <Analytics userData={userData} />,
+      invoice: <Invoice userData={userData} />,
+      hr: <HR userData={userData} />,
+      calendar: <CalendarPage userData={userData} />,
+      Backup: <Messages userData={userData} />,
+      notifications: <Notifications userData={userData} />,
+      settings: <SettingsPage userData={userData} />,
+      break: <Break userData={userData} />,
+      information: <Informations userData={userData} />,
+      workinghours: <WorkingHours userData={userData} />,
+      services: <Services userData={userData} />
+    };
+    
+    return components[activePage] || components.dashboard;
+  }, [activePage, isSidebarExpanded, userData]);
+
+  // MenuItem component with enhanced design
+  const MenuItem = ({ item, isActive, onClick }) => {
+    const isMainItem = MAIN_MENU_ITEMS.some(menuItem => menuItem.id === item.id);
+
+    return (
+      <li>
+        <button
+          onClick={onClick}
+          className={`w-full flex items-center px-3.5 py-3 rounded-xl gap-3.5 transition-all duration-300 ${
+            isActive 
+              ? isDarkMode 
+                ? "bg-gradient-to-r from-blue-600/90 to-indigo-600 text-white font-medium shadow-lg shadow-blue-900/30" 
+                : "bg-gradient-to-r from-blue-500 to-indigo-500 text-white font-medium shadow-lg shadow-blue-500/30"
+              : isDarkMode
+                ? "text-slate-300 hover:bg-slate-700/70 hover:text-white"
+                : "text-slate-600 hover:bg-blue-50/80 hover:text-blue-700"
+          }`}
+        >
+          <span className={`${
+            isActive 
+              ? "text-white" 
+              : isDarkMode 
+                ? "text-blue-400" 
+                : "text-blue-600"
+          } transition-all duration-300 ${
+            isActive ? "transform scale-110" : "group-hover:scale-110"
+          }`}>
+            {item.icon}
+          </span>
+          {isSidebarExpanded && (
+            <span className={`flex-1 text-left font-medium transition-all duration-300 ${
+              isActive ? "transform translate-x-0.5" : ""
+            }`}>
+              {item.label}
+            </span>
+          )}
+          {isSidebarExpanded && item.badge && (
+            <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
+              isActive 
+                ? "bg-white/20 text-white" 
+                : isDarkMode 
+                  ? "bg-slate-700 text-slate-300" 
+                  : "bg-blue-100 text-blue-800"
+            }`}>
+              {item.badge}
+            </span>
+          )}
+        </button>
+      </li>
+    );
   };
 
-  // Menu items definition
-  const menuItems = [
-    { id: "dashboard", icon: Home, label: "Tableau de bord" },
-    { id: "analytics", icon: BarChart3, label: "Analytique", enterprise: true },
-    { id: "invoice", icon: CreditCard, label: "Factures", notification: 2 },
-    { id: "hr", icon: Users, label: "Équipe" },
-    { id: "calendar", icon: Calendar, label: "Calendrier" },
-    {
-      id: "Backup",
-      icon: MessageCircle,
-      label: "Backup",
-      notification: 5,
-    },
-    { id: "break", icon: Clock, label: "Pauses" },
-    { id: "information", icon: FileText, label: "Informations" },
-    { id: "workinghours", icon: Clock, label: "Heures de travail" },
-    { id: "services", icon: Star, label: "Services" },
-  ];
-
-  const secondaryMenuItems = [
-    { id: "notifications", icon: Bell, label: "Notifications" },
-    { id: "settings", icon: SettingsIcon, label: "Paramètres" },
-  ];
-
-  // Conditional page rendering
-  const renderPage = () => {
-    switch (activePage) {
-      case "dashboard":
-        return (
-          <DashboardContent
-            sidebarExpanded={isSidebarExpanded}
-            userData={userData}
-          />
-        );
-      case "analytics":
-        return <Analytics userData={userData} />;
-      case "invoice":
-        return <Invoice userData={userData} />;
-      case "hr":
-        return <HR userData={userData} />;
-      case "calendar":
-        return <CalendarPage userData={userData} />;
-      case "Backup":
-        return <Messages userData={userData} />;
-      case "notifications":
-        return <Notifications userData={userData} />;
-      case "settings":
-        return <SettingsPage userData={userData} />;
-      case "break":
-        return <Break userData={userData} />;
-      case "information":
-        return <Informations userData={userData} />;
-      case "workinghours":
-        return <WorkingHours userData={userData} />;
-      case "services":
-        return <Services userData={userData} />;
-      default:
-        return (
-          <DashboardContent
-            sidebarExpanded={isSidebarExpanded}
-            userData={userData}
-          />
-        );
-    }
+  const renderMenuItems = (items) => {
+    return items.map(item => (
+      <MenuItem
+        key={item.id}
+        item={item}
+        isActive={activePage === item.id}
+        onClick={() => navigateTo(item.id)}
+      />
+    ));
   };
 
   return (
-    <div
-      className={`flex h-screen ${
-        isDarkMode ? "bg-slate-900 text-white" : "bg-gray-50"
-      } transition-colors duration-300`}
-    >
-      {/* Mobile overlay */}
-      {isMobileOpen && (
-        <div
-          className="fixed inset-0 bg-black/70 backdrop-blur-sm z-40 md:hidden"
-          onClick={() => setIsMobileOpen(false)}
-        />
-      )}
-
-      {/* Sidebar */}
-      <aside
-        className={`fixed inset-y-0 left-0 z-50 flex flex-col ${
-          isSidebarExpanded ? "w-64" : "w-20"
-        } ${
-          isDarkMode
-            ? "bg-slate-800 border-r border-slate-700"
-            : "bg-white border-r border-gray-200"
-        } transition-all duration-300 ease-in-out ${
-          isMobileOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
-        } shadow-lg`}
-      >
-        <button
-          onClick={() => setSidebarExpanded(!isSidebarExpanded)}
-          className={`absolute -right-3 top-28 hidden md:flex h-7 w-7 items-center justify-center rounded-full 
-          ${
-            isDarkMode
-              ? "bg-blue-600 border-slate-800"
-              : "bg-blue-600 border-white"
-          } text-white shadow-lg border-2 cursor-pointer hover:bg-blue-700 transition-all`}
-        >
-          {isSidebarExpanded ? (
-            <ChevronLeft size={14} />
-          ) : (
-            <ChevronRight size={14} />
-          )}
-        </button>
-
-        {/* Logo Section - Made logo smaller */}
-        <div
-          className={`p-4 flex flex-col items-center justify-center ${
-            isDarkMode ? "border-slate-700" : "border-gray-200"
-          } border-b overflow-visible`}
-        >
-          <div className="flex items-center justify-center w-full relative">
-            <img
-              src={logoImage}
-              alt="PlanifyGo Logo"
-              className={`${
-                isSidebarExpanded
-                  ? "w-3/4 max-h-20 object-contain"
-                  : "w-3/4 max-h-16 object-contain"
-              } transition-all duration-300 cursor-pointer scale-125`}
-              id="logo"
-              onClick={handleLogoClick}
-            />
-          </div>
-
-          {/* Business name under logo */}
-          {isSidebarExpanded && userData && (
-            <div
-              className={`mt-2 text-center text-sm font-medium ${
-                isDarkMode ? "text-blue-400" : "text-blue-600"
-              }`}
-            >
-              {getBusinessName()}
-            </div>
-          )}
-
-          {/* Clock/Date display under logo */}
-          <div className={`mt-2 text-center ${!isSidebarExpanded && "hidden"}`}>
-            <div
-              className={`flex items-center justify-center text-sm ${
-                isDarkMode ? "text-gray-300" : "text-gray-700"
-              }`}
-            >
-              <Clock size={14} className="mr-1.5 text-blue-500" />
-              <span>{formatTime(currentDateTime)}</span>
-            </div>
-            <div
-              className={`text-xs mt-0.5 ${
-                isDarkMode ? "text-gray-400" : "text-gray-500"
-              }`}
-            >
-              {formatDate(currentDateTime)}
-            </div>
-          </div>
-
-          <button
-            className={`md:hidden absolute top-4 right-4 p-1.5 rounded-lg ${
-              isDarkMode
-                ? "text-gray-400 hover:text-gray-200 hover:bg-slate-700"
-                : "text-gray-400 hover:text-gray-600 hover:bg-gray-100"
-            }`}
-            onClick={() => setIsMobileOpen(false)}
-          >
-            <X size={18} />
-          </button>
-        </div>
-
-        <div
-          className={`p-4 ${
-            isDarkMode ? "border-slate-700" : "border-gray-200"
-          } border-b`}
-        >
+    <div className={`${isDarkMode ? "dark" : ""}`}>
+      <div className={`flex h-screen bg-gradient-to-br ${
+        isDarkMode 
+          ? "from-slate-900 via-slate-800/95 to-indigo-950" 
+          : "from-blue-50/70 via-white to-indigo-50/60"
+      } transition-colors duration-500`}>
+        {/* Mobile overlay */}
+        {isMobileOpen && (
           <div
-            className={`flex items-center p-2 rounded-lg cursor-pointer group 
-            ${
-              isDarkMode ? "hover:bg-blue-800/20" : "hover:bg-blue-50"
-            } transition-all duration-200`}
-          >
-            <div className="relative">
-              <UserCircle
-                className={`w-10 h-10 ${
-                  isDarkMode ? "text-blue-400" : "text-blue-600"
-                }`}
-              />
-              <span className="absolute bottom-0 right-0 w-3 h-3 rounded-full bg-green-500 ring-2 ring-white"></span>
-            </div>
+            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40 lg:hidden transition-opacity duration-300"
+            onClick={() => setIsMobileOpen(false)}
+          />
+        )}
 
-            {isSidebarExpanded && (
-              <div className="flex-1 min-w-0 ml-3">
-                <p
-                  className={`text-sm font-medium ${
-                    isDarkMode
-                      ? "text-white group-hover:text-blue-400"
-                      : "text-gray-800 group-hover:text-blue-600"
-                  } truncate`}
-                >
-                  {getUserName()}
-                </p>
-                <p className="text-xs text-gray-500 flex items-center">
-                  <span className="inline-block w-1.5 h-1.5 rounded-full bg-green-500 mr-1.5"></span>
-                  En ligne
-                </p>
-              </div>
-            )}
-          </div>
-        </div>
-
-        <div className="py-4 flex-1 overflow-hidden hover:overflow-y-auto scrollbar-hide">
-          {isSidebarExpanded && (
-            <div className="px-6 mb-3">
-              <p className="text-xs font-medium text-gray-400 uppercase tracking-wider">
-                Menu
-              </p>
-            </div>
-          )}
-
-          <div className="px-3 space-y-1.5">
-            {menuItems.map((item) => {
-              const Icon = item.icon;
-              const isActive = activePage === item.id;
-              const isHovered = hoveredMenu === item.id;
-
-              return (
-                <button
-                  key={item.id}
-                  className={`flex items-center w-full px-3 py-3 rounded-lg transition-all duration-200 group ${
-                    isActive
-                      ? isDarkMode
-                        ? "bg-blue-800/20 text-blue-400"
-                        : "bg-blue-50 text-blue-600"
-                      : isDarkMode
-                      ? "text-gray-300 hover:bg-slate-700/40"
-                      : "text-gray-600 hover:bg-gray-50"
-                  }`}
-                  onClick={() => navigateTo(item.id)}
-                  onMouseEnter={() => setHoveredMenu(item.id)}
-                  onMouseLeave={() => setHoveredMenu(null)}
-                >
-                  <div
-                    className={`flex items-center justify-center min-w-10 h-10 rounded-lg transition-all duration-200 ${
-                      isActive
-                        ? isDarkMode
-                          ? "bg-blue-900/30 text-blue-400"
-                          : "bg-blue-100 text-blue-600"
-                        : isDarkMode
-                        ? `text-gray-400 ${
-                            isHovered ? "bg-slate-700/40 text-gray-200" : ""
-                          }`
-                        : `text-gray-500 ${
-                            isHovered ? "bg-gray-100 text-gray-700" : ""
-                          }`
-                    }`}
-                  >
-                    <Icon size={20} />
-                  </div>
-
-                  {isSidebarExpanded && (
-                    <>
-                      <span
-                        className={`ml-3 ${
-                          isActive ? "font-medium" : ""
-                        } transition-all duration-200`}
-                      >
-                        {item.label}
-                      </span>
-
-                      {item.notification && (
-                        <div
-                          className={`ml-auto bg-blue-600 text-white text-xs font-medium rounded-full w-6 h-6 flex items-center justify-center shadow-sm ${
-                            isActive || isHovered ? "scale-110" : ""
-                          } transition-all duration-200`}
-                        >
-                          {item.notification}
-                        </div>
-                      )}
-
-                      {item.enterprise && (
-                        <span
-                          className={`ml-auto text-xs py-0.5 px-2 rounded-lg border ${
-                            isDarkMode
-                              ? "border-slate-600 text-slate-400"
-                              : "border-gray-300 text-gray-500"
-                          } ${
-                            isActive || isHovered ? "scale-110" : ""
-                          } transition-all duration-200`}
-                        >
-                          ENT
-                        </span>
-                      )}
-                    </>
-                  )}
-                </button>
-              );
-            })}
-          </div>
-
-          {isSidebarExpanded && (
-            <div className="px-6 mt-6 mb-3">
-              <p className="text-xs font-medium text-gray-400 uppercase tracking-wider">
-                Préférences
-              </p>
-            </div>
-          )}
-
-          <div className="px-3 space-y-1.5">
-            {secondaryMenuItems.map((item) => {
-              const Icon = item.icon;
-              const isActive = activePage === item.id;
-              const isHovered = hoveredMenu === item.id;
-
-              return (
-                <button
-                  key={item.id}
-                  className={`flex items-center w-full px-3 py-3 rounded-lg transition-all duration-200 group ${
-                    isActive
-                      ? isDarkMode
-                        ? "bg-blue-800/20 text-blue-400"
-                        : "bg-blue-50 text-blue-600"
-                      : isDarkMode
-                      ? "text-gray-300 hover:bg-slate-700/40"
-                      : "text-gray-600 hover:bg-gray-50"
-                  }`}
-                  onClick={() => navigateTo(item.id)}
-                  onMouseEnter={() => setHoveredMenu(item.id)}
-                  onMouseLeave={() => setHoveredMenu(null)}
-                >
-                  <div
-                    className={`flex items-center justify-center min-w-10 h-10 rounded-lg transition-all duration-200 ${
-                      isActive
-                        ? isDarkMode
-                          ? "bg-blue-900/30 text-blue-400"
-                          : "bg-blue-100 text-blue-600"
-                        : isDarkMode
-                        ? `text-gray-400 ${
-                            isHovered ? "bg-slate-700/40 text-gray-200" : ""
-                          }`
-                        : `text-gray-500 ${
-                            isHovered ? "bg-gray-100 text-gray-700" : ""
-                          }`
-                    }`}
-                  >
-                    <Icon size={20} />
-                  </div>
-
-                  {isSidebarExpanded && (
-                    <span
-                      className={`ml-3 ${
-                        isActive ? "font-medium" : ""
-                      } transition-all duration-200`}
-                    >
-                      {item.label}
-                    </span>
-                  )}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-
-        <div
-          className={`p-4 ${
-            isDarkMode ? "border-slate-700" : "border-gray-200"
-          } border-t`}
+        {/* Sidebar */}
+        <aside
+          className={`fixed inset-y-0 left-0 z-50 flex flex-col ${
+            isSidebarExpanded ? "w-72" : "w-16"
+          } ${
+            isDarkMode
+              ? "bg-slate-800/95 border-r border-slate-700/50"
+              : "bg-white/95 border-r border-slate-200/50"
+          } transition-all duration-300 ease-in-out ${
+            isMobileOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
+          } shadow-xl backdrop-blur-md`}
         >
-          <button
-            onClick={handleLogout}
-            className={`flex items-center w-full px-3 py-3 rounded-lg transition-all duration-200 
+          {/* Improved sidebar toggle */}
+          <div className="absolute -right-3 top-12 hidden lg:block">
+            <button
+              onClick={() => setSidebarExpanded(!isSidebarExpanded)}
+              className={`flex items-center justify-center h-6 w-6 rounded-full 
               ${
                 isDarkMode
-                  ? "text-gray-300 hover:bg-red-900/20 hover:text-red-400"
-                  : "text-gray-600 hover:bg-red-50 hover:text-red-600"
-              } group`}
-            onMouseEnter={() => setHoveredMenu("logout")}
-            onMouseLeave={() => setHoveredMenu(null)}
+                  ? "bg-slate-700 text-blue-400 hover:text-blue-300"
+                  : "bg-white text-blue-500 hover:text-blue-600"
+              } shadow-lg ring-1 ${
+                isDarkMode ? "ring-slate-600" : "ring-slate-200"
+              } cursor-pointer transition-all duration-300 hover:scale-105`}
+            >
+              {isSidebarExpanded ? (
+                <ChevronLeft size={14} strokeWidth={2.5} />
+              ) : (
+                <ChevronRight size={14} strokeWidth={2.5} />
+              )}
+            </button>
+          </div>
+
+          {/* Header with business name instead of logo */}
+          <div
+            className={`p-4 flex items-center justify-center ${
+              isDarkMode ? "border-slate-700/50" : "border-slate-200/70"
+            } border-b`}
           >
             <div
-              className={`flex items-center justify-center min-w-10 h-10 rounded-lg transition-all duration-200
-              ${
-                isDarkMode
-                  ? `text-gray-400 ${
-                      hoveredMenu === "logout"
-                        ? "bg-red-900/20 text-red-400"
-                        : ""
-                    }`
-                  : `text-gray-500 ${
-                      hoveredMenu === "logout" ? "bg-red-100 text-red-500" : ""
-                    }`
+              className={`font-bold text-base ${
+                isDarkMode 
+                  ? "bg-gradient-to-r from-blue-400 to-indigo-400 text-transparent bg-clip-text" 
+                  : "bg-gradient-to-r from-blue-600 to-indigo-500 text-transparent bg-clip-text"
               }`}
             >
-              <LogOut size={20} />
+              {isSidebarExpanded ? getBusinessName : getBusinessName.charAt(0)}
             </div>
-            {isSidebarExpanded && <span className="ml-3">Déconnexion</span>}
-          </button>
-        </div>
-      </aside>
-
-      {/* Main content area */}
-      <div
-        className={`flex-1 flex flex-col ${
-          isSidebarExpanded ? "md:ml-64" : "md:ml-20"
-        } transition-all duration-300`}
-      >
-        {/* Navbar */}
-        <header
-          className={`${
-            isDarkMode
-              ? "bg-slate-800 border-slate-700"
-              : "bg-white border-gray-200"
-          } 
-          h-16 px-4 md:px-6 flex items-center justify-between border-b sticky top-0 z-20 shadow-sm`}
-        >
-          <div className="flex items-center gap-4">
             <button
-              className={`md:hidden p-2 rounded-lg ${
+              className={`lg:hidden absolute top-4 right-4 p-1.5 rounded-lg ${
                 isDarkMode
-                  ? "text-gray-300 hover:bg-slate-700"
-                  : "text-gray-600 hover:bg-gray-100"
-              } transition-colors duration-200`}
-              onClick={() => setIsMobileOpen(!isMobileOpen)}
+                  ? "text-gray-400 hover:text-gray-200 hover:bg-slate-700"
+                  : "text-gray-400 hover:text-gray-600 hover:bg-gray-100"
+              } transition-all duration-200`}
+              onClick={() => setIsMobileOpen(false)}
             >
-              <Menu size={20} />
+              <X size={18} />
             </button>
+          </div>
 
-            <div className="flex items-center gap-3">
-              <h1
-                className={`text-lg font-semibold ${
-                  isDarkMode ? "text-white" : "text-gray-800"
-                } tracking-tight`}
-              >
-                {getTitle()}
-              </h1>
-              {activePage === "analytics" && (
-                <div
-                  className={`hidden sm:block px-2 py-0.5 rounded-lg border text-xs font-medium
-                  ${
-                    isDarkMode
-                      ? "border-slate-600 text-slate-400"
-                      : "border-gray-300 text-gray-500"
-                  }`}
-                >
-                  Enterprise
+          {/* Rest of the sidebar content remains similar */}
+          {/* User profile section - enhanced */}
+          <div
+            className={`p-4 ${
+              isDarkMode ? "border-slate-700/50" : "border-slate-200/70"
+            } border-b`}
+          >
+            <div
+              className={`flex items-center p-2.5 rounded-xl ${
+                isDarkMode ? "bg-slate-700/50 hover:bg-slate-700/80" : "bg-slate-100/70 hover:bg-slate-100"
+              } transition-all duration-200 cursor-pointer`}
+            >
+              <div className="relative">
+                <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                  isDarkMode 
+                    ? "bg-gradient-to-br from-blue-500/30 to-indigo-600/30 text-blue-400" 
+                    : "bg-gradient-to-br from-blue-100 to-indigo-100 text-blue-600"
+                } transition-colors duration-300`}>
+                  <UserCircle size={24} />
+                </div>
+                <span className="absolute bottom-0 right-0 w-3 h-3 rounded-full bg-green-500 ring-2 ring-white animate-pulse"></span>
+              </div>
+
+              {isSidebarExpanded && (
+                <div className="flex-1 min-w-0 ml-3">
+                  <p
+                    className={`text-sm font-medium ${
+                      isDarkMode ? "text-white" : "text-gray-800"
+                    } truncate`}
+                  >
+                    {getUserName}
+                  </p>
+                  <div className="flex items-center gap-2">
+                    <span className="inline-block w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></span>
+                    <p className={`text-xs ${isDarkMode ? "text-slate-300" : "text-slate-500"}`}>
+                      En ligne
+                    </p>
+                  </div>
                 </div>
               )}
             </div>
           </div>
 
-          <div className="flex items-center gap-3 md:gap-5">
-            <div className="relative hidden md:block">
-              <input
-                type="text"
-                placeholder="Rechercher..."
-                className={`py-2 pl-10 pr-4 rounded-lg ${
+          {/* Menu sections - removed clock/date display */}
+          <div className="flex-1 overflow-hidden hover:overflow-y-auto py-5 px-3.5">
+            {/* Home button - Add this section first */}
+            <div className="mb-5">
+              <a
+                href="/"
+                className={`flex items-center px-3.5 py-3 rounded-xl gap-3 transition-all duration-300 ${
                   isDarkMode
-                    ? "bg-slate-700 border-slate-600 text-gray-200 focus:ring-blue-500/50"
-                    : "bg-gray-50 border-gray-200 text-gray-800 focus:ring-blue-500/50"
-                } 
-                  border focus:outline-none focus:ring-2 focus:border-transparent transition-all w-64 text-sm`}
-              />
-              <Search
-                className={`absolute left-3 top-2.5 ${
-                  isDarkMode ? "text-gray-400" : "text-gray-400"
-                }`}
-                size={18}
-              />
-            </div>
-
-            <div
-              className={`hidden sm:flex items-center gap-2 rounded-lg py-1.5 px-3 
-              ${
-                isDarkMode
-                  ? "bg-slate-700 border-slate-600 hover:bg-slate-600"
-                  : "bg-gray-50 border-gray-200 hover:bg-gray-100"
-              } 
-              border cursor-pointer transition-all duration-200`}
-            >
-              <Clock size={16} className="text-blue-500" />
-              <span
-                className={`text-sm ${
-                  isDarkMode ? "text-gray-300" : "text-gray-700"
-                }`}
+                    ? "bg-gradient-to-r from-indigo-900/30 to-blue-900/30 text-blue-300 hover:from-indigo-900/40 hover:to-blue-900/40"
+                    : "bg-gradient-to-r from-indigo-50 to-blue-50 text-blue-600 hover:from-indigo-100 hover:to-blue-100"
+                } hover:shadow-md`}
               >
-                Aujourd'hui
-              </span>
-              <ChevronDown size={14} className="text-gray-500" />
+                <div className={`flex items-center justify-center ${
+                  isDarkMode ? "text-blue-400" : "text-blue-600"
+                }`}>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                    <polyline points="9 22 9 12 15 12 15 22"></polyline>
+                  </svg>
+                </div>
+                {isSidebarExpanded && (
+                  <span className="font-medium">Page d'accueil</span>
+                )}
+              </a>
             </div>
+            
+            {isSidebarExpanded && (
+              <h3 className="text-xs font-semibold uppercase tracking-wider mb-4 px-4 
+                bg-gradient-to-r from-blue-500 to-indigo-500 text-transparent bg-clip-text">
+                Menu principal
+              </h3>
+            )}
 
-            <div className="flex gap-1 md:gap-2">
-              <button
-                className={`p-2 rounded-lg ${
-                  isDarkMode
-                    ? "hover:bg-slate-700 text-gray-300 hover:text-amber-400"
-                    : "hover:bg-gray-100 text-gray-600 hover:text-amber-500"
-                } transition-all duration-200`}
-                onClick={toggleDarkMode}
-                aria-label={
-                  isDarkMode ? "Activer le mode jour" : "Activer le mode nuit"
-                }
-              >
-                {isDarkMode ? <Sun size={20} /> : <Moon size={20} />}
-              </button>
+            <ul className="space-y-2.5 mb-6">
+              {renderMenuItems(MAIN_MENU_ITEMS)}
+            </ul>
 
-              <button
-                className={`p-2 rounded-lg ${
-                  isDarkMode
-                    ? "hover:bg-blue-800/20 text-gray-300 hover:text-blue-400"
-                    : "hover:bg-blue-50 text-gray-600 hover:text-blue-600"
-                } relative transition-all duration-200`}
-              >
-                <Bell size={20} />
-                <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-red-500 ring-2 ring-white animate-pulse"></span>
-              </button>
-            </div>
+            {isSidebarExpanded && (
+              <h3 className="text-xs font-semibold uppercase tracking-wider mt-8 mb-4 px-4
+                bg-gradient-to-r from-blue-500 to-indigo-500 text-transparent bg-clip-text">
+                Paramètres
+              </h3>
+            )}
+
+            <ul className="space-y-2.5">
+              {renderMenuItems(SECONDARY_MENU_ITEMS)}
+            </ul>
           </div>
-        </header>
 
-        {/* Page content */}
-        <main
-          className={`flex-1 p-6 ${
-            isDarkMode ? "bg-slate-900" : "bg-gray-50"
-          } transition-colors duration-300`}
+          {/* Logout button with enhanced styling */}
+          <div
+            className={`p-4 ${
+              isDarkMode ? "border-slate-700/50" : "border-slate-200/70"
+            } border-t mt-auto`}
+          >
+            <button
+              onClick={handleLogout}
+              className={`flex items-center w-full px-3.5 py-2.5 rounded-xl gap-3 transition-all duration-300 
+                ${
+                  isDarkMode
+                    ? "bg-gradient-to-r from-red-900/30 to-red-800/20 text-red-300 hover:from-red-900/40 hover:to-red-800/30"
+                    : "bg-gradient-to-r from-red-50 to-red-100/50 text-red-600 hover:from-red-100 hover:to-red-50"
+                } hover:shadow-md`}
+            >
+              <LogOut size={20} className="transition-transform duration-300 group-hover:translate-x-1" />
+              {isSidebarExpanded && <span className="font-medium">Déconnexion</span>}
+            </button>
+          </div>
+        </aside>
+
+        {/* Main content area */}
+        <div
+          className={`flex-1 flex flex-col ${
+            isSidebarExpanded ? "lg:ml-72" : "lg:ml-16"
+          } transition-all duration-300`}
         >
-          {renderPage()}
-        </main>
+          {/* Navbar with enhanced styling */}
+          <header
+            className={`${
+              isDarkMode
+                ? "bg-gradient-to-r from-slate-800/95 to-slate-800/90 border-slate-700/40"
+                : "bg-gradient-to-r from-white/95 to-white/90 border-slate-200/40"
+            } 
+            h-16 px-4 md:px-6 flex items-center justify-between border-b sticky top-0 z-20 
+            shadow-sm backdrop-blur-md transition-all duration-300`}
+          >
+            <div className="flex items-center gap-4">
+              <button
+                className={`lg:hidden p-2 rounded-lg ${
+                  isDarkMode
+                    ? "text-gray-300 hover:bg-slate-700 active:bg-slate-600"
+                    : "text-gray-600 hover:bg-gray-100 active:bg-gray-200"
+                } transition-colors duration-200`}
+                onClick={() => setIsMobileOpen(!isMobileOpen)}
+              >
+                <Menu size={20} />
+              </button>
+
+              <div className="flex items-center gap-3">
+                <div className="flex flex-col">
+                  <h1
+                    className={`text-xl font-semibold ${
+                      isDarkMode 
+                        ? "bg-gradient-to-r from-blue-300 to-indigo-200 text-transparent bg-clip-text" 
+                        : "bg-gradient-to-r from-blue-600 to-indigo-600 text-transparent bg-clip-text"
+                    }`}
+                  >
+                    {getTitle}
+                  </h1>
+                  <div className="h-0.5 w-12 mt-0.5 rounded-full bg-gradient-to-r from-blue-500 to-indigo-500 opacity-80"></div>
+                </div>
+                
+                {activePage === "analytics" && (
+                  <div
+                    className={`hidden sm:flex items-center px-2.5 py-1 rounded-full text-xs font-medium
+                    ${
+                      isDarkMode
+                        ? "bg-blue-900/20 text-blue-300 border border-blue-800/30"
+                        : "bg-blue-50 text-blue-600 border border-blue-100"
+                    } transition-all duration-300`}
+                  >
+                    <span className="mr-1.5 w-1.5 h-1.5 rounded-full bg-blue-500"></span>
+                    Pro
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3 md:gap-4">
+              {/* Redesigned search bar */}
+              <div className="relative hidden md:block group">
+                <input
+                  type="text"
+                  placeholder="Rechercher..."
+                  className={`py-2.5 pl-10 pr-4 rounded-full ${
+                    isDarkMode
+                      ? "bg-slate-700/60 border-slate-600/40 text-gray-100 placeholder:text-slate-400"
+                      : "bg-slate-100/60 border-slate-200/50 text-gray-800 placeholder:text-slate-400"
+                  } 
+                    border shadow-sm hover:shadow-md w-64 text-sm transition-all duration-300
+                    focus:outline-none focus:ring-2 ${
+                      isDarkMode 
+                        ? "focus:ring-blue-500/30 focus:border-blue-500/40" 
+                        : "focus:ring-blue-400/20 focus:border-blue-400/50"
+                    } focus:w-72`}
+                />
+                <div className={`absolute left-3.5 top-2.5 ${
+                  isDarkMode ? "text-blue-400" : "text-blue-500"
+                } transition-all duration-300 group-focus-within:text-blue-500`}>
+                  <Search size={17} className="group-focus-within:scale-110 transition-transform" />
+                </div>
+                <div className="absolute right-3.5 top-2.5 opacity-0 group-focus-within:opacity-100 transition-opacity">
+                  <span className={`text-xs px-1.5 py-0.5 rounded ${
+                    isDarkMode 
+                      ? "bg-slate-600 text-slate-300" 
+                      : "bg-slate-200 text-slate-500"
+                  }`}>
+                    /
+                  </span>
+                </div>
+              </div>
+
+              {/* Enhanced time display */}
+              <div
+                className={`hidden sm:flex items-center gap-2 rounded-full py-2 px-4 
+                ${
+                  isDarkMode
+                    ? "bg-slate-700/50 text-slate-200"
+                    : "bg-slate-100/70 text-slate-700"
+                } 
+                shadow-sm transition-all duration-200`}
+              >
+                <Clock size={16} className={isDarkMode ? "text-blue-400" : "text-blue-500"} />
+                <span className="text-sm font-medium">{formatTime(currentDateTime)}</span>
+              </div>
+
+              {/* Redesigned control buttons */}
+              <div className="flex items-center gap-2">
+                {/* Theme toggle button */}
+                <button
+                  className={`p-2.5 rounded-full ${
+                    isDarkMode
+                      ? "bg-slate-700/50 hover:bg-slate-700/70 text-slate-300 hover:text-white"
+                      : "bg-slate-100/70 hover:bg-slate-100 text-slate-600 hover:text-slate-800"
+                  } shadow-sm transition-all duration-200 hover:shadow`}
+                  onClick={toggleDarkMode}
+                  aria-label={isDarkMode ? "Activer le mode jour" : "Activer le mode nuit"}
+                >
+                  {isDarkMode ? 
+                    <Sun size={18} className="text-amber-300" /> : 
+                    <Moon size={18} className="text-indigo-600" />
+                  }
+                </button>
+
+                {/* Notification button */}
+                <button
+                  className={`p-2.5 rounded-full ${
+                    isDarkMode
+                      ? "bg-slate-700/50 hover:bg-slate-700/70 text-slate-300 hover:text-white"
+                      : "bg-slate-100/70 hover:bg-slate-100 text-slate-600 hover:text-slate-800"
+                  } shadow-sm relative transition-all duration-200 hover:shadow`}
+                >
+                  <Bell size={18} />
+                  {notificationCount > 0 && (
+                    <span className="absolute top-0 right-0 w-5 h-5 rounded-full bg-rose-500 flex items-center justify-center text-white text-xs font-medium shadow-lg border-2 border-white dark:border-slate-800 -translate-y-1 translate-x-1">
+                      {notificationCount}
+                    </span>
+                  )}
+                </button>
+
+                {/* User profile button with improved styling */}
+                <button
+                  className={`p-2 rounded-full ${
+                    isDarkMode
+                      ? "bg-slate-700/50 hover:bg-slate-700/70"
+                      : "bg-slate-100/70 hover:bg-slate-100"
+                  } shadow-sm transition-all duration-200 hover:shadow`}
+                >
+                  <div className={`h-7 w-7 rounded-full flex items-center justify-center ${
+                    isDarkMode 
+                      ? "bg-gradient-to-br from-blue-500/20 to-indigo-500/20 text-blue-400" 
+                      : "bg-gradient-to-br from-blue-100 to-indigo-100/80 text-blue-600"
+                  } shadow-inner transition-colors duration-300`}>
+                    <UserCircle size={18} />
+                  </div>
+                </button>
+              </div>
+            </div>
+          </header>
+
+          {/* Keep the main content area as is */}
+          <main
+            className={`flex-1 p-6 ${
+              isDarkMode ? "text-slate-200" : "text-slate-800"
+            } overflow-auto transition-colors duration-500`}
+          >
+            {renderPage}
+          </main>
+        </div>
       </div>
 
-      {/* Add global style to hide scrollbar */}
+      {/* Expanded global style */}
       <style jsx global>{`
-        /* Hide scrollbar while maintaining functionality */
-        .scrollbar-hide::-webkit-scrollbar {
-          display: none;
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+        html {
+          font-family: 'Inter', sans-serif;
+          scroll-behavior: smooth;
         }
 
-        .scrollbar-hide {
-          -ms-overflow-style: none; /* IE and Edge */
-          scrollbar-width: none; /* Firefox */
+        /* Enhanced scrollbar styling */
+        .hover\\:overflow-y-auto::-webkit-scrollbar {
+          width: 5px;
+        }
+
+        .hover\\:overflow-y-auto::-webkit-scrollbar-track {
+          background: transparent;
+        }
+
+        .hover\\:overflow-y-auto::-webkit-scrollbar-thumb {
+          background-color: rgba(156, 163, 175, 0.3);
+          border-radius: 20px;
+          transition: background-color 0.3s ease;
+        }
+
+        .hover\\:overflow-y-auto::-webkit-scrollbar-thumb:hover {
+          background-color: rgba(156, 163, 175, 0.5);
+        }
+
+        .dark .hover\\:overflow-y-auto::-webkit-scrollbar-thumb {
+          background-color: rgba(100, 116, 139, 0.3);
+        }
+        
+        .dark .hover\\:overflow-y-auto::-webkit-scrollbar-thumb:hover {
+          background-color: rgba(100, 116, 139, 0.5);
+        }
+
+        /* Add smooth transitions for all elements */
+        * {
+          transition-property: background-color, border-color, color, fill, stroke, opacity, box-shadow, transform, filter, backdrop-filter;
+          transition-duration: 300ms;
+          transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        /* Enhance focus styles */
+        button:focus, input:focus {
+          outline: 2px solid rgba(59, 130, 246, 0.5);
+          outline-offset: 2px;
+        }
+        
+        .dark button:focus, .dark input:focus {
+          outline-color: rgba(59, 130, 246, 0.3);
         }
       `}</style>
     </div>
   );
 };
 
-export default Dashbaord;
+export default Dashboard;
