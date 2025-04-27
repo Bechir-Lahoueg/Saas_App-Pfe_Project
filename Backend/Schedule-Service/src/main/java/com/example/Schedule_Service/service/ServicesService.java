@@ -1,6 +1,9 @@
 package com.example.Schedule_Service.service;
 
+import com.example.Schedule_Service.entities.Employee;
 import com.example.Schedule_Service.entities.Services;
+import com.example.Schedule_Service.repository.EmployeeRepository;
+
 import com.example.Schedule_Service.repository.ServiceRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -14,6 +17,11 @@ public class ServicesService {
 
     @Autowired
     private ServiceRepository serviceRepository;
+
+
+    @Autowired
+    private EmployeeRepository employeeRepository;
+
 
     // Get all services
     public List<Services> getAllServices() {
@@ -43,6 +51,15 @@ public class ServicesService {
         existingService.setRequiresEmployeeSelection(updatedService.isRequiresEmployeeSelection());
         existingService.setAllowSimultaneous(updatedService.isAllowSimultaneous());
         existingService.setCapacity(updatedService.getCapacity());
+        existingService.getEmployees().clear();
+        if (updatedService.getEmployeeIds() != null) {
+            for (Long empId : updatedService.getEmployeeIds()) {
+                Employee e = employeeRepository.findById(empId)
+                        .orElseThrow(() -> new ResponseStatusException(
+                                HttpStatus.NOT_FOUND, "Employee not found"));
+                existingService.getEmployees().add(e);
+            }
+        }
 
         return serviceRepository.save(existingService);
     }

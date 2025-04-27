@@ -1,15 +1,13 @@
 package com.example.Schedule_Service.entities;
 
-
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-
-import java.text.DecimalFormat;
-import java.util.UUID;
+import java.util.*;
 
 @Entity
 @Table(name = "services")
@@ -18,6 +16,7 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 public class Services {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -36,7 +35,15 @@ public class Services {
 
     private Integer capacity;
 
+    @ManyToMany
+    @JoinTable(
+            name = "service_employees",
+            joinColumns = @JoinColumn(name = "service_id"),
+            inverseJoinColumns = @JoinColumn(name = "employee_id")
+    )
+    private Set<Employee> employees = new HashSet<>();
 
-
-
+    @Transient
+    @JsonProperty("employeeIds")
+    private List<Long> employeeIds = new ArrayList<>();
 }
