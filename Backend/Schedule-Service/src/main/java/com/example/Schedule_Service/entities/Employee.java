@@ -19,10 +19,24 @@ import java.util.UUID;
 
 public class Employee {
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    private UUID id;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
+    private String firstName;
+
+    private String lastName;
+
+    private String email;
+
+    private String phone;
+
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private String name;
+    private Status status;
 
+public enum Status {
+        ACTIVE,
+        INACTIVE
+    }
 }
+

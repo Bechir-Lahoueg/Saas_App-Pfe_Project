@@ -7,7 +7,8 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDateTime;
-import java.util.UUID;
+import java.util.Optional;
+
 
 @Entity
 @Table(name = "reservations")
@@ -15,20 +16,14 @@ import java.util.UUID;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
+
 public class Reservation {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
-    private LocalDateTime dateReservation;
-
-    @ManyToOne
-    private ServiceEntity service;
-
-    // Optionally:
-    @ManyToOne
-    private Employee employee;
-
-    // Optionally:
-    private Integer portion = 1; // if 1 = full field, 0 = half, 2 = custom
+    private Long serviceId;
+    private Long employeeId;
+    private LocalDateTime startTime;
+    private int numberOfAttendees;
 }

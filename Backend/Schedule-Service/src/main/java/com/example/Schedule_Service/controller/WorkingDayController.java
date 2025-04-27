@@ -35,7 +35,7 @@ public class WorkingDayController {
     public ResponseEntity<WorkingDay> updateWorkingDay(@PathVariable Long id, @RequestBody WorkingDay workingDay) {
         return ResponseEntity.ok(workingDayService.updateWorkingDay(id, workingDay));
     }
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/delete/{id}")
     public ResponseEntity<Void> deleteWorkingDay(@PathVariable Long id) {
         workingDayService.deleteWorkingDay(id);
         return ResponseEntity.noContent().build();
@@ -46,6 +46,7 @@ public class WorkingDayController {
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
+
     @DeleteMapping("/deleteTimeSlot/{id}/time-slot/{index}")
     public ResponseEntity<WorkingDay> removeTimeSlot(@PathVariable Long id, @PathVariable int index) {
         return workingDayService.removeTimeSlotFromWorkingDay(id, index)

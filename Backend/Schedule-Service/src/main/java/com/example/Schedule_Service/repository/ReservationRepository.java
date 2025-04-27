@@ -1,6 +1,6 @@
-package com.example.ClientBooking_service.repository;
+package com.example.Schedule_Service.repository;
 
-import com.example.ClientBooking_service.entities.Reservation;
+import com.example.Schedule_Service.entities.Reservation;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
