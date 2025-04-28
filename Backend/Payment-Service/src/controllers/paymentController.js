@@ -93,7 +93,7 @@ const initiateRegistrationPayment = async (req, res) => {
       subdomain,
       city,
       zipcode,
-      country
+      country,
     };
 
     const paymentData = {

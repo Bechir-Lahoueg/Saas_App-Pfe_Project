@@ -34,6 +34,7 @@ public class Tenant implements UserDetails {
     private String city;
     private String address;
     private String zipcode;
+    private String profileImageUrl;
 
     @JsonBackReference
     @ManyToOne(fetch = FetchType.EAGER)

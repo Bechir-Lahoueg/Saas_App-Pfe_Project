@@ -1,6 +1,5 @@
 package com.example.auth_service.service;
 
-
 import com.example.auth_service.entities.Tenant;
 import com.example.auth_service.repository.TenantRepository;
 import jakarta.transaction.Transactional;
@@ -15,7 +14,6 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.UUID;
 
-
 @Service
 @RequiredArgsConstructor
 @Transactional
@@ -28,7 +26,6 @@ public class TenantService {
     @Autowired
     private JwtService jwtService;
 
-
     public List<Tenant> getTenantsByCategoryName(String categoryName) {
         return tenantRepository.findByCategory_CategoryName(categoryName);
     }
@@ -37,34 +34,45 @@ public class TenantService {
     public Tenant updateTenant(UUID tenantId, Tenant tenantDetails) {
         Tenant tenant = tenantRepository.findById(tenantId)
                 .orElseThrow(() -> new RuntimeException("Tenant not found"));
-            tenant.setEmail(tenantDetails.getEmail());
-            tenant.setFirstName(tenantDetails.getFirstName());
-            tenant.setLastName(tenantDetails.getLastName());
-            tenant.setPhone(tenantDetails.getPhone());
-            tenant.setBusinessName(tenantDetails.getBusinessName());
-            tenant.setSubdomain(tenantDetails.getSubdomain());
-            tenant.setAddress(tenantDetails.getAddress());
+        tenant.setEmail(tenantDetails.getEmail());
+        tenant.setFirstName(tenantDetails.getFirstName());
+        tenant.setLastName(tenantDetails.getLastName());
+        tenant.setPhone(tenantDetails.getPhone());
+        tenant.setBusinessName(tenantDetails.getBusinessName());
+        tenant.setSubdomain(tenantDetails.getSubdomain());
+        tenant.setAddress(tenantDetails.getAddress());
 
-            if (tenantDetails.getPassword() != null && !tenantDetails.getPassword().isEmpty()) {
-                tenantDetails.setPassword(passwordEncoder.encode(tenantDetails.getPassword()));
-            }
+        if (tenantDetails.getPassword() != null && !tenantDetails.getPassword().isEmpty()) {
+            tenantDetails.setPassword(passwordEncoder.encode(tenantDetails.getPassword()));
+        }
         return tenantRepository.save(tenant);
     }
 
+    @Transactional
+    public Tenant updateTenantProfileImage(UUID tenantId, String profileImageUrl) {
+        Tenant tenant = tenantRepository.findById(tenantId)
+                .orElseThrow(() -> new RuntimeException("Tenant not found"));
+        tenant.setProfileImageUrl(profileImageUrl);
+        return tenantRepository.save(tenant);
+    }
 
     public List<Tenant> getAllTenants() {
         return tenantRepository.findAll();
     }
 
-
     public Tenant getTenantById(UUID id) {
         return tenantRepository.findById(id)
                 .orElseThrow(() ->
-                   new RuntimeException("Tenant not found with id: " + id)
+                        new RuntimeException("Tenant not found with id: " + id)
                 );
     }
 
-
+    public Tenant getTenantBySubdomain(String subdomain) {
+        return tenantRepository.findBySubdomain(subdomain)
+                .orElseThrow(() ->
+                        new RuntimeException("Tenant not found with subdomain: " + subdomain)
+                );
+    }
 
     @Transactional
     public void deleteTenant(UUID tenantId) {
@@ -73,16 +81,15 @@ public class TenantService {
         tenantRepository.delete(tenant);
     }
 
-    public String verify(String email,String password) {
+    public String verify(String email, String password) {
         Authentication authentication =
                 authManager.authenticate(new UsernamePasswordAuthenticationToken(email, password));
-                if(authentication.isAuthenticated()) {
-                    Tenant tenant = tenantRepository.findByEmail(email)
-                            .orElseThrow(() -> new RuntimeException("Invalid email or password"));
-                    return jwtService.generateToken(tenant);
-                } else {
-                    throw new RuntimeException("Authentication failed");
-                }
+        if(authentication.isAuthenticated()) {
+            Tenant tenant = tenantRepository.findByEmail(email)
+                    .orElseThrow(() -> new RuntimeException("Invalid email or password"));
+            return jwtService.generateToken(tenant);
+        } else {
+            throw new RuntimeException("Authentication failed");
+        }
     }
 }
-

@@ -1,223 +1,305 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import axios from 'axios';
 
-function getCookie(name) {
-  const value = `; ${document.cookie}`;
-  const parts = value.split(`; ${name}=`);
-  if (parts.length === 2) return parts.pop().split(';').shift();
-  return null;
-}
-
-const PersonalInfoPage = () => {
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState(null);
-  const [personalInfo, setPersonalInfo] = useState({
-    name: '',
-    email: '',
-    phone: '',
-    logo: null,
-    companyName: '',
-    businessType: '',
+const MediaManager = () => {
+  const [medias, setMedias] = useState({
+    logo: [],
+    banner: [],
+    video: [],
+    photo: []
   });
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [selectedType, setSelectedType] = useState('logo');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
 
-  // On mount: configure axios with our tenant header and auth token
+  // Récupérer tous les médias au chargement
   useEffect(() => {
-    const subdomain = getCookie('subdomain');
-    const token = getCookie('accessToken');
-    
-    // Set up axios defaults for all requests
-    if (token) {
-      axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-    }
-    if (subdomain) {
-      axios.defaults.headers.common['X-Tenant-ID'] = subdomain;
-    }
-    axios.defaults.baseURL = 'http://localhost:8888';
-    axios.defaults.withCredentials = true;
-    
-    fetchPersonalInfo();
+    fetchAllMedia();
   }, []);
 
-  const fetchPersonalInfo = async () => {
+  // Récupérer tous les médias et les organiser par type
+  const fetchAllMedia = async () => {
     try {
-      setIsLoading(true);
-      // Endpoint for fetching personal info would need to be implemented
-      const { data } = await axios.get(`/tenant/personal-info`);
-      setPersonalInfo(data);
+      const response = await axios.get('/schedule/media');
+      
+      // Organiser par type
+      const mediaByType = {
+        logo: [],
+        banner: [],
+        video: [],
+        photo: []
+      };
+      
+      response.data.forEach(media => {
+        if (mediaByType[media.mediaType]) {
+          mediaByType[media.mediaType].push(media);
+        }
+      });
+      
+      setMedias(mediaByType);
     } catch (err) {
-      console.error('Error fetching personal info:', err);
-      setError('Failed to load personal information');
-    } finally {
-      setIsLoading(false);
+      setError('Erreur lors du chargement des médias');
+      console.error(err);
     }
   };
 
-  const handlePersonalInfoChange = (field, value) => {
-    setPersonalInfo(prev => ({
-      ...prev,
-      [field]: value
-    }));
-  };
-
-  const handleSubmit = async () => {
-    setIsLoading(true);
-    setError(null);
-
-    try {
-      // Need to create FormData if we're uploading a file
-      const formData = new FormData();
-      for (const [key, value] of Object.entries(personalInfo)) {
-        formData.append(key, value);
+  // Gérer le changement de fichier
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setSelectedFile(file);
+      
+      // Validation du type de fichier
+      if (selectedType === 'video' && !file.type.startsWith('video/')) {
+        setError('Veuillez sélectionner un fichier vidéo');
+        return;
       }
       
-      // Update personal information
-      await axios.post(`/tenant/personal-info/update`, formData, {
+      if (selectedType !== 'video' && !file.type.startsWith('image/')) {
+        setError('Veuillez sélectionner une image');
+        return;
+      }
+      
+      setError('');
+    }
+  };
+
+  // Upload du fichier
+  const handleUpload = async (e) => {
+    e.preventDefault();
+    
+    if (!selectedFile) {
+      setError('Veuillez sélectionner un fichier');
+      return;
+    }
+    
+    setLoading(true);
+    setError('');
+    
+    const formData = new FormData();
+    formData.append('file', selectedFile);
+    formData.append('mediaType', selectedType);
+    
+    try {
+      await axios.post('/schedule/media/upload', formData, {
         headers: {
           'Content-Type': 'multipart/form-data'
         }
       });
       
-      alert('Informations personnelles sauvegardées avec succès !');
+      setSuccess(`${selectedType} téléchargé avec succès`);
+      setSelectedFile(null);
+      document.getElementById('file-input').value = '';
+      
+      // Rafraîchir les médias
+      fetchAllMedia();
     } catch (err) {
-      console.error('Error saving personal info:', err);
-      setError('Une erreur est survenue lors de la sauvegarde');
+      if (err.response && err.response.data) {
+        setError(err.response.data.message || 'Erreur lors du téléchargement');
+      } else {
+        setError('Erreur lors du téléchargement');
+      }
+      console.error(err);
     } finally {
-      setIsLoading(false);
+      setLoading(false);
+    }
+  };
+
+  // Supprimer un média
+  const handleDelete = async (id, type) => {
+    if (window.confirm('Voulez-vous vraiment supprimer ce média ?')) {
+      try {
+        await axios.delete(`/schedule/media/${id}`);
+        setSuccess(`${type} supprimé avec succès`);
+        fetchAllMedia();
+      } catch (err) {
+        setError('Erreur lors de la suppression du média');
+        console.error(err);
+      }
+    }
+  };
+
+  // Afficher un média selon son type
+  const renderMedia = (media) => {
+    if (media.mediaType === 'video') {
+      return (
+        <video 
+          className="w-full h-auto rounded shadow-md" 
+          controls
+          key={media.id}
+        >
+          <source src={media.url} type="video/mp4" />
+          Votre navigateur ne prend pas en charge la lecture vidéo.
+        </video>
+      );
+    } else {
+      return (
+        <img 
+          src={media.url} 
+          alt={media.mediaType} 
+          className={`
+            ${media.mediaType === 'logo' ? 'max-h-24 object-contain' : ''}
+            ${media.mediaType === 'banner' ? 'w-full h-48 object-cover' : ''}
+            ${media.mediaType === 'photo' ? 'h-48 w-full object-cover' : ''}
+            rounded shadow-md
+          `}
+          key={media.id}
+        />
+      );
     }
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
-      <div className="max-w-5xl mx-auto bg-white rounded-lg shadow p-6">
-        <h1 className="text-2xl font-bold mb-6">Informations personnelles</h1>
+    <div className="container mx-auto px-4 py-8">
+      <h1 className="text-3xl font-bold mb-8 text-center">Gestionnaire de médias</h1>
+      
+      {/* Formulaire d'upload */}
+      <div className="bg-white p-6 rounded-lg shadow-md mb-8">
+        <h2 className="text-xl font-semibold mb-4">Ajouter un média</h2>
         
         {error && (
-          <div className="mb-4 p-3 bg-red-100 text-red-700 rounded">
+          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
             {error}
           </div>
         )}
         
-        <div className="mt-6">
-          {isLoading ? (
-            <div className="flex justify-center items-center p-8">
-              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+        {success && (
+          <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4">
+            {success}
+          </div>
+        )}
+        
+        <form onSubmit={handleUpload} className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Type de média
+            </label>
+            <select
+              value={selectedType}
+              onChange={(e) => setSelectedType(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+            >
+              <option value="logo">Logo</option>
+              <option value="banner">Bannière</option>
+              <option value="video">Vidéo</option>
+              <option value="photo">Photo</option>
+            </select>
+          </div>
+          
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Fichier
+            </label>
+            <input
+              id="file-input"
+              type="file"
+              onChange={handleFileChange}
+              accept={selectedType === 'video' ? 'video/*' : 'image/*'}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md"
+            />
+            <p className="mt-1 text-sm text-gray-500">
+              {selectedType === 'logo' && 'Format recommandé: PNG ou SVG avec fond transparent'}
+              {selectedType === 'banner' && 'Format recommandé: 1920x480px, JPG ou PNG'}
+              {selectedType === 'video' && 'Format recommandé: MP4, durée maximale de 1 minute'}
+              {selectedType === 'photo' && 'Format recommandé: JPG ou PNG, haute résolution'}
+            </p>
+          </div>
+          
+          <button
+            type="submit"
+            disabled={loading || !selectedFile}
+            className={`w-full py-2 px-4 rounded-md text-white font-medium 
+              ${loading || !selectedFile 
+                ? 'bg-blue-300 cursor-not-allowed' 
+                : 'bg-blue-600 hover:bg-blue-700'}`}
+          >
+            {loading ? 'Téléchargement...' : 'Télécharger'}
+          </button>
+        </form>
+      </div>
+      
+      {/* Affichage des médias */}
+      <div className="space-y-10">
+        {/* Logo */}
+        <div className="bg-white p-6 rounded-lg shadow-md">
+          <h2 className="text-xl font-semibold mb-4">Logo</h2>
+          {medias.logo.length > 0 ? (
+            <div className="flex flex-col items-center">
+              {renderMedia(medias.logo[0])}
+              <button 
+                onClick={() => handleDelete(medias.logo[0].id, 'Logo')}
+                className="mt-2 px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+              >
+                Supprimer
+              </button>
             </div>
           ) : (
-            <div className="space-y-4">
-              <h3 className="font-semibold text-lg">Informations personnelles</h3>
-              
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">Nom complet</label>
-                  <input
-                    type="text"
-                    value={personalInfo.name}
-                    onChange={(e) => handlePersonalInfoChange('name', e.target.value)}
-                    className="mt-1 block w-full border rounded-md shadow-sm p-2"
-                  />
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">Email</label>
-                  <input
-                    type="email"
-                    value={personalInfo.email}
-                    onChange={(e) => handlePersonalInfoChange('email', e.target.value)}
-                    className="mt-1 block w-full border rounded-md shadow-sm p-2"
-                  />
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">Téléphone</label>
-                  <input
-                    type="tel"
-                    value={personalInfo.phone}
-                    onChange={(e) => handlePersonalInfoChange('phone', e.target.value)}
-                    className="mt-1 block w-full border rounded-md shadow-sm p-2"
-                  />
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">Nom de l'entreprise</label>
-                  <input
-                    type="text"
-                    value={personalInfo.companyName}
-                    onChange={(e) => handlePersonalInfoChange('companyName', e.target.value)}
-                    className="mt-1 block w-full border rounded-md shadow-sm p-2"
-                  />
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">Type d'activité</label>
-                  <select
-                    value={personalInfo.businessType}
-                    onChange={(e) => handlePersonalInfoChange('businessType', e.target.value)}
-                    className="mt-1 block w-full border rounded-md shadow-sm p-2"
-                  >
-                    <option value="">Sélectionnez...</option>
-                    <option value="healthcare">Santé</option>
-                    <option value="beauty">Beauté</option>
-                    <option value="consulting">Conseil</option>
-                    <option value="education">Éducation</option>
-                    <option value="other">Autre</option>
-                  </select>
-                </div>
-                
-                <div className="col-span-2">
-                  <label className="block text-sm font-medium text-gray-700">Logo</label>
-                  <div className="mt-1 flex items-center">
-                    {personalInfo.logo ? (
-                      <div className="relative">
-                        <img 
-                          src={typeof personalInfo.logo === 'object' ? URL.createObjectURL(personalInfo.logo) : personalInfo.logo} 
-                          alt="Logo preview" 
-                          className="w-20 h-20 object-cover rounded"
-                        />
-                        <button 
-                          onClick={() => handlePersonalInfoChange('logo', null)}
-                          className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center"
-                        >
-                          ×
-                        </button>
-                      </div>
-                    ) : (
-                      <label className="cursor-pointer bg-gray-100 p-2 rounded border hover:bg-gray-200">
-                        <span>Choisir un fichier</span>
-                        <input 
-                          type="file" 
-                          className="hidden" 
-                          accept="image/*"
-                          onChange={(e) => {
-                            if (e.target.files && e.target.files[0]) {
-                              handlePersonalInfoChange('logo', e.target.files[0]);
-                            }
-                          }}
-                        />
-                      </label>
-                    )}
-                  </div>
-                </div>
-              </div>
-            </div>
+            <p className="text-gray-500 italic">Aucun logo téléchargé</p>
           )}
         </div>
         
-        <div className="mt-8 flex justify-end">
-          <button
-            onClick={handleSubmit}
-            disabled={isLoading}
-            className={`px-4 py-2 rounded font-medium ${
-              isLoading 
-                ? 'bg-gray-400 text-gray-200' 
-                : 'bg-blue-600 text-white hover:bg-blue-700'
-            }`}
-          >
-            {isLoading ? 'Enregistrement...' : 'Enregistrer les informations'}
-          </button>
+        {/* Bannière */}
+        <div className="bg-white p-6 rounded-lg shadow-md">
+          <h2 className="text-xl font-semibold mb-4">Bannière</h2>
+          {medias.banner.length > 0 ? (
+            <div>
+              {renderMedia(medias.banner[0])}
+              <button 
+                onClick={() => handleDelete(medias.banner[0].id, 'Bannière')}
+                className="mt-2 px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+              >
+                Supprimer
+              </button>
+            </div>
+          ) : (
+            <p className="text-gray-500 italic">Aucune bannière téléchargée</p>
+          )}
+        </div>
+        
+        {/* Vidéo */}
+        <div className="bg-white p-6 rounded-lg shadow-md">
+          <h2 className="text-xl font-semibold mb-4">Vidéo</h2>
+          {medias.video.length > 0 ? (
+            <div>
+              {renderMedia(medias.video[0])}
+              <button 
+                onClick={() => handleDelete(medias.video[0].id, 'Vidéo')}
+                className="mt-2 px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+              >
+                Supprimer
+              </button>
+            </div>
+          ) : (
+            <p className="text-gray-500 italic">Aucune vidéo téléchargée</p>
+          )}
+        </div>
+        
+        {/* Photos */}
+        <div className="bg-white p-6 rounded-lg shadow-md">
+          <h2 className="text-xl font-semibold mb-4">Photos ({medias.photo.length}/5)</h2>
+          {medias.photo.length > 0 ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+              {medias.photo.map((photo) => (
+                <div key={photo.id} className="relative">
+                  {renderMedia(photo)}
+                  <button 
+                    onClick={() => handleDelete(photo.id, 'Photo')}
+                    className="absolute top-2 right-2 bg-red-600 text-white rounded-full w-8 h-8 flex items-center justify-center hover:bg-red-700"
+                  >
+                    ×
+                  </button>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-gray-500 italic">Aucune photo téléchargée</p>
+          )}
         </div>
       </div>
     </div>
   );
 };
 
-export default PersonalInfoPage;
+export default MediaManager;
