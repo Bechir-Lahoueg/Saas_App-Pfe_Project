@@ -1,5 +1,6 @@
 package com.example.register_service.entities;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -36,6 +37,10 @@ public class Tenant implements UserDetails {
 
     private String subdomain;
     private String businessName;
+
+    @JsonBackReference
+    @JoinColumn(name = "category_id")
+    private String category;
 
 
 
