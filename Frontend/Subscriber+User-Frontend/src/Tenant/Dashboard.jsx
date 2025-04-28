@@ -31,7 +31,6 @@ import Analytics from "./components/Analytics";
 import Invoice from "./components/Invoice";
 import HR from "./components/HR";
 import CalendarPage from "./components/Calendar";
-import Messages from "./components/Secours(backup)";
 import Notifications from "./components/Notifications";
 import SettingsPage from "./components/Settings";
 import Informations from "./components/Informations";
@@ -51,7 +50,6 @@ const MAIN_MENU_ITEMS = [
   { id: "invoice", label: "Facturation", icon: <FileText size={20} /> },
   { id: "analytics", label: "Statistiques", icon: <BarChart3 size={20} /> },
   { id: "hr", label: "Ressources Humaines", icon: <Users size={20} /> },
-  { id: "Backup", label: "Messages", icon: <MessageSquare size={20} /> },
 ];
 
 const SECONDARY_MENU_ITEMS = [
@@ -68,7 +66,6 @@ const PAGE_TITLES = {
   invoice: "Facturation",
   hr: "Ressources Humaines",
   calendar: "Calendrier",
-  Backup: "Messages",
   notifications: "Notifications",
   settings: "Paramètres",
   break: "Pause",
@@ -243,7 +240,6 @@ const Dashboard = () => {
       invoice: <Invoice userData={userData} />,
       hr: <HR userData={userData} />,
       calendar: <CalendarPage userData={userData} />,
-      Backup: <Messages userData={userData} />,
       notifications: <Notifications userData={userData} />,
       settings: <SettingsPage userData={userData} />,
       break: <Break userData={userData} />,

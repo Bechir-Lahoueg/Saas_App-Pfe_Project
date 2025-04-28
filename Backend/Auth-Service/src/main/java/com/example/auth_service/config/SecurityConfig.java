@@ -25,7 +25,6 @@ public class SecurityConfig {
     private final JwtAuthFilter jwtAuthFilter;
     private final AuthenticationProvider authenticationProvider;
 
-
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
@@ -40,7 +39,9 @@ public class SecurityConfig {
                                 "/tenant/reset-password",
                                 "/tenant/login",
                                 "/category/**",
-                                "/tenant/getTenantByCategory/**"
+                                "/tenant/getTenantByCategory/**",
+                                "/tenant/upload-profile-image/**",
+                                "/tenant/getTenantBySubdomain/**"
                         ).permitAll()
 
                         .anyRequest()

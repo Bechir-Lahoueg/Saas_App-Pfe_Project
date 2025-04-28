@@ -28,7 +28,8 @@ public class SecurityConfig {
                                 "/reservation/**",
                                 "/employee/**",
                                 "/service/**",
-                                "/working-day/**"
+                                "/working-day/**",
+                                "/media/**"
                         )
                         .permitAll()  // Include context path
                         .anyRequest().authenticated()

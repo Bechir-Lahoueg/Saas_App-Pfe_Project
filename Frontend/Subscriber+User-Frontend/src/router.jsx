@@ -1,11 +1,11 @@
 import React, { Suspense, lazy } from "react";
 import { Route, Routes } from "react-router-dom";
-import LoadingSpinner from "./Utils/LoadingSpinner";
+import LoadingSpinner from "./Utils/LoadingSpinner.jsx";
 
 const LandingPage = lazy(() => import("./Landing/LandingPage"));
 const PricingPage = lazy(() => import("./Landing/Components/PricingPage"));
 const Login = lazy(() => import("./Auth/SignIn/LoginPage"));
-const Erreur = lazy(() => import("./Utils/ErreurPage"));
+const Erreur = lazy(() => import("./Utils/ErreurPage.jsx"));
 const GetStarted = lazy(() => import("./Auth/Signup/PaiementPremuim"));
 const Demo = lazy(() => import("./Demo/Demo"));
 const Dashboard = lazy(() => import("./Tenant/Dashboard"));
