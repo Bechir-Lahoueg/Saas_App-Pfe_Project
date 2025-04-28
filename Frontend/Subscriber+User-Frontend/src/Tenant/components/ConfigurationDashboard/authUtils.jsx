@@ -33,3 +33,27 @@ export function getRootHost() {
   const [, ...rest] = host.split(".");
   return rest.join(".");
 }
+
+export function getUrlSubdomain() {
+  return window.location.host.split(":")[0].split(".")[0];
+}
+
+// ─── NEW: the actual guard to run on every protected page
+export function frontEndGuard() {
+  const token = getCookie("accessToken");
+  const payload = token && parseJwt(token);
+
+  // if we have no token, or payload missing, or bad subdomain → kick user out
+  if (
+    !payload ||
+    !payload.subdomain ||
+    payload.subdomain !== getUrlSubdomain()
+  ) {
+    // wipe sensitive cookies
+    ["accessToken", "subdomain"].forEach(deleteCookie);
+
+    // redirect to root-login on the “root” host: e.g. 127.0.0.1.nip.io/connexion
+    const root = getRootHost();
+    window.location.href = `${window.location.protocol}//${root}/connexion`;
+  }
+}
