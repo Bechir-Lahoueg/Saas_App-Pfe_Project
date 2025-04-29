@@ -23,5 +23,6 @@ public class Reservation {
     private Long serviceId;
     private Long employeeId;
     private LocalDateTime startTime;
+    private LocalDateTime endTime;
     private int numberOfAttendees;
 }
