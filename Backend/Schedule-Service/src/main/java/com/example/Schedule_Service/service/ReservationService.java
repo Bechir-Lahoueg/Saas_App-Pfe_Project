@@ -1,11 +1,9 @@
-// src/main/java/com/example/Schedule_Service/service/ReservationService.java
 package com.example.Schedule_Service.service;
 
 import com.example.Schedule_Service.entities.Employee;
 import com.example.Schedule_Service.entities.Reservation;
 import com.example.Schedule_Service.entities.Services;
 import com.example.Schedule_Service.entities.WorkingDay;
-import com.example.Schedule_Service.entities.TimeSlot;
 import com.example.Schedule_Service.repository.EmployeeRepository;
 import com.example.Schedule_Service.repository.ReservationRepository;
 import com.example.Schedule_Service.repository.ServiceRepository;
@@ -26,10 +24,17 @@ import java.util.List;
 @Service
 public class ReservationService {
 
-    @Autowired private ReservationRepository     reservationRepository;
-    @Autowired private ServiceRepository         serviceRepository;
-    @Autowired private EmployeeRepository        employeeRepository;
-    @Autowired private WorkingDayRepository      workingDayRepository;
+    @Autowired
+    private ReservationRepository reservationRepository;
+
+    @Autowired
+    private ServiceRepository serviceRepository;
+
+    @Autowired
+    private EmployeeRepository employeeRepository;
+
+    @Autowired
+    private WorkingDayRepository workingDayRepository;
 
     public List<Reservation> getAllReservations() {
         return reservationRepository.findAll();
@@ -40,7 +45,6 @@ public class ReservationService {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Reservation not found"));
     }
 
-    // in ReservationService.java
     @Transactional
     public Reservation createReservation(Reservation reservation) {
         log.info("[START] Creating reservation: {}", reservation);
