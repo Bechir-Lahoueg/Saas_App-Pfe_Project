@@ -22,8 +22,8 @@ const TenantRegistrationPage = () => {
     city: "",
     zipcode: "",
     country: "",
-    sector: "", // Add sector field
-  });
+    categoryId: "", 
+   });
   const [paymentInfo, setPaymentInfo] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -44,9 +44,12 @@ const TenantRegistrationPage = () => {
     fetchCategories();
   }, []);
 
-  const handleChange = (e) => {
+  const handleChange = e => {
     const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+    setFormData(prev => ({
+      ...prev,
+      [name]: name === "categoryId" ? Number(value) : value
+    }));
   };
 
   const validateForm = () => {
@@ -71,7 +74,7 @@ const TenantRegistrationPage = () => {
       setError("City and zipcode are required");
       return false;
     }
-    if (!formData.sector) {
+    if (!formData.categoryId) {
       setError("Please select a business sector");
       return false;
     }
@@ -83,6 +86,7 @@ const TenantRegistrationPage = () => {
     setError(null);
     if (!validateForm()) return;
     setStep(2);
+    console.log(formData)
   };
 
   const generateOrderId = () => {
@@ -109,10 +113,11 @@ const TenantRegistrationPage = () => {
         businessName: formData.businessName,
         subdomain: formData.subdomain,
         password: formData.password,
-        sector: formData.sector, // Add sector to payment data
+        categoryId: formData.categoryId, // Add sector to payment data
         successUrl: `${window.location.origin}/paiement?step=3&status=success`,
         failUrl: `${window.location.origin}/paiement?step=3&status=failed`,
       };
+      
 
       const response = await fetch(
         "http://localhost:8888/payment/tenant-registration",
@@ -205,7 +210,7 @@ const TenantRegistrationPage = () => {
       city: "",
       zipcode: "",
       country: "",
-      sector: "", // Reset sector as well
+      categoryId: "", // Reset sector as well
     });
   };
 
@@ -331,9 +336,9 @@ const TenantRegistrationPage = () => {
               </span>
             </div>
             <select
-              id="sector"
-              name="sector"
-              value={formData.sector}
+              id="categoryId"
+              name="categoryId"
+              value={formData.categoryId}
               onChange={handleChange}
               className="w-full pl-10 pr-10 py-3 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all duration-200 appearance-none bg-white"
               required
@@ -342,7 +347,7 @@ const TenantRegistrationPage = () => {
                 Select your business sector
               </option>
               {categories.map((cat) => (
-                <option key={cat.id} value={cat.categoryName}>
+                <option key={cat.id} value={cat.id}>
                   {cat.categoryName}
                 </option>
               ))}
@@ -590,7 +595,7 @@ const TenantRegistrationPage = () => {
 
       <div className="flex flex-col sm:flex-row gap-4 justify-center">
         <motion.button
-          onClick={handleInitiatePayment}
+          // onClick={handleInitiatePayment}
           disabled={loading}
           className={`bg-gradient-to-r from-indigo-600 to-purple-600 text-white py-3 px-8 rounded-xl shadow-lg transition duration-300 flex items-center justify-center ${
             loading

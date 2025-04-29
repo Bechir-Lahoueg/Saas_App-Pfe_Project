@@ -69,7 +69,7 @@ export default function TenantsByCategory() {
                     <p className="text-gray-600 mb-1">{t.city}, {t.country}</p>
                     <p className="text-gray-600 mb-1">📞 {t.phone}</p>
                     <a
-                      href={`https://${t.subdomain}.127.0.0.1.nip.io:5173/app`}
+                      href={`http://${t.subdomain}.127.0.0.1.nip.io:5173/reservation`}
                       className="mt-4 inline-flex items-center text-blue-600 font-medium hover:text-blue-800"
                     >
                       Voir la page de réservation
