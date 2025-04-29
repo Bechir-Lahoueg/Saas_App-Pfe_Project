@@ -8,6 +8,8 @@ import {
   X,
   Users,
   Star, // Pour les événements spéciaux
+  AlertCircle,
+  Check,
 } from "lucide-react";
 import axios from "axios";
 
@@ -182,6 +184,7 @@ const Calendar = () => {
       fetchReservations(data);
     } catch (error) {
       console.error("Erreur lors du chargement des services:", error);
+      showToast("Erreur lors du chargement des services: " + (error.response?.data?.message || error.message), "error");
     }
   };
 
@@ -191,18 +194,20 @@ const Calendar = () => {
       setEmployees(data);
     } catch (error) {
       console.error("Erreur lors du chargement des employés:", error);
+      showToast("Erreur lors du chargement des employés: " + (error.response?.data?.message || error.message), "error");
     }
   };
 
   const fetchReservations = async (svcList = services) => {
     try {
       const { data } = await axios.get("/schedule/reservation/getall");
-      // build month→events map
-      const byMonth = {};
+      // Organiser par année puis par mois
+      const byYearAndMonth = {};
       data.forEach((r) => {
         // Convertir la date UTC en date locale
         const dt = new Date(r.startTime);
-
+        
+        const y = dt.getFullYear();
         const m = dt.getMonth();
         const svc = svcList.find((s) => s.id === r.serviceId);
         const title = svc ? svc.name : "Réservation";
@@ -218,14 +223,49 @@ const Calendar = () => {
           color: "teal",
         };
 
-        byMonth[m] = [...(byMonth[m] || []), evt];
+        // Structure: byYearAndMonth[année][mois] = [événements]
+        if (!byYearAndMonth[y]) byYearAndMonth[y] = {};
+        byYearAndMonth[y][m] = [...(byYearAndMonth[y][m] || []), evt];
       });
 
       // Remplacer complètement les événements par les réservations
-      setAllEvents(byMonth);
+      setAllEvents(byYearAndMonth);
     } catch (error) {
       console.error("Erreur lors du chargement des réservations:", error);
+      showToast("Erreur lors du chargement des réservations: " + (error.response?.data?.message || error.message), "error");
     }
+  };
+
+  // ─── Toast notification helper ──────────────────────────────────────
+  const showToast = (message, type = "info") => {
+    const toast = document.createElement("div");
+    toast.className = `fixed top-4 right-4 p-4 rounded-lg shadow-lg z-50 flex items-center gap-3 animate-slideIn ${
+      type === "error" 
+        ? "bg-red-100 text-red-800 border-l-4 border-red-500" 
+        : type === "success"
+        ? "bg-emerald-100 text-emerald-800 border-l-4 border-emerald-500"
+        : "bg-blue-100 text-blue-800 border-l-4 border-blue-500"
+    }`;
+    
+    const icon = document.createElement("div");
+    icon.innerHTML = type === "error" 
+      ? '<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"></path></svg>' 
+      : type === "success"
+      ? '<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>'
+      : '<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path></svg>';
+    
+    toast.appendChild(icon);
+    
+    const textDiv = document.createElement("div");
+    textDiv.textContent = message;
+    toast.appendChild(textDiv);
+    
+    document.body.appendChild(toast);
+    
+    setTimeout(() => {
+      toast.classList.add("animate-slideOut");
+      setTimeout(() => toast.remove(), 500);
+    }, 4000);
   };
 
   // ─── Helpers ───────────────────────────────────────────────────────
@@ -256,7 +296,7 @@ const Calendar = () => {
   // ─── Réservation Handlers ─────────────────────────────────────────
   const openReservationModal = () => {
     if (!selectedDate) {
-      alert("Veuillez sélectionner une date d'abord");
+      showToast("Veuillez sélectionner une date d'abord", "error");
       return;
     }
     setReservationForm({
@@ -275,16 +315,16 @@ const Calendar = () => {
   const validateForm = () => {
     const e = {};
     if (!reservationForm.serviceId) {
-      e.serviceId = "Service requis";
+      e.serviceId = "Service requis pour une réservation valide";
     } else {
       const svc = services.find((s) => s.id === +reservationForm.serviceId);
       if (svc?.requiresEmployeeSelection && !reservationForm.employeeId) {
-        e.employeeId = "Employé requis";
+        e.employeeId = "Ce service nécessite un employé désigné";
       }
     }
-    if (!reservationForm.time) e.time = "Heure requise";
-    if (reservationForm.numberOfAttendees < 1) {
-      e.numberOfAttendees = "Au moins 1 participant";
+    if (!reservationForm.time) e.time = "Veuillez spécifier une heure pour la réservation";
+    if (!reservationForm.numberOfAttendees || reservationForm.numberOfAttendees < 1) {
+      e.numberOfAttendees = "Au moins 1 participant est requis";
     }
     setFormErrors(e);
     return Object.keys(e).length === 0;
@@ -293,6 +333,15 @@ const Calendar = () => {
   const handleReservationInput = (e) => {
     const { name, value } = e.target;
     setReservationForm((f) => ({ ...f, [name]: value }));
+    
+    // Effacer l'erreur spécifique lorsque le champ est modifié
+    if (formErrors[name]) {
+      setFormErrors(prev => {
+        const updated = {...prev};
+        delete updated[name];
+        return updated;
+      });
+    }
   };
 
   const submitReservation = async (e) => {
@@ -322,6 +371,7 @@ const Calendar = () => {
       });
 
       setSubmitSuccess(true);
+      showToast("Réservation créée avec succès", "success");
       // refresh events
       fetchReservations();
       // auto-close after a moment
@@ -330,9 +380,9 @@ const Calendar = () => {
         setSubmitSuccess(false);
       }, 1500);
     } catch (err) {
-      setSubmitError(
-        err.response?.data?.message || "Erreur lors de la création"
-      );
+      const errorMessage = err.response?.data?.message || "Erreur lors de la création de la réservation";
+      setSubmitError(errorMessage);
+      showToast("Échec de la réservation: " + errorMessage, "error");
     } finally {
       setLoading(false);
     }
@@ -365,23 +415,13 @@ const Calendar = () => {
         return updatedEvents;
       });
 
-      // Message de succès plus discret avec disparition automatique
-      const successAlert = document.createElement("div");
-      successAlert.className =
-        "fixed top-4 right-4 bg-emerald-100 text-emerald-800 p-3 rounded-lg shadow-md animate-fadeIn z-50";
-      successAlert.innerHTML = `<div class="flex items-center"><svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg> Réservation supprimée</div>`;
-      document.body.appendChild(successAlert);
-
-      // Retire le message après 2 secondes
-      setTimeout(() => {
-        successAlert.classList.add("animate-fadeOut");
-        setTimeout(() => successAlert.remove(), 300);
-      }, 2000);
+      showToast("Réservation supprimée avec succès", "success");
     } catch (error) {
       console.error("Erreur lors de la suppression:", error);
-      alert(
-        "Erreur lors de la suppression: " +
-          (error.response?.data?.message || error.message)
+      showToast(
+        "Erreur lors de la suppression: " + 
+        (error.response?.data?.message || error.message),
+        "error"
       );
     } finally {
       setLoading(false);
@@ -392,7 +432,7 @@ const Calendar = () => {
   const renderCalendarGrid = (month) => {
     const firstDay = new Date(currentYear, month, 1).getDay();
     const daysInMonth = new Date(currentYear, month + 1, 0).getDate();
-    const monthEvents = allEvents[month] || [];
+    const monthEvents = allEvents[currentYear]?.[month] || [];
 
     // Ajustement pour commencer la semaine par Lundi (0: lundi, 6: dimanche)
     const blanks = firstDay === 0 ? 6 : firstDay - 1;
@@ -421,7 +461,7 @@ const Calendar = () => {
           onClick={() => setSelectedDate(dt)}
           className={`
             p-2 h-24 sm:h-28 md:h-32 rounded-lg cursor-pointer relative
-            overflow-hidden
+            overflow-hidden group
             ${
               isSel
                 ? "bg-blue-100 border-2 border-blue-400"
@@ -435,7 +475,7 @@ const Calendar = () => {
                   : "bg-amber-50"
                 : "hover:bg-blue-50"
             }
-            transition-colors duration-200
+            transition-all duration-200 hover:shadow-md
           `}
         >
           {/* Numéro du jour */}
@@ -443,7 +483,7 @@ const Calendar = () => {
             <span
               className={`
               inline-flex justify-center items-center w-7 h-7 rounded-full font-medium
-              ${isSel ? "bg-blue-500 text-white" : ""}
+              ${isSel ? "bg-blue-500 text-white shadow-inner" : ""}
               ${isToday && !isSel ? "bg-blue-200 text-blue-800" : ""}
               ${
                 holiday && !isSel && !isToday
@@ -452,6 +492,7 @@ const Calendar = () => {
                     : "bg-amber-200 text-amber-800"
                   : ""
               }
+              transition-transform group-hover:scale-105
             `}
             >
               {day}
@@ -467,13 +508,14 @@ const Calendar = () => {
                       ? "bg-emerald-100 text-emerald-800"
                       : "bg-amber-100 text-amber-800"
                   }
+                  transform transition-transform group-hover:translate-x-0 translate-x-1
                 `}
                 title={holiday.name}
               >
                 <Star size={10} className="mr-1" />
-                <span className="hidden sm:inline">
-                  {holiday.name.length > 8
-                    ? holiday.name.substring(0, 8) + "..."
+                <span className="hidden sm:inline truncate max-w-[120px]">
+                  {holiday.name.length > 12
+                    ? holiday.name.substring(0, 12) + "..."
                     : holiday.name}
                 </span>
               </span>
@@ -481,12 +523,12 @@ const Calendar = () => {
           </div>
 
           {/* Liste des réservations */}
-          <div className="mt-1 space-y-1 max-h-20 overflow-y-auto scrollbar-thin">
+          <div className="mt-1 space-y-1 max-h-20 overflow-y-auto custom-scrollbar">
             {evts.slice(0, 3).map((e) => (
               <div
                 key={e.id}
                 title={`${e.title} - ${formatTime(e.time)}`}
-                className="text-xs text-white px-1 py-0.5 rounded truncate flex items-center bg-teal-500 hover:bg-teal-600 shadow-sm"
+                className="text-xs text-white px-1 py-0.5 rounded truncate flex items-center bg-teal-500 hover:bg-teal-600 shadow-sm transition-all"
                 onClick={(event) => {
                   event.stopPropagation();
                 }}
@@ -498,10 +540,24 @@ const Calendar = () => {
               </div>
             ))}
             {evts.length > 3 && (
-              <div className="text-xs text-gray-500 font-medium text-center bg-gray-100 rounded py-0.5">
+              <div className="text-xs text-gray-500 font-medium text-center bg-gray-100 rounded py-0.5 hover:bg-gray-200 cursor-pointer transition-colors">
                 +{evts.length - 3} {evts.length - 3 > 1 ? "autres" : "autre"}
               </div>
             )}
+          </div>
+          
+          {/* Bouton ajouter (visible au survol) */}
+          <div className="absolute bottom-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity">
+            <button 
+              onClick={(e) => {
+                e.stopPropagation();
+                setSelectedDate(dt);
+                openReservationModal();
+              }}
+              className="w-6 h-6 bg-blue-100 hover:bg-blue-200 text-blue-700 rounded-full flex items-center justify-center"
+            >
+              +
+            </button>
           </div>
         </div>
       );
@@ -524,87 +580,91 @@ const Calendar = () => {
 
   const renderYearView = () => (
     <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-      {[...Array(12)].map((_, month) => (
-        <div
-          key={month}
-          className="border border-gray-200 rounded-lg p-3 hover:shadow-md transition-shadow cursor-pointer hover:bg-blue-50"
-          onClick={() => {
-            setSelectedMonth(month);
-            setSelectedView("Mois");
-          }}
-        >
-          <h3 className="text-center font-semibold mb-3 text-indigo-700">
-            {new Date(currentYear, month).toLocaleString("fr-FR", {
-              month: "long",
-            })}
-          </h3>
+      {[...Array(12)].map((_, month) => {
+        // Vérifier s'il y a des événements pour ce mois dans l'année courante
+        const hasEvents = Object.keys(allEvents[currentYear] || {}).includes(month.toString());
+        
+        return (
+          <div
+            key={month}
+            className="border border-gray-200 rounded-lg p-3 hover:shadow-md transition-all cursor-pointer hover:bg-blue-50 hover:border-blue-200 transform hover:-translate-y-1"
+            onClick={() => {
+              setSelectedMonth(month);
+              setSelectedView("Mois");
+            }}
+          >
+            <h3 className="text-center font-semibold mb-3 text-indigo-700">
+              {new Date(currentYear, month).toLocaleString("fr-FR", {
+                month: "long",
+              })}
+            </h3>
 
-          {/* mini-month days */}
-          <div className="grid grid-cols-7 gap-1 text-xs">
-            {["L", "M", "M", "J", "V", "S", "D"].map((d, i) => (
-              <div key={i} className="text-center text-gray-500">
-                {d}
-              </div>
-            ))}
+            {/* mini-month days */}
+            <div className="grid grid-cols-7 gap-1 text-xs">
+              {["L", "M", "M", "J", "V", "S", "D"].map((d, i) => (
+                <div key={i} className="text-center text-gray-500">
+                  {d}
+                </div>
+              ))}
 
-            {/* Days of the month */}
-            {(() => {
-              const firstDay = new Date(currentYear, month, 1).getDay();
-              const blanks = firstDay === 0 ? 6 : firstDay - 1;
-              const cells = [];
+              {/* Days of the month */}
+              {(() => {
+                const firstDay = new Date(currentYear, month, 1).getDay();
+                const blanks = firstDay === 0 ? 6 : firstDay - 1;
+                const cells = [];
 
-              // Empty cells
-              for (let i = 0; i < blanks; i++) {
-                cells.push(<div key={`blank-${i}`} />);
-              }
+                // Empty cells
+                for (let i = 0; i < blanks; i++) {
+                  cells.push(<div key={`blank-${i}`} />);
+                }
 
-              // Days
-              for (
-                let day = 1;
-                day <= new Date(currentYear, month + 1, 0).getDate();
-                day++
-              ) {
-                const hasEvt = (allEvents[month] || []).some(
-                  (e) => new Date(e.date).getDate() === day
-                );
-                const holiday = getHolidayInfo(currentYear, month, day);
-                const isToday =
-                  new Date().getDate() === day &&
-                  new Date().getMonth() === month &&
-                  new Date().getFullYear() === currentYear;
+                // Days
+                for (
+                  let day = 1;
+                  day <= new Date(currentYear, month + 1, 0).getDate();
+                  day++
+                ) {
+                  const hasEvt = (allEvents[currentYear]?.[month] || []).some(
+                    (e) => new Date(e.date).getDate() === day
+                  );
+                  const holiday = getHolidayInfo(currentYear, month, day);
+                  const isToday =
+                    new Date().getDate() === day &&
+                    new Date().getMonth() === month &&
+                    new Date().getFullYear() === currentYear;
 
-                cells.push(
-                  <div
-                    key={day}
-                    className={`
+                  cells.push(
+                    <div
+                      key={day}
+                      className={`
                       text-center text-xs p-1 rounded-full
-                      ${hasEvt ? "bg-teal-100" : ""}
+                      ${hasEvt ? "bg-teal-100 ring-1 ring-teal-300" : ""}
                       ${holiday ? "bg-amber-100" : ""}
                       ${isToday ? "ring-1 ring-blue-500" : ""}
-                      font-medium
+                      font-medium transition-all hover:scale-110
                     `}
-                  >
-                    {day}
-                  </div>
-                );
-              }
+                    >
+                      {day}
+                    </div>
+                  );
+                }
 
-              return cells;
-            })()}
-          </div>
+                return cells;
+              })()}
+            </div>
 
-          {/* Fêtes du mois */}
-          <div className="mt-3 text-xs">
-            {Object.entries(tunisianHolidays)
-              .filter(([key]) => {
-                const [monthStr] = key.split("-");
-                return parseInt(monthStr) === month + 1;
-              })
-              .slice(0, 2)
-              .map(([key, holiday]) => (
-                <div
-                  key={key}
-                  className={`
+            {/* Fêtes du mois */}
+            <div className="mt-3 text-xs">
+              {Object.entries(tunisianHolidays)
+                .filter(([key]) => {
+                  const [monthStr] = key.split("-");
+                  return parseInt(monthStr) === month + 1;
+                })
+                .slice(0, 2)
+                .map(([key, holiday]) => (
+                  <div
+                    key={key}
+                    className={`
                     px-2 py-1 my-1 rounded text-xs flex items-center
                     ${
                       holiday.type === "religious"
@@ -612,16 +672,17 @@ const Calendar = () => {
                         : "bg-amber-100 text-amber-800"
                     }
                   `}
-                >
-                  <Star size={10} className="mr-1" />
-                  <span className="truncate">
-                    {key.split("-")[1]} - {holiday.name}
-                  </span>
-                </div>
-              ))}
+                  >
+                    <Star size={10} className="mr-1" />
+                    <span className="truncate">
+                      {key.split("-")[1]} - {holiday.name}
+                    </span>
+                  </div>
+                ))}
+            </div>
           </div>
-        </div>
-      ))}
+        );
+      })}
     </div>
   );
 
@@ -630,7 +691,7 @@ const Calendar = () => {
     if (!selectedDate) return null;
 
     // Récupérer les événements de la journée sélectionnée
-    const dateEvents = (allEvents[selectedDate.getMonth()] || [])
+    const dateEvents = (allEvents[selectedDate.getFullYear()]?.[selectedDate.getMonth()] || [])
       .filter((e) => new Date(e.date).getDate() === selectedDate.getDate())
       .sort((a, b) => a.time.localeCompare(b.time));
 
@@ -653,6 +714,7 @@ const Calendar = () => {
                 ? "bg-emerald-100 border-emerald-200 text-emerald-800"
                 : "bg-amber-100 border-amber-200 text-amber-800"
             }
+            animate-fadeIn
           `}
           >
             <Star size={18} className="mr-2" />
@@ -667,17 +729,20 @@ const Calendar = () => {
         )}
 
         {/* Vue par heure sur 24h */}
-        <div className="border rounded-lg overflow-hidden bg-white shadow-sm">
-          <div className="sticky top-0 bg-gradient-to-r from-gray-50 to-white border-b px-4 py-2 font-medium text-gray-800">
+        <div className="border rounded-lg overflow-hidden bg-white shadow-md">
+          <div className="sticky top-0 bg-gradient-to-r from-indigo-50 to-blue-50 border-b px-4 py-3 font-medium text-indigo-800 flex items-center">
+            <Clock size={18} className="mr-2 text-indigo-600" />
             Horaires -{" "}
-            {selectedDate.toLocaleDateString("fr-FR", {
-              weekday: "long",
-              day: "numeric",
-              month: "long",
-            })}
+            <span className="font-semibold ml-1">
+              {selectedDate.toLocaleDateString("fr-FR", {
+                weekday: "long",
+                day: "numeric",
+                month: "long",
+              })}
+            </span>
           </div>
 
-          <div className="overflow-y-auto max-h-[600px] overflow-x-hidden">
+          <div className="overflow-y-auto max-h-[600px] overflow-x-hidden custom-scrollbar">
             {[...Array(24)].map((_, i) => {
               const hourStr = String(i).padStart(2, "0");
               const hourEvents = dateEvents.filter((e) =>
@@ -692,10 +757,11 @@ const Calendar = () => {
                   key={i}
                   className={`flex ${
                     isCurrentHour ? "bg-blue-50" : ""
-                  } hover:bg-gray-50`}
+                  } hover:bg-gray-50 border-b last:border-b-0 group`}
                 >
                   {/* Heure */}
-                  <div className="w-20 py-3 flex-shrink-0 border-r text-right pr-2 text-gray-500 font-medium">
+                  <div className={`w-20 py-3 flex-shrink-0 border-r text-right pr-2 
+                    ${isCurrentHour ? "font-bold text-blue-700" : "text-gray-500 font-medium"}`}>
                     {formatTime(`${hourStr}:00`)}
                   </div>
 
@@ -705,7 +771,7 @@ const Calendar = () => {
                       <div className="flex items-center justify-center h-full w-full">
                         <button
                           onClick={openReservationModal}
-                          className="text-xs text-gray-400 hover:text-teal-600 py-1"
+                          className="text-xs text-gray-400 hover:text-teal-600 py-1 px-2 rounded-md hover:bg-teal-50 transition-colors opacity-0 group-hover:opacity-100"
                         >
                           <Users size={12} className="inline mr-1" />
                           Ajouter une réservation
@@ -716,9 +782,9 @@ const Calendar = () => {
                         {hourEvents.map((e) => (
                           <div
                             key={e.id}
-                            className="px-3 py-1.5 rounded-md text-white text-sm shadow-sm
+                            className="px-3 py-2 rounded-md text-white text-sm shadow-md
                               bg-teal-500 hover:bg-teal-600 cursor-pointer
-                              transition-transform hover:translate-x-1 flex justify-between items-center"
+                              transition-all hover:translate-x-1 flex justify-between items-center"
                           >
                             <div>
                               <div className="font-medium">{e.title}</div>
@@ -732,7 +798,7 @@ const Calendar = () => {
                                 event.stopPropagation();
                                 deleteReservation(e.id);
                               }}
-                              className="text-white/70 hover:text-white ml-2"
+                              className="text-white/70 hover:text-white ml-2 p-1 hover:bg-red-500 rounded transition-colors"
                               title="Supprimer cette réservation"
                             >
                               <X size={16} />
@@ -757,12 +823,13 @@ const Calendar = () => {
       {/* Sidebar */}
       <div className="w-full md:w-96 bg-white p-6 border-r shadow-lg rounded-lg md:rounded-r-none m-2 md:m-0">
         <div className="flex flex-col sm:flex-row justify-between items-center mb-6">
-          <h2 className="text-2xl font-semibold text-indigo-800 mb-4 sm:mb-0">
+          <h2 className="text-2xl font-semibold text-indigo-800 mb-4 sm:mb-0 flex items-center">
+            <CalendarIcon size={24} className="mr-2 text-indigo-600" />
             Calendrier
           </h2>
           <div className="flex gap-2">
             <button
-              className="bg-emerald-600 hover:bg-emerald-700 text-white p-2 rounded-lg flex items-center shadow-md transition-all"
+              className="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-2 rounded-lg flex items-center shadow-md transition-all hover:translate-y-[-2px]"
               onClick={openReservationModal}
             >
               <Users size={18} className="mr-1" />
@@ -822,8 +889,8 @@ const Calendar = () => {
                   className={`px-3 py-1 text-sm rounded ${
                     timeView === "12h"
                       ? "bg-white shadow text-blue-600"
-                      : "text-gray-600"
-                  }`}
+                      : "text-gray-600 hover:text-gray-800"
+                  } transition-colors`}
                 >
                   12h
                 </button>
@@ -832,8 +899,8 @@ const Calendar = () => {
                   className={`px-3 py-1 text-sm rounded ${
                     timeView === "24h"
                       ? "bg-white shadow text-blue-600"
-                      : "text-gray-600"
-                  }`}
+                      : "text-gray-600 hover:text-gray-800"
+                  } transition-colors`}
                 >
                   24h
                 </button>
@@ -842,13 +909,9 @@ const Calendar = () => {
 
             {/* Liste des réservations pour le jour sélectionné */}
             <div
-              className="space-y-3 max-h-96 overflow-y-auto pr-2"
-              style={{
-                scrollbarWidth: "thin",
-                scrollbarColor: "rgba(203, 213, 225, 0.5) transparent",
-              }}
+              className="space-y-3 max-h-96 overflow-y-auto pr-2 custom-scrollbar"
             >
-              {(allEvents[selectedDate.getMonth()] || [])
+              {(allEvents[selectedDate.getFullYear()]?.[selectedDate.getMonth()] || [])
                 .filter(
                   (e) => new Date(e.date).getDate() === selectedDate.getDate()
                 )
@@ -857,7 +920,7 @@ const Calendar = () => {
                   <div
                     key={e.id}
                     className="bg-white border rounded-lg p-4 shadow-sm flex items-start gap-3 
-                      hover:shadow-md transition-shadow border-l-4 border-l-teal-500"
+                      hover:shadow-md transition-all border-l-4 border-l-teal-500 group animate-fadeIn"
                   >
                     <div className="w-3 h-3 rounded-full mt-1 flex-shrink-0 bg-teal-500" />
                     <div className="flex-1">
@@ -870,17 +933,17 @@ const Calendar = () => {
 
                     <button
                       onClick={() => deleteReservation(e.id)}
-                      className="text-red-500 hover:text-red-700 p-1 rounded-full hover:bg-red-50"
+                      className="text-red-400 hover:text-red-600 p-1 rounded-full hover:bg-red-50 opacity-0 group-hover:opacity-100 transition-opacity"
                       title="Supprimer cette réservation"
                     >
                       <X size={18} />
                     </button>
                   </div>
                 ))}
-              {!(allEvents[selectedDate.getMonth()] || []).some(
+              {!(allEvents[selectedDate.getFullYear()]?.[selectedDate.getMonth()] || []).some(
                 (e) => new Date(e.date).getDate() === selectedDate.getDate()
               ) && (
-                <div className="text-center text-gray-500 p-6 bg-gray-50 rounded-lg">
+                <div className="text-center text-gray-500 p-6 bg-gray-50 rounded-lg border border-gray-100">
                   <CalendarIcon
                     size={32}
                     className="mx-auto mb-2 text-gray-400"
@@ -889,8 +952,9 @@ const Calendar = () => {
                   <div className="flex justify-center gap-2 mt-3">
                     <button
                       onClick={openReservationModal}
-                      className="text-sm text-emerald-600 hover:underline px-3 py-1 border border-emerald-300 rounded-md hover:bg-emerald-50"
+                      className="text-sm text-emerald-600 hover:bg-emerald-500 hover:text-white px-4 py-2 border border-emerald-300 rounded-md transition-colors"
                     >
+                      <Users size={14} className="inline mr-1" />
                       Ajouter une réservation
                     </button>
                   </div>
@@ -899,9 +963,9 @@ const Calendar = () => {
             </div>
           </>
         ) : (
-          <div className="text-center text-gray-400 p-10 bg-gray-50 rounded-lg">
+          <div className="text-center text-gray-400 p-10 bg-gray-50 rounded-lg border border-gray-100">
             <CalendarIcon size={48} className="mx-auto mb-2" />
-            <p>Sélectionnez une date pour voir ou ajouter</p>
+            <p>Sélectionnez une date pour voir ou ajouter des réservations</p>
           </div>
         )}
       </div>
@@ -910,17 +974,19 @@ const Calendar = () => {
       <div className="flex-grow p-4 md:p-8">
         <div className="bg-white rounded-xl shadow-xl overflow-hidden">
           {/* Header */}
-          <div className="flex justify-between items-center p-4 border-b bg-gradient-to-r from-indigo-500 to-blue-600 text-white">
+          <div className="flex justify-between items-center p-4 border-b bg-gradient-to-r from-indigo-600 to-blue-600 text-white">
             <button
               onClick={() => setCurrentYear((y) => y - 1)}
-              className="p-1 hover:bg-white/20 rounded transition"
+              className="p-2 hover:bg-white/20 rounded-full transition-colors"
+              title="Année précédente"
             >
               <ChevronLeft size={20} />
             </button>
             <h2 className="text-xl font-bold">{currentYear}</h2>
             <button
               onClick={() => setCurrentYear((y) => y + 1)}
-              className="p-1 hover:bg-white/20 rounded transition"
+              className="p-2 hover:bg-white/20 rounded-full transition-colors"
+              title="Année suivante"
             >
               <ChevronRight size={20} />
             </button>
@@ -1016,61 +1082,37 @@ const Calendar = () => {
 
       {/* ─── Réservation Modal ───────────────────────────────────────── */}
       {showReservationModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 animate-[fadeIn_0.3s_ease-out]">
-          <div className="bg-white rounded-lg shadow-2xl w-full max-w-md p-6">
+        <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-4 animate-fadeIn">
+          <div className="bg-white rounded-lg shadow-2xl w-full max-w-md p-6 animate-slideUp">
             <div className="flex justify-between items-center mb-4 border-b pb-2">
               <h3 className="text-xl font-semibold text-emerald-800">
                 Nouvelle réservation
               </h3>
               <button
                 onClick={() => setShowReservationModal(false)}
-                className="p-1 rounded-full hover:bg-gray-100"
+                className="p-1 rounded-full hover:bg-gray-100 transition-colors"
               >
                 <X size={24} />
               </button>
             </div>
 
             {submitSuccess && (
-              <div className="mb-4 p-3 bg-emerald-100 text-emerald-700 rounded-lg border border-emerald-200 flex items-center">
-                <svg
-                  className="w-5 h-5 mr-2"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M5 13l4 4L19 7"
-                  />
-                </svg>
+              <div className="mb-4 p-3 bg-emerald-100 text-emerald-700 rounded-lg border-l-4 border-emerald-500 flex items-center animate-fadeIn">
+                <Check className="w-5 h-5 mr-2" />
                 Réservation créée avec succès !
               </div>
             )}
 
             {submitError && (
-              <div className="mb-4 p-3 bg-red-100 text-red-700 rounded-lg border border-red-200 flex items-center">
-                <svg
-                  className="w-5 h-5 mr-2"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M6 18L18 6M6 6l12 12"
-                  />
-                </svg>
+              <div className="mb-4 p-3 bg-red-100 text-red-700 rounded-lg border-l-4 border-red-500 flex items-center animate-fadeIn">
+                <AlertCircle className="w-5 h-5 mr-2" />
                 {submitError}
               </div>
             )}
 
             <form onSubmit={submitReservation} className="space-y-4">
               {/* Date sélectionnée */}
-              <div className="mb-4 bg-emerald-50 p-3 rounded-lg">
+              <div className="mb-4 bg-emerald-50 p-3 rounded-lg border border-emerald-100">
                 <p className="text-sm text-gray-600 mb-1">
                   Date de réservation:
                 </p>
@@ -1086,14 +1128,18 @@ const Calendar = () => {
 
               {/* Service */}
               <div>
-                <label className="block text-sm font-medium text-gray-700">
-                  Service
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Service <span className="text-red-500">*</span>
                 </label>
                 <select
                   name="serviceId"
                   value={reservationForm.serviceId || ""}
                   onChange={handleReservationInput}
-                  className="mt-1 w-full border rounded-lg p-2 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                  className={`w-full border rounded-lg p-2 focus:ring-2 focus:outline-none transition-colors ${
+                    formErrors.serviceId 
+                      ? "border-red-300 bg-red-50 focus:ring-red-200" 
+                      : "focus:ring-emerald-200 border-gray-300"
+                  }`}
                 >
                   <option value="">— Choisir un service —</option>
                   {services.map((s) => (
@@ -1103,7 +1149,8 @@ const Calendar = () => {
                   ))}
                 </select>
                 {formErrors.serviceId && (
-                  <p className="text-red-600 text-sm mt-1">
+                  <p className="text-red-600 text-sm mt-1 flex items-start">
+                    <AlertCircle size={14} className="mr-1 mt-0.5 flex-shrink-0" />
                     {formErrors.serviceId}
                   </p>
                 )}
@@ -1117,14 +1164,18 @@ const Calendar = () => {
                 if (svc?.requiresEmployeeSelection) {
                   return (
                     <div>
-                      <label className="block text-sm font-medium text-gray-700">
-                        Employé
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Employé <span className="text-red-500">*</span>
                       </label>
                       <select
                         name="employeeId"
                         value={reservationForm.employeeId || ""}
                         onChange={handleReservationInput}
-                        className="mt-1 w-full border rounded-lg p-2 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                        className={`w-full border rounded-lg p-2 focus:ring-2 focus:outline-none transition-colors ${
+                          formErrors.employeeId 
+                            ? "border-red-300 bg-red-50 focus:ring-red-200" 
+                            : "focus:ring-emerald-200 border-gray-300"
+                        }`}
                       >
                         <option value="">— Choisir un employé —</option>
                         {svc.employees.map((emp) => (
@@ -1134,7 +1185,8 @@ const Calendar = () => {
                         ))}
                       </select>
                       {formErrors.employeeId && (
-                        <p className="text-red-600 text-sm mt-1">
+                        <p className="text-red-600 text-sm mt-1 flex items-start">
+                          <AlertCircle size={14} className="mr-1 mt-0.5 flex-shrink-0" />
                           {formErrors.employeeId}
                         </p>
                       )}
@@ -1146,25 +1198,32 @@ const Calendar = () => {
 
               {/* Date & Time */}
               <div>
-                <label className="block text-sm font-medium text-gray-700">
-                  Heure
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Heure <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="time"
                   name="time"
                   value={reservationForm.time}
                   onChange={handleReservationInput}
-                  className="mt-1 w-full border rounded-lg p-2 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                  className={`w-full border rounded-lg p-2 focus:ring-2 focus:outline-none transition-colors ${
+                    formErrors.time 
+                      ? "border-red-300 bg-red-50 focus:ring-red-200" 
+                      : "focus:ring-emerald-200 border-gray-300"
+                  }`}
                 />
                 {formErrors.time && (
-                  <p className="text-red-600 text-sm mt-1">{formErrors.time}</p>
+                  <p className="text-red-600 text-sm mt-1 flex items-start">
+                    <AlertCircle size={14} className="mr-1 mt-0.5 flex-shrink-0" />
+                    {formErrors.time}
+                  </p>
                 )}
               </div>
 
               {/* Participants */}
               <div>
-                <label className="block text-sm font-medium text-gray-700">
-                  Nombre de participants
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Nombre de participants <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="number"
@@ -1172,10 +1231,15 @@ const Calendar = () => {
                   min="1"
                   value={reservationForm.numberOfAttendees || ""}
                   onChange={handleReservationInput}
-                  className="mt-1 w-full border rounded-lg p-2 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                  className={`w-full border rounded-lg p-2 focus:ring-2 focus:outline-none transition-colors ${
+                    formErrors.numberOfAttendees 
+                      ? "border-red-300 bg-red-50 focus:ring-red-200" 
+                      : "focus:ring-emerald-200 border-gray-300"
+                  }`}
                 />
                 {formErrors.numberOfAttendees && (
-                  <p className="text-red-600 text-sm mt-1">
+                  <p className="text-red-600 text-sm mt-1 flex items-start">
+                    <AlertCircle size={14} className="mr-1 mt-0.5 flex-shrink-0" />
                     {formErrors.numberOfAttendees}
                   </p>
                 )}
@@ -1185,20 +1249,30 @@ const Calendar = () => {
                 <button
                   type="button"
                   onClick={() => setShowReservationModal(false)}
-                  className="px-4 py-2 border rounded hover:bg-gray-100 transition"
+                  className="px-4 py-2 border rounded hover:bg-gray-100 transition-colors"
                 >
                   Annuler
                 </button>
                 <button
                   type="submit"
                   disabled={loading}
-                  className={`px-4 py-2 rounded text-white shadow transition ${
+                  className={`px-4 py-2 rounded text-white shadow transition-all ${
                     loading
-                      ? "bg-gray-400"
-                      : "bg-emerald-600 hover:bg-emerald-700"
+                      ? "bg-gray-400 cursor-not-allowed"
+                      : "bg-emerald-600 hover:bg-emerald-700 hover:shadow-lg"
                   }`}
                 >
-                  {loading ? "En cours..." : "Créer réservation"}
+                  {loading ? (
+                    <span className="flex items-center">
+                      <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                      En cours...
+                    </span>
+                  ) : (
+                    "Créer réservation"
+                  )}
                 </button>
               </div>
             </form>
@@ -1211,22 +1285,51 @@ const Calendar = () => {
         @keyframes fadeIn {
           from {
             opacity: 0;
-            transform: translateY(-10px);
           }
           to {
             opacity: 1;
-            transform: translateY(0);
           }
         }
 
         @keyframes fadeOut {
           from {
             opacity: 1;
-            transform: translateY(0);
           }
           to {
             opacity: 0;
-            transform: translateY(-10px);
+          }
+        }
+        
+        @keyframes slideUp {
+          from {
+            opacity: 0;
+            transform: translateY(20px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+        
+        @keyframes slideIn {
+          from {
+            transform: translateX(40px);
+            opacity: 0;
+          }
+          to {
+            transform: translateX(0);
+            opacity: 1;
+          }
+        }
+        
+        @keyframes slideOut {
+          from {
+            transform: translateX(0);
+            opacity: 1;
+          }
+          to {
+            transform: translateX(40px);
+            opacity: 0;
           }
         }
 
@@ -1237,23 +1340,35 @@ const Calendar = () => {
         .animate-fadeOut {
           animation: fadeOut 0.3s ease-out forwards;
         }
+        
+        .animate-slideUp {
+          animation: slideUp 0.4s ease-out forwards;
+        }
+        
+        .animate-slideIn {
+          animation: slideIn 0.5s ease-out forwards;
+        }
+        
+        .animate-slideOut {
+          animation: slideOut 0.5s ease-out forwards;
+        }
 
         /* Custom scrollbar styles */
-        .scrollbar-thin::-webkit-scrollbar {
+        .custom-scrollbar::-webkit-scrollbar {
           width: 6px;
         }
 
-        .scrollbar-thin::-webkit-scrollbar-track {
+        .custom-scrollbar::-webkit-scrollbar-track {
           background-color: rgba(0, 0, 0, 0.05);
           border-radius: 8px;
         }
 
-        .scrollbar-thin::-webkit-scrollbar-thumb {
+        .custom-scrollbar::-webkit-scrollbar-thumb {
           background-color: rgba(79, 70, 229, 0.3);
           border-radius: 8px;
         }
 
-        .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
           background-color: rgba(79, 70, 229, 0.5);
         }
       `}</style>
