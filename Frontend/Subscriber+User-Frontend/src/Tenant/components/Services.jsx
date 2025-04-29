@@ -208,61 +208,48 @@ export default function ServicesPage() {
   );
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-blue-50 to-purple-50">
-      {/* Header */}
-      <div className="bg-white shadow-md sticky top-0 z-10">
-        <div className="max-w-6xl mx-auto px-4 py-5">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
+      {/* Header with more subtle gradient and cleaner design */}
+      <div className="bg-white shadow-sm sticky top-0 z-10">
+        <div className="max-w-6xl mx-auto px-4 py-6">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between">
-            <div>
-              <h1 className="text-2xl font-bold text-gray-800 bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
+            <div className="mb-4 md:mb-0">
+              <h1 className="text-3xl font-bold text-gray-800 bg-gradient-to-r from-indigo-700 to-purple-700 bg-clip-text text-transparent">
                 Gestion des Services
               </h1>
-              <p className="text-gray-500 mt-1">Configurez les services que vous proposez à vos clients</p>
-            </div>
-            
-            <div className="flex items-center mt-4 md:mt-0 gap-3">
-              <div className="bg-white border border-gray-200 rounded-lg flex overflow-hidden">
-                <button 
-                  className={`px-3 py-1 text-sm font-medium ${currency === "TND" ? 'bg-indigo-600 text-white' : 'bg-gray-50 text-gray-700 hover:bg-gray-100'}`}
-                  onClick={() => setCurrency("TND")}
-                >
-                  DT
-                </button>
-                <button 
-                  className={`px-3 py-1 text-sm font-medium ${currency === "EUR" ? 'bg-indigo-600 text-white' : 'bg-gray-50 text-gray-700 hover:bg-gray-100'}`}
-                  onClick={() => setCurrency("EUR")}
-                >
-                  EUR
-                </button>
-              </div>
+              <p className="text-gray-600 mt-1 text-lg">
+                Configurez les services à proposer à vos clients
+              </p>
             </div>
           </div>
         </div>
       </div>
       
-      <div className="max-w-6xl mx-auto px-4 py-8">
-        {/* Success message */}
+      <div className="max-w-6xl mx-auto px-4 py-8 space-y-8">
+        {/* Success message with improved animation */}
         {successMessage && (
-          <div className="mb-6 p-4 bg-green-50 border-l-4 border-green-500 text-green-700 flex items-center rounded-lg shadow-sm animate-fade-in-down">
-            <div className="bg-green-100 p-1 rounded-full mr-3">
-              <Check className="h-5 w-5 text-green-600" />
+          <div className="p-4 bg-emerald-50 border border-emerald-200 text-emerald-800 flex items-center rounded-lg shadow-sm animate-slide-in">
+            <div className="bg-emerald-100 p-1 rounded-full mr-3">
+              <Check className="h-5 w-5 text-emerald-600" />
             </div>
             <span className="font-medium">{successMessage}</span>
             <button 
               onClick={() => setSuccessMessage(null)} 
-              className="ml-auto text-green-500 hover:text-green-700"
+              className="ml-auto text-emerald-500 hover:text-emerald-700"
             >
               <X size={18} />
             </button>
           </div>
         )}
         
-        {/* Error message */}
+        {/* Error message with improved design */}
         {error && (
-          <div className="mb-6 p-4 bg-red-50 border-l-4 border-red-500 text-red-700 flex items-center rounded-lg shadow-sm">
-            <div className="bg-red-100 p-1 rounded-full mr-3">⚠️</div>
+          <div className="p-4 bg-red-50 border border-red-200 text-red-800 flex items-center rounded-lg shadow-sm animate-slide-in">
+            <div className="bg-red-100 p-1 rounded-full mr-3">
+              <X className="h-5 w-5 text-red-600" />
+            </div>
             <div>
-              <div className="font-semibold">Une erreur est survenue</div>
+              <div className="font-medium">Erreur</div>
               <div>{error}</div>
             </div>
             <button 
@@ -274,73 +261,77 @@ export default function ServicesPage() {
           </div>
         )}
 
-        {/* Action bar */}
-        <div className="flex flex-col md:flex-row gap-4 md:items-center md:justify-between mb-6 bg-white p-4 rounded-lg shadow-sm">
-          <div className="relative flex-grow max-w-md">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <Search size={18} className="text-gray-400" />
-            </div>
-            <input 
-              type="text" 
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Rechercher un service..."
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-            />
-            {searchQuery && (
-              <button 
-                onClick={() => setSearchQuery("")}
-                className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600"
-              >
-                <X size={16} />
-              </button>
-            )}
-          </div>
-          
-          <div className="flex items-center gap-3">
-            <button 
-              onClick={addService}
-              className="flex items-center px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg shadow transition-all transform hover:-translate-y-1"
-            >
-              <Plus className="h-5 w-5 mr-2" />
-              <span>Nouveau Service</span>
-            </button>
-            
-            <button 
-              onClick={saveAll}
-              disabled={loading}
-              className={`flex items-center px-5 py-2 rounded-lg shadow font-medium transition-all duration-200 ${
-                loading ? "bg-gray-400 text-gray-200" : "bg-green-600 text-white hover:bg-green-700 hover:-translate-y-1"
-              }`}
-            >
-              {loading ? (
-                <>
-                  <Loader2 className="h-5 w-5 mr-2 animate-spin" />
-                  <span>Enregistrement...</span>
-                </>
-              ) : (
-                <>
-                  <Save className="h-5 w-5 mr-2" />
-                  <span>Enregistrer</span>
-                </>
+        {/* Action bar with improved design and spacing */}
+        <div className="bg-white p-5 rounded-xl shadow-sm border border-gray-100">
+          <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
+            {/* Search with cleaner design */}
+            <div className="relative flex-grow max-w-md w-full">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <Search size={18} className="text-gray-400" />
+              </div>
+              <input 
+                type="text" 
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Rechercher un service..."
+                className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all bg-gray-50 hover:bg-white"
+              />
+              {searchQuery && (
+                <button 
+                  onClick={() => setSearchQuery("")}
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600"
+                >
+                  <X size={16} />
+                </button>
               )}
-            </button>
+            </div>
+            
+            {/* Action buttons with improved styling */}
+            <div className="flex items-center gap-3 w-full md:w-auto">
+              <button 
+                onClick={addService}
+                className="flex items-center px-4 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg shadow-sm transition-all transform hover:-translate-y-0.5 flex-grow md:flex-grow-0"
+              >
+                <Plus className="h-5 w-5 mr-2" />
+                <span>Nouveau Service</span>
+              </button>
+              
+              <button 
+                onClick={saveAll}
+                disabled={loading}
+                className={`flex items-center px-5 py-3 rounded-lg shadow-sm font-medium transition-all duration-200 flex-grow md:flex-grow-0 ${
+                  loading ? "bg-gray-300 text-gray-500 cursor-not-allowed" : "bg-emerald-600 text-white hover:bg-emerald-700 hover:-translate-y-0.5"
+                }`}
+              >
+                {loading ? (
+                  <>
+                    <Loader2 className="h-5 w-5 mr-2 animate-spin" />
+                    <span>Enregistrement...</span>
+                  </>
+                ) : (
+                  <>
+                    <Save className="h-5 w-5 mr-2" />
+                    <span>Enregistrer</span>
+                  </>
+                )}
+              </button>
+            </div>
           </div>
         </div>
         
-        {/* No services placeholder */}
+        {/* No services placeholder with improved illustration */}
         {services.length === 0 && !loading && (
-          <div className="flex flex-col items-center justify-center p-12 bg-white rounded-lg shadow border border-dashed border-gray-300">
+          <div className="flex flex-col items-center justify-center p-12 bg-white rounded-xl shadow-sm border border-gray-100 mt-6">
             <div className="mb-6 p-6 bg-indigo-50 rounded-full">
               <Settings className="h-16 w-16 text-indigo-600" />
             </div>
-            <h3 className="text-2xl font-medium text-gray-700 mb-2">Aucun service disponible</h3>
-            <p className="text-gray-500 mb-8 text-center max-w-md">
+            <h3 className="text-2xl font-medium text-gray-800 mb-2">Aucun service disponible</h3>
+            <p className="text-gray-600 mb-8 text-center max-w-md">
               Commencez par créer votre premier service pour votre entreprise. Les clients pourront ensuite réserver ces services.
             </p>
             <button 
               onClick={addService}
-              className="px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg shadow-md transition-all hover:-translate-y-1 flex items-center"
+              className="px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg shadow transition-all hover:-translate-y-1 flex items-center"
             >
               <Plus className="h-5 w-5 mr-2" />
               <span>Créer un service</span>
@@ -348,16 +339,17 @@ export default function ServicesPage() {
           </div>
         )}
 
-        {/* Search results info */}
+        {/* Search results info with improved messaging */}
         {searchQuery && filteredServices.length === 0 && services.length > 0 && (
-          <div className="bg-white p-8 rounded-lg shadow-sm border border-gray-200 text-center mb-6">
-            <p className="text-gray-600 mb-2">Aucun service ne correspond à votre recherche</p>
-            <p className="text-gray-500 text-sm">Essayez avec d'autres termes ou <button onClick={() => setSearchQuery("")} className="text-indigo-600 hover:underline">effacez votre recherche</button></p>
+          <div className="bg-white p-8 rounded-xl shadow-sm border border-gray-100 text-center">
+            <Search className="h-12 w-12 text-gray-300 mx-auto mb-3" />
+            <p className="text-gray-600 mb-2 font-medium">Aucun service ne correspond à votre recherche</p>
+            <p className="text-gray-500">Essayez avec d'autres termes ou <button onClick={() => setSearchQuery("")} className="text-indigo-600 hover:underline font-medium">effacez votre recherche</button></p>
           </div>
         )}
 
-        {/* Services list */}
-        <div className="space-y-5">
+        {/* Services list with cards design */}
+        <div className="space-y-6">
           {filteredServices.map((svc, index) => {
             const k = keyOf(svc);
             const isExpanded = expandedServices[k];
@@ -368,25 +360,31 @@ export default function ServicesPage() {
               <div 
                 key={k} 
                 className={`
-                  bg-white rounded-xl shadow-sm overflow-hidden border-l-4 transition-all duration-300
-                  ${isNew ? 'border-indigo-500' : 'border-gray-200'}
+                  bg-white rounded-xl overflow-hidden border transition-all duration-300
+                  ${isNew ? 'border-indigo-300 shadow-md shadow-indigo-100' : 'border-gray-200 shadow-sm'}
                   ${isExpanded ? 'shadow-md' : 'hover:shadow-md'}
                 `}
               >
                 {/* Service header (always visible) */}
                 <div 
-                  className="flex justify-between items-center p-5 cursor-pointer group transition-colors"
+                  className={`
+                    flex justify-between items-center p-5 cursor-pointer group transition-colors
+                    ${isExpanded ? 'bg-gradient-to-r from-indigo-50 to-purple-50' : 'hover:bg-gray-50'}
+                  `}
                   onClick={() => toggleExpand(k)}
                 >
                   <div className="flex items-center">
-                    <div className={`mr-4 p-2 rounded-full transition-colors ${isExpanded ? 'bg-indigo-100 text-indigo-600' : 'text-gray-400 group-hover:text-indigo-500'}`}>
+                    <div className={`
+                      mr-4 p-2 rounded-lg transition-colors flex items-center justify-center
+                      ${isExpanded ? 'bg-indigo-100 text-indigo-700' : 'bg-gray-100 text-gray-500 group-hover:bg-indigo-100 group-hover:text-indigo-600'}
+                    `}>
                       {isExpanded ? 
                         <ChevronUp className="h-5 w-5" /> : 
                         <ChevronDown className="h-5 w-5" />
                       }
                     </div>
                     <div>
-                      <h3 className={`text-lg font-medium transition-colors ${isExpanded ? 'text-indigo-900' : 'text-gray-800'}`}>
+                      <h3 className={`text-lg font-medium ${isNew ? 'text-indigo-800' : 'text-gray-800'}`}>
                         {svc.name || <span className="text-gray-400 italic">Service sans nom</span>}
                       </h3>
                       <div className="flex flex-wrap items-center gap-4 mt-1 text-sm text-gray-500">
@@ -424,9 +422,9 @@ export default function ServicesPage() {
                   </div>
                 </div>
                 
-                {/* Expanded content */}
+                {/* Expanded content with improved form layout */}
                 {isExpanded && (
-                  <div className="p-5 border-t border-gray-100 bg-white">
+                  <div className="p-6 border-t border-gray-100">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       {/* Name */}
                       <div>
@@ -436,25 +434,32 @@ export default function ServicesPage() {
                           value={svc.name}
                           onChange={e => updateService(k, s => ({ ...s, name: e.target.value }))}
                           placeholder="Ex: Coupe homme"
-                          className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                          className="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
                         />
                       </div>
                       
-                      {/* Price */}
+                      {/* Price with integrated currency dropdown */}
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Prix ({currency === "TND" ? "DT" : "€"})</label>
-                        <div className="relative">
-                          <input 
-                            type="number" 
-                            min="0"
-                            step="0.001"
-                            value={svc.price}
-                            onChange={e => updateService(k, s => ({ ...s, price: +e.target.value }))}
-                            className="w-full border border-gray-300 rounded-lg pl-4 pr-10 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                          />
-                          <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-                            <span className="text-gray-500">{currency === "TND" ? "DT" : "€"}</span>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Prix</label>
+                        <div className="flex">
+                          <div className="relative flex-grow">
+                            <input 
+                              type="number" 
+                              min="0"
+                              step="0.001"
+                              value={svc.price}
+                              onChange={e => updateService(k, s => ({ ...s, price: +e.target.value }))}
+                              className="w-full border border-gray-300 rounded-l-lg px-4 py-2.5 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
+                            />
                           </div>
+                          <select 
+                            value={currency}
+                            onChange={(e) => setCurrency(e.target.value)}
+                            className="border-l-0 border border-gray-300 bg-gray-50 rounded-r-lg text-gray-700 px-3 py-2.5 focus:ring-2 focus:ring-indigo-500 focus:border-transparent font-medium"
+                          >
+                            <option value="TND">DT</option>
+                            <option value="EUR">€</option>
+                          </select>
                         </div>
                       </div>
                       
@@ -467,7 +472,7 @@ export default function ServicesPage() {
                             min="1" 
                             value={svc.duration}
                             onChange={e => updateService(k, s => ({ ...s, duration: +e.target.value }))}
-                            className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                            className="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
                           />
                           <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
                             <Clock className="h-4 w-4 text-gray-400" />
@@ -483,20 +488,20 @@ export default function ServicesPage() {
                           value={svc.description}
                           onChange={e => updateService(k, s => ({ ...s, description: e.target.value }))}
                           placeholder="Décrivez ce service en détail pour vos clients..."
-                          className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                          className="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
                         />
                       </div>
                       
-                      {/* Options section */}
-                      <div className="md:col-span-2 bg-gray-50 p-5 rounded-lg space-y-5">
+                      {/* Options section with enhanced visuals */}
+                      <div className="md:col-span-2 bg-gray-50 p-6 rounded-xl space-y-6">
                         <h4 className="font-medium text-gray-800 flex items-center">
-                          <Settings className="h-4 w-4 mr-2 text-indigo-600" />
+                          <Settings className="h-5 w-5 mr-2 text-indigo-600" />
                           Options avancées
                         </h4>
                         
                         {/* Requires employee selection */}
-                        <div className="flex items-center p-3 hover:bg-gray-100 rounded-lg transition-colors">
-                          <label className="flex items-center cursor-pointer">
+                        <div className="flex items-center p-3 hover:bg-white rounded-lg transition-colors">
+                          <label className="flex items-center cursor-pointer flex-grow">
                             <div className="relative">
                               <input 
                                 type="checkbox" 
@@ -508,10 +513,10 @@ export default function ServicesPage() {
                                   ...(e.target.checked ? {} : { employeeIds: [] })
                                 }))}
                               />
-                              <div className="w-10 h-5 bg-gray-200 rounded-full shadow-inner"></div>
-                              <div className={`toggle-dot absolute w-7 h-7 bg-white rounded-full shadow -left-1 -top-1 transition ${
+                              <div className="w-11 h-6 bg-gray-200 rounded-full shadow-inner transition-colors" />
+                              <div className={`toggle-dot absolute w-5 h-5 bg-white rounded-full shadow top-[2px] left-[2px] transition ${
                                 svc.requiresEmployeeSelection ? 'transform translate-x-5 bg-indigo-600' : ''
-                              }`}></div>
+                              }`} />
                             </div>
                             <div className="ml-3 text-gray-700 font-medium">
                               Ce service nécessite le choix d'un employé spécifique
@@ -520,8 +525,8 @@ export default function ServicesPage() {
                         </div>
                         
                         {/* Allow simultaneous */}
-                        <div className="flex items-center p-3 hover:bg-gray-100 rounded-lg transition-colors">
-                          <label className="flex items-center cursor-pointer">
+                        <div className="flex items-center p-3 hover:bg-white rounded-lg transition-colors">
+                          <label className="flex items-center cursor-pointer flex-grow">
                             <div className="relative">
                               <input 
                                 type="checkbox" 
@@ -529,10 +534,10 @@ export default function ServicesPage() {
                                 checked={svc.allowSimultaneous}
                                 onChange={e => updateService(k, s => ({ ...s, allowSimultaneous: e.target.checked }))}
                               />
-                              <div className="w-10 h-5 bg-gray-200 rounded-full shadow-inner"></div>
-                              <div className={`toggle-dot absolute w-7 h-7 bg-white rounded-full shadow -left-1 -top-1 transition ${
+                              <div className="w-11 h-6 bg-gray-200 rounded-full shadow-inner transition-colors" />
+                              <div className={`toggle-dot absolute w-5 h-5 bg-white rounded-full shadow top-[2px] left-[2px] transition ${
                                 svc.allowSimultaneous ? 'transform translate-x-5 bg-indigo-600' : ''
-                              }`}></div>
+                              }`} />
                             </div>
                             <div className="ml-3 text-gray-700 font-medium">
                               Permet les réservations simultanées
@@ -552,17 +557,17 @@ export default function ServicesPage() {
                               min="1" 
                               value={svc.capacity}
                               onChange={e => updateService(k, s => ({ ...s, capacity: +e.target.value }))}
-                              className="w-full max-w-xs border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                              className="w-full max-w-xs border border-gray-300 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
                             />
                           </div>
                         )}
                       </div>
                       
-                      {/* Employee assignment section */}
+                      {/* Employee assignment section with enhanced UI */}
                       {svc.requiresEmployeeSelection && (
-                        <div className="md:col-span-2 border border-indigo-100 bg-indigo-50 p-5 rounded-lg">
-                          <h4 className="font-medium text-indigo-800 flex items-center mb-4">
-                            <Users className="h-5 w-5 mr-2 text-indigo-600" />
+                        <div className="md:col-span-2 border border-indigo-100 bg-indigo-50/50 p-6 rounded-xl">
+                          <h4 className="font-medium text-indigo-900 flex items-center mb-4">
+                            <Users className="h-5 w-5 mr-2 text-indigo-700" />
                             Employés qui peuvent fournir ce service
                           </h4>
                           
@@ -574,14 +579,14 @@ export default function ServicesPage() {
                               </div>
                             ) : (
                               <div className="bg-white p-4 rounded-lg border border-indigo-100">
-                                <p className="text-sm text-gray-600 mb-3">Employés assignés:</p>
+                                <p className="text-sm text-gray-600 mb-3 font-medium">Employés assignés:</p>
                                 <div className="flex flex-wrap gap-2">
                                   {svc.employeeIds.map(empId => {
                                     const emp = employees.find(e => e.id === empId);
                                     return emp && (
                                       <span 
                                         key={empId}
-                                        className="inline-flex items-center bg-indigo-100 text-indigo-800 rounded-full px-3 py-1 text-sm border border-indigo-200 hover:bg-indigo-200 transition-colors group"
+                                        className="inline-flex items-center bg-indigo-100 text-indigo-800 rounded-full px-3 py-1.5 text-sm border border-indigo-200 hover:bg-indigo-200 transition-colors group"
                                       >
                                         {emp.firstName} {emp.lastName}
                                         <button
@@ -589,7 +594,7 @@ export default function ServicesPage() {
                                             e.stopPropagation();
                                             unassignEmployee(k, empId);
                                           }}
-                                          className="ml-1 rounded-full p-1 group-hover:bg-indigo-300"
+                                          className="ml-1 rounded-full p-1 group-hover:bg-indigo-300 transition-colors"
                                         >
                                           <X size={14} className="text-indigo-600" />
                                         </button>
@@ -601,12 +606,12 @@ export default function ServicesPage() {
                             )}
                           </div>
                           
-                          {/* Employee selection */}
+                          {/* Employee selection with improved selector */}
                           <div className="flex flex-col sm:flex-row gap-3">
                             <select 
                               value={pendingAssign[k] || ""}
                               onChange={e => setPendingAssign(pa => ({ ...pa, [k]: +e.target.value }))}
-                              className="flex-grow border border-indigo-200 rounded-lg px-4 py-2 bg-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                              className="flex-grow border border-indigo-200 rounded-lg px-4 py-2.5 bg-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                             >
                               <option value="">— Sélectionner un employé à ajouter —</option>
                               {available.length === 0 ? (
@@ -622,10 +627,10 @@ export default function ServicesPage() {
                             <button 
                               onClick={() => assignEmployee(k)}
                               disabled={!pendingAssign[k]}
-                              className={`px-4 py-2 rounded-lg flex items-center justify-center min-w-[120px] ${
+                              className={`px-4 py-2.5 rounded-lg flex items-center justify-center min-w-[120px] font-medium transition-colors ${
                                 pendingAssign[k] 
                                   ? 'bg-indigo-600 text-white hover:bg-indigo-700' 
-                                  : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                                  : 'bg-gray-200 text-gray-400 cursor-not-allowed'
                               }`}
                             >
                               <Plus className="h-4 w-4 mr-2" />
@@ -642,27 +647,27 @@ export default function ServicesPage() {
           })}
         </div>
         
-        {/* Save button (bottom) */}
+        {/* Save button (bottom) with improved floating design */}
         {services.length > 0 && (
           <div className="mt-8 sticky bottom-6 z-10">
             <div className="flex justify-center">
               <button 
                 onClick={saveAll}
                 disabled={loading}
-                className={`flex items-center px-8 py-3 rounded-lg shadow-lg font-medium text-lg transition-all ${
+                className={`flex items-center px-8 py-3.5 rounded-xl shadow-lg font-medium text-lg transition-all ${
                   loading 
                     ? "bg-gray-400 text-gray-200" 
-                    : "bg-gradient-to-r from-indigo-600 to-purple-600 text-white hover:shadow-indigo-300/50 hover:-translate-y-1"
+                    : "bg-gradient-to-r from-indigo-600 to-purple-600 text-white hover:shadow-xl hover:shadow-indigo-200/50 hover:-translate-y-1"
                 }`}
               >
                 {loading ? (
                   <>
-                    <Loader2 className="h-5 w-5 mr-2 animate-spin" />
+                    <Loader2 className="h-6 w-6 mr-3 animate-spin" />
                     Enregistrement...
                   </>
                 ) : (
                   <>
-                    <Save className="h-5 w-5 mr-2" />
+                    <Save className="h-6 w-6 mr-3" />
                     Enregistrer tous les services
                   </>
                 )}
@@ -677,10 +682,10 @@ export default function ServicesPage() {
           transition: all 0.3s ease-in-out;
         }
         
-        @keyframes fadeInDown {
+        @keyframes slideIn {
           from {
             opacity: 0;
-            transform: translateY(-10px);
+            transform: translateY(-15px);
           }
           to {
             opacity: 1;
@@ -688,8 +693,8 @@ export default function ServicesPage() {
           }
         }
         
-        .animate-fade-in-down {
-          animation: fadeInDown 0.3s ease-in-out forwards;
+        .animate-slide-in {
+          animation: slideIn 0.3s ease-in-out forwards;
         }
       `}</style>
     </div>
