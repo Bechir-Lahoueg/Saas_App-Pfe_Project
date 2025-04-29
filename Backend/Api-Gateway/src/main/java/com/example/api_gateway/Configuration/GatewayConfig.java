@@ -32,7 +32,7 @@ public class GatewayConfig {
                 .route("schedule-service", r -> r
                         .path("/schedule/**")
                         .filters(f -> f
-                                .filter(authFilter)                  // Apply auth filter
+                                .filter(authFilter)
                         )
                         .uri("lb://schedule-service"))
 
