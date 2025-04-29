@@ -29,7 +29,7 @@ import { UserCircle } from "lucide-react";
 import DashboardContent from "./components/DashboardContent";
 import Analytics from "./components/Analytics";
 import Invoice from "./components/Invoice";
-import HR from "./components/HR";
+import Employees from "./components/Employees";
 import CalendarPage from "./components/Calendar";
 import Notifications from "./components/Notifications";
 import SettingsPage from "./components/Settings";
@@ -49,7 +49,7 @@ const MAIN_MENU_ITEMS = [
   { id: "calendar", label: "Calendrier", icon: <Calendar size={20} /> },
   { id: "invoice", label: "Facturation", icon: <FileText size={20} /> },
   { id: "analytics", label: "Statistiques", icon: <BarChart3 size={20} /> },
-  { id: "hr", label: "Ressources Humaines", icon: <Users size={20} /> },
+  { id: "employees", label: "Employée", icon: <Users size={20} /> },
 ];
 
 const SECONDARY_MENU_ITEMS = [
@@ -64,7 +64,7 @@ const PAGE_TITLES = {
   dashboard: "Tableau de bord",
   analytics: "Statistiques",
   invoice: "Facturation",
-  hr: "Ressources Humaines",
+  employees: "Employée",
   calendar: "Calendrier",
   notifications: "Notifications",
   settings: "Paramètres",
@@ -238,7 +238,7 @@ const Dashboard = () => {
       dashboard: <DashboardContent sidebarExpanded={isSidebarExpanded} userData={userData} />,
       analytics: <Analytics userData={userData} />,
       invoice: <Invoice userData={userData} />,
-      hr: <HR userData={userData} />,
+      employees: <Employees userData={userData} />,
       calendar: <CalendarPage userData={userData} />,
       notifications: <Notifications userData={userData} />,
       settings: <SettingsPage userData={userData} />,
