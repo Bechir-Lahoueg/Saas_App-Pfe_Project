@@ -595,7 +595,7 @@ const TenantRegistrationPage = () => {
 
       <div className="flex flex-col sm:flex-row gap-4 justify-center">
         <motion.button
-          // onClick={handleInitiatePayment}
+          onClick={handleInitiatePayment}
           disabled={loading}
           className={`bg-gradient-to-r from-indigo-600 to-purple-600 text-white py-3 px-8 rounded-xl shadow-lg transition duration-300 flex items-center justify-center ${
             loading

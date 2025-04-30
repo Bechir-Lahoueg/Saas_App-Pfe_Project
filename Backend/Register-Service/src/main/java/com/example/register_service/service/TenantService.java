@@ -65,6 +65,7 @@ public class TenantService {
                 .zipcode(request.getZipcode())
                 .country(request.getCountry())
                 .city(request.getCity())
+                .categoryId(request.getCategoryId())
                 .build();
 
         return tenantRepository.save(tenant);
