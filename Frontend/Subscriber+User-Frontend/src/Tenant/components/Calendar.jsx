@@ -141,7 +141,7 @@ const Calendar = () => {
     serviceId: null,
     employeeId: null,
     time: "09:00",
-    numberOfAttendees: null,
+    numberOfAttendees: 1,
     startTime: "",
   });
   const [formErrors, setFormErrors] = useState({});
@@ -155,7 +155,7 @@ const Calendar = () => {
 
   // ─── Configure Axios & Fetch Initial Data ──────────────────────────
   useEffect(() => {
-    // adjust these as needed for your auth cookie names
+    // axios defaults setup remains the same
     axios.defaults.baseURL = "http://localhost:8888";
     axios.defaults.withCredentials = true;
     const token = document.cookie.match(/accessToken=([^;]+)/)?.[1];
@@ -167,51 +167,82 @@ const Calendar = () => {
     if (subdomain)
       axios.defaults.headers.common["X-Tenant-ID"] =
         decodeURIComponent(subdomain);
-
-    fetchServices();
-    fetchEmployees();
-
-    // Définir la date du jour comme date sélectionnée par défaut
+  
+    // Load initial data sequentially to ensure dependencies are met
+    const loadInitialData = async () => {
+      try {
+        // First load employees
+        await fetchEmployees();
+        // Then load services, which will also load reservations
+        await fetchServices();
+      } catch (error) {
+        console.error("Error loading initial data:", error);
+      }
+    };
+    
+    loadInitialData();
+    
+    // Set selected date
     setSelectedDate(new Date());
   }, []);
 
   // ─── Fetchers ──────────────────────────────────────────────────────
-  const fetchServices = async () => {
-    try {
-      const { data } = await axios.get("/schedule/service/getall");
-      setServices(data);
-      // after services, also fetch existing reservations to display
-      fetchReservations(data);
-    } catch (error) {
-      console.error("Erreur lors du chargement des services:", error);
-      showToast("Erreur lors du chargement des services: " + (error.response?.data?.message || error.message), "error");
-    }
-  };
-
   const fetchEmployees = async () => {
     try {
       const { data } = await axios.get("/schedule/employee/getall");
       setEmployees(data);
+      return data; // Return data for use in other functions
     } catch (error) {
       console.error("Erreur lors du chargement des employés:", error);
-      showToast("Erreur lors du chargement des employés: " + (error.response?.data?.message || error.message), "error");
+      showToast(
+        "Erreur lors du chargement des employés: " +
+          (error.response?.data?.message || error.message),
+        "error"
+      );
+      return []; // Return empty array on error
+    }
+  };
+  
+  const fetchServices = async () => {
+    try {
+      const { data } = await axios.get("/schedule/service/getall");
+      setServices(data);
+      // Now fetch reservations after both services and employees are loaded
+      fetchReservations(data);
+      return data; // Return data for use in other functions
+    } catch (error) {
+      console.error("Erreur lors du chargement des services:", error);
+      showToast(
+        "Erreur lors du chargement des services: " +
+          (error.response?.data?.message || error.message),
+        "error"
+      );
+      return []; // Return empty array on error
     }
   };
 
   const fetchReservations = async (svcList = services) => {
     try {
       const { data } = await axios.get("/schedule/reservation/getall");
-      // Organiser par année puis par mois
       const byYearAndMonth = {};
+      
+      // Make sure we have employee data
+      let currentEmployees = employees;
+      if (currentEmployees.length === 0) {
+        // If somehow employees aren't loaded yet, load them now
+        currentEmployees = await fetchEmployees();
+      }
+      
       data.forEach((r) => {
         // Convertir la date UTC en date locale
         const dt = new Date(r.startTime);
-        
+  
         const y = dt.getFullYear();
         const m = dt.getMonth();
         const svc = svcList.find((s) => s.id === r.serviceId);
+        const emp = currentEmployees.find((e) => e.id === r.employeeId);
         const title = svc ? svc.name : "Réservation";
-
+  
         // Construire l'événement avec les formats de date/heure corrects pour l'affichage
         const evt = {
           id: r.id,
@@ -221,18 +252,25 @@ const Calendar = () => {
             dt.getMinutes()
           ).padStart(2, "0")}`,
           color: "teal",
+          employeeId: r.employeeId,
+          employee: emp, // Now this will have employee data even after refresh
+          numberOfAttendees: r.numberOfAttendees,
         };
-
+  
         // Structure: byYearAndMonth[année][mois] = [événements]
         if (!byYearAndMonth[y]) byYearAndMonth[y] = {};
         byYearAndMonth[y][m] = [...(byYearAndMonth[y][m] || []), evt];
       });
-
+  
       // Remplacer complètement les événements par les réservations
       setAllEvents(byYearAndMonth);
     } catch (error) {
       console.error("Erreur lors du chargement des réservations:", error);
-      showToast("Erreur lors du chargement des réservations: " + (error.response?.data?.message || error.message), "error");
+      showToast(
+        "Erreur lors du chargement des réservations: " +
+          (error.response?.data?.message || error.message),
+        "error"
+      );
     }
   };
 
@@ -240,28 +278,29 @@ const Calendar = () => {
   const showToast = (message, type = "info") => {
     const toast = document.createElement("div");
     toast.className = `fixed top-4 right-4 p-4 rounded-lg shadow-lg z-50 flex items-center gap-3 animate-slideIn ${
-      type === "error" 
-        ? "bg-red-100 text-red-800 border-l-4 border-red-500" 
+      type === "error"
+        ? "bg-red-100 text-red-800 border-l-4 border-red-500"
         : type === "success"
         ? "bg-emerald-100 text-emerald-800 border-l-4 border-emerald-500"
         : "bg-blue-100 text-blue-800 border-l-4 border-blue-500"
     }`;
-    
+
     const icon = document.createElement("div");
-    icon.innerHTML = type === "error" 
-      ? '<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"></path></svg>' 
-      : type === "success"
-      ? '<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>'
-      : '<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path></svg>';
-    
+    icon.innerHTML =
+      type === "error"
+        ? '<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"></path></svg>'
+        : type === "success"
+        ? '<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>'
+        : '<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path></svg>';
+
     toast.appendChild(icon);
-    
+
     const textDiv = document.createElement("div");
     textDiv.textContent = message;
     toast.appendChild(textDiv);
-    
+
     document.body.appendChild(toast);
-    
+
     setTimeout(() => {
       toast.classList.add("animate-slideOut");
       setTimeout(() => toast.remove(), 500);
@@ -278,6 +317,13 @@ const Calendar = () => {
     return tunisianHolidays[dateKey];
   };
 
+  // Vérifier si une date est dans le passé
+  const isPastDate = (date) => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0); // Réinitialiser l'heure pour comparer uniquement les dates
+    return date < today;
+  };
+
   // Formater l'heure en fonction du format sélectionné (12h ou 24h)
   const formatTime = (timeStr) => {
     if (timeView === "24h" || !timeStr) return timeStr;
@@ -288,22 +334,42 @@ const Calendar = () => {
     return `${h}:${String(minutes).padStart(2, "0")} ${period}`;
   };
 
-  // Vérifier si un événement est une réservation (toujours vrai maintenant)
-  const isReservation = () => {
-    return true; // Tous les événements sont des réservations maintenant
-  };
-
   // ─── Réservation Handlers ─────────────────────────────────────────
-  const openReservationModal = () => {
+  // Modifier la fonction openReservationModal pour accepter un paramètre d'heure
+  const openReservationModal = (specificTime = "09:00") => {
     if (!selectedDate) {
       showToast("Veuillez sélectionner une date d'abord", "error");
       return;
     }
+
+    // Vérifier si la date sélectionnée est dans le passé
+    if (isPastDate(selectedDate)) {
+      showToast("Impossible de réserver pour une date passée", "error");
+      return;
+    }
+
+    // Vérifier si la date sélectionnée est un jour férié
+    const holiday = getHolidayInfo(
+      selectedDate.getFullYear(),
+      selectedDate.getMonth(),
+      selectedDate.getDate()
+    );
+
+    if (holiday) {
+      showToast(
+        `Réservation impossible le ${holiday.name} - Jour férié ${
+          holiday.type === "religious" ? "religieux" : "national"
+        }`,
+        "error"
+      );
+      return;
+    }
+
     setReservationForm({
       serviceId: null,
       employeeId: null,
-      time: "09:00",
-      numberOfAttendees: null,
+      time: specificTime, // Utiliser l'heure spécifique passée en paramètre
+      numberOfAttendees: 1,
       startTime: "",
     });
     setFormErrors({});
@@ -322,8 +388,12 @@ const Calendar = () => {
         e.employeeId = "Ce service nécessite un employé désigné";
       }
     }
-    if (!reservationForm.time) e.time = "Veuillez spécifier une heure pour la réservation";
-    if (!reservationForm.numberOfAttendees || reservationForm.numberOfAttendees < 1) {
+    if (!reservationForm.time)
+      e.time = "Veuillez spécifier une heure pour la réservation";
+    if (
+      !reservationForm.numberOfAttendees ||
+      reservationForm.numberOfAttendees < 1
+    ) {
       e.numberOfAttendees = "Au moins 1 participant est requis";
     }
     setFormErrors(e);
@@ -333,11 +403,11 @@ const Calendar = () => {
   const handleReservationInput = (e) => {
     const { name, value } = e.target;
     setReservationForm((f) => ({ ...f, [name]: value }));
-    
+
     // Effacer l'erreur spécifique lorsque le champ est modifié
     if (formErrors[name]) {
-      setFormErrors(prev => {
-        const updated = {...prev};
+      setFormErrors((prev) => {
+        const updated = { ...prev };
         delete updated[name];
         return updated;
       });
@@ -380,7 +450,9 @@ const Calendar = () => {
         setSubmitSuccess(false);
       }, 1500);
     } catch (err) {
-      const errorMessage = err.response?.data?.message || "Erreur lors de la création de la réservation";
+      const errorMessage =
+        err.response?.data?.message ||
+        "Erreur lors de la création de la réservation";
       setSubmitError(errorMessage);
       showToast("Échec de la réservation: " + errorMessage, "error");
     } finally {
@@ -389,43 +461,48 @@ const Calendar = () => {
   };
 
   // ─── Reservation delete handler ───────────────────────────────────
-  const deleteReservation = async (id) => {
-    if (
-      !window.confirm("Êtes-vous sûr de vouloir supprimer cette réservation ?")
-    ) {
-      return;
-    }
+  const [deleteConfirmation, setDeleteConfirmation] = useState(null);
 
+  const deleteReservation = async (id) => {
     try {
       setLoading(true);
       await axios.delete(`/schedule/reservation/delete/${id}`);
 
-      // Mise à jour immédiate de l'état local (sans rechargement)
+      // Mise à jour immédiate de l'état local
       setAllEvents((prevEvents) => {
-        const updatedEvents = {};
+        const updatedEvents = { ...prevEvents };
 
-        // Pour chaque mois dans les événements
-        Object.keys(prevEvents).forEach((month) => {
-          // Filtrer pour retirer l'événement supprimé
-          updatedEvents[month] = prevEvents[month].filter(
-            (event) => event.id !== id
-          );
+        Object.keys(updatedEvents).forEach((year) => {
+          Object.keys(updatedEvents[year] || {}).forEach((month) => {
+            if (updatedEvents[year][month]) {
+              updatedEvents[year][month] = updatedEvents[year][month].filter(
+                (event) => event.id !== id
+              );
+            }
+          });
         });
 
         return updatedEvents;
       });
 
+      // Fermer le modal de confirmation
+      setDeleteConfirmation(null);
       showToast("Réservation supprimée avec succès", "success");
     } catch (error) {
       console.error("Erreur lors de la suppression:", error);
       showToast(
-        "Erreur lors de la suppression: " + 
-        (error.response?.data?.message || error.message),
+        "Erreur lors de la suppression: " +
+          (error.response?.data?.message || error.message),
         "error"
       );
     } finally {
       setLoading(false);
     }
+  };
+
+  const confirmDeleteReservation = (e, id, title, time) => {
+    e?.stopPropagation();
+    setDeleteConfirmation({ id, title, time });
   };
 
   // ─── Calendar Render Helpers ──────────────────────────────────────
@@ -448,6 +525,7 @@ const Calendar = () => {
       const isSel =
         selectedDate && dt.toDateString() === selectedDate.toDateString();
       const isToday = new Date().toDateString() === dt.toDateString();
+      const isPast = isPastDate(dt);
       const evts = monthEvents.filter(
         (e) => new Date(e.date).getDate() === day
       );
@@ -458,9 +536,11 @@ const Calendar = () => {
       cells.push(
         <div
           key={day}
-          onClick={() => setSelectedDate(dt)}
+          onClick={() => !isPast && setSelectedDate(dt)}
           className={`
-            p-2 h-24 sm:h-28 md:h-32 rounded-lg cursor-pointer relative
+            p-2 h-24 sm:h-28 md:h-32 rounded-lg ${
+              !isPast ? "cursor-pointer" : "cursor-not-allowed"
+            } relative
             overflow-hidden group
             ${
               isSel
@@ -468,14 +548,21 @@ const Calendar = () => {
                 : "border border-gray-200"
             }
             ${isToday ? "ring-2 ring-blue-500 ring-inset" : ""}
+            ${isPast ? "bg-gray-100 opacity-70 text-gray-400" : ""}
             ${
               holiday
                 ? holiday.type === "religious"
-                  ? "bg-emerald-50"
+                  ? isPast
+                    ? "bg-emerald-50/30"
+                    : "bg-emerald-50"
+                  : isPast
+                  ? "bg-amber-50/30"
                   : "bg-amber-50"
+                : isPast
+                ? ""
                 : "hover:bg-blue-50"
             }
-            transition-all duration-200 hover:shadow-md
+            transition-all duration-200 ${!isPast && "hover:shadow-md"}
           `}
         >
           {/* Numéro du jour */}
@@ -483,16 +570,17 @@ const Calendar = () => {
             <span
               className={`
               inline-flex justify-center items-center w-7 h-7 rounded-full font-medium
+              ${isPast ? "bg-gray-200 text-gray-500" : ""}
               ${isSel ? "bg-blue-500 text-white shadow-inner" : ""}
               ${isToday && !isSel ? "bg-blue-200 text-blue-800" : ""}
               ${
-                holiday && !isSel && !isToday
+                holiday && !isSel && !isToday && !isPast
                   ? holiday.type === "religious"
                     ? "bg-emerald-200 text-emerald-800"
                     : "bg-amber-200 text-amber-800"
                   : ""
               }
-              transition-transform group-hover:scale-105
+              transition-transform ${!isPast && "group-hover:scale-105"}
             `}
             >
               {day}
@@ -528,7 +616,11 @@ const Calendar = () => {
               <div
                 key={e.id}
                 title={`${e.title} - ${formatTime(e.time)}`}
-                className="text-xs text-white px-1 py-0.5 rounded truncate flex items-center bg-teal-500 hover:bg-teal-600 shadow-sm transition-all"
+                className={`text-xs ${
+                  isPast
+                    ? "text-white/80 bg-teal-400"
+                    : "text-white bg-teal-500 hover:bg-teal-600"
+                } px-1 py-0.5 rounded truncate flex items-center shadow-sm transition-all`}
                 onClick={(event) => {
                   event.stopPropagation();
                 }}
@@ -545,19 +637,35 @@ const Calendar = () => {
               </div>
             )}
           </div>
-          
+
           {/* Bouton ajouter (visible au survol) */}
           <div className="absolute bottom-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity">
-            <button 
-              onClick={(e) => {
-                e.stopPropagation();
-                setSelectedDate(dt);
-                openReservationModal();
-              }}
-              className="w-6 h-6 bg-blue-100 hover:bg-blue-200 text-blue-700 rounded-full flex items-center justify-center"
-            >
-              +
-            </button>
+            {!holiday && !isPast ? (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setSelectedDate(dt);
+                  openReservationModal();
+                }}
+                className="w-6 h-6 bg-blue-100 hover:bg-blue-200 text-blue-700 rounded-full flex items-center justify-center"
+              >
+                +
+              </button>
+            ) : isPast ? (
+              <span
+                title="Date passée - Réservation impossible"
+                className="w-6 h-6 bg-gray-100 text-gray-400 rounded-full flex items-center justify-center cursor-not-allowed"
+              >
+                ×
+              </span>
+            ) : (
+              <span
+                title={`Réservation impossible - ${holiday.name}`}
+                className="w-6 h-6 bg-gray-100 text-gray-400 rounded-full flex items-center justify-center cursor-not-allowed"
+              >
+                ×
+              </span>
+            )}
           </div>
         </div>
       );
@@ -582,8 +690,10 @@ const Calendar = () => {
     <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
       {[...Array(12)].map((_, month) => {
         // Vérifier s'il y a des événements pour ce mois dans l'année courante
-        const hasEvents = Object.keys(allEvents[currentYear] || {}).includes(month.toString());
-        
+        const hasEvents = Object.keys(allEvents[currentYear] || {}).includes(
+          month.toString()
+        );
+
         return (
           <div
             key={month}
@@ -691,7 +801,9 @@ const Calendar = () => {
     if (!selectedDate) return null;
 
     // Récupérer les événements de la journée sélectionnée
-    const dateEvents = (allEvents[selectedDate.getFullYear()]?.[selectedDate.getMonth()] || [])
+    const dateEvents = (
+      allEvents[selectedDate.getFullYear()]?.[selectedDate.getMonth()] || []
+    )
       .filter((e) => new Date(e.date).getDate() === selectedDate.getDate())
       .sort((a, b) => a.time.localeCompare(b.time));
 
@@ -760,8 +872,14 @@ const Calendar = () => {
                   } hover:bg-gray-50 border-b last:border-b-0 group`}
                 >
                   {/* Heure */}
-                  <div className={`w-20 py-3 flex-shrink-0 border-r text-right pr-2 
-                    ${isCurrentHour ? "font-bold text-blue-700" : "text-gray-500 font-medium"}`}>
+                  <div
+                    className={`w-20 py-3 flex-shrink-0 border-r text-right pr-2 
+                    ${
+                      isCurrentHour
+                        ? "font-bold text-blue-700"
+                        : "text-gray-500 font-medium"
+                    }`}
+                  >
                     {formatTime(`${hourStr}:00`)}
                   </div>
 
@@ -769,13 +887,27 @@ const Calendar = () => {
                   <div className="flex-1 p-1 min-h-[60px] relative">
                     {hourEvents.length === 0 ? (
                       <div className="flex items-center justify-center h-full w-full">
-                        <button
-                          onClick={openReservationModal}
-                          className="text-xs text-gray-400 hover:text-teal-600 py-1 px-2 rounded-md hover:bg-teal-50 transition-colors opacity-0 group-hover:opacity-100"
-                        >
-                          <Users size={12} className="inline mr-1" />
-                          Ajouter une réservation
-                        </button>
+                        {!holiday && !isPastDate(selectedDate) ? (
+                          <button
+                            onClick={() =>
+                              openReservationModal(`${hourStr}:00`)
+                            }
+                            className="text-xs text-gray-400 hover:text-teal-600 py-1 px-2 rounded-md hover:bg-teal-50 transition-colors opacity-0 group-hover:opacity-100"
+                          >
+                            <Users size={12} className="inline mr-1" />
+                            Ajouter une réservation
+                          </button>
+                        ) : isPastDate(selectedDate) ? (
+                          <span className="text-xs text-red-400 py-1 px-2 opacity-0 group-hover:opacity-100">
+                            <AlertCircle size={12} className="inline mr-1" />
+                            Date passée - Réservation impossible
+                          </span>
+                        ) : (
+                          <span className="text-xs text-red-400 py-1 px-2 opacity-0 group-hover:opacity-100">
+                            <AlertCircle size={12} className="inline mr-1" />
+                            Jour férié - Réservation impossible
+                          </span>
+                        )}
                       </div>
                     ) : (
                       <div className="space-y-1">
@@ -796,7 +928,12 @@ const Calendar = () => {
                             <button
                               onClick={(event) => {
                                 event.stopPropagation();
-                                deleteReservation(e.id);
+                                confirmDeleteReservation(
+                                  event,
+                                  e.id,
+                                  e.title,
+                                  e.time
+                                );
                               }}
                               className="text-white/70 hover:text-white ml-2 p-1 hover:bg-red-500 rounded transition-colors"
                               title="Supprimer cette réservation"
@@ -853,13 +990,27 @@ const Calendar = () => {
                 })}
               </p>
 
-              {/* Affichage des jours fériés */}
+              {/* Affichage des jours fériés ou dates passées */}
               {(() => {
+                // Vérifier si c'est une date passée
+                if (isPastDate(selectedDate)) {
+                  return (
+                    <div className="mt-2 p-2 rounded-md flex items-center bg-gray-100 text-gray-700">
+                      <AlertCircle size={16} className="mr-2" />
+                      Date passée
+                      <span className="ml-1 text-sm font-medium px-2 py-0.5 rounded bg-red-100 text-red-700">
+                        Réservation impossible
+                      </span>
+                    </div>
+                  );
+                }
+
                 const holiday = getHolidayInfo(
                   selectedDate.getFullYear(),
                   selectedDate.getMonth(),
                   selectedDate.getDate()
                 );
+
                 if (holiday) {
                   return (
                     <div
@@ -873,6 +1024,9 @@ const Calendar = () => {
                     `}
                     >
                       <Star size={16} className="mr-2" /> {holiday.name}
+                      <span className="ml-1 text-sm font-medium px-2 py-0.5 rounded bg-red-100 text-red-700">
+                        Réservation impossible
+                      </span>
                     </div>
                   );
                 }
@@ -908,10 +1062,12 @@ const Calendar = () => {
             </div>
 
             {/* Liste des réservations pour le jour sélectionné */}
-            <div
-              className="space-y-3 max-h-96 overflow-y-auto pr-2 custom-scrollbar"
-            >
-              {(allEvents[selectedDate.getFullYear()]?.[selectedDate.getMonth()] || [])
+            <div className="space-y-3 max-h-96 overflow-y-auto pr-2 custom-scrollbar">
+              {(
+                allEvents[selectedDate.getFullYear()]?.[
+                  selectedDate.getMonth()
+                ] || []
+              )
                 .filter(
                   (e) => new Date(e.date).getDate() === selectedDate.getDate()
                 )
@@ -919,28 +1075,74 @@ const Calendar = () => {
                 .map((e) => (
                   <div
                     key={e.id}
-                    className="bg-white border rounded-lg p-4 shadow-sm flex items-start gap-3 
-                      hover:shadow-md transition-all border-l-4 border-l-teal-500 group animate-fadeIn"
+                    className="bg-white border rounded-lg p-3 shadow-sm hover:shadow-md transition-all border-l-4 border-l-teal-500 group animate-fadeIn"
                   >
-                    <div className="w-3 h-3 rounded-full mt-1 flex-shrink-0 bg-teal-500" />
-                    <div className="flex-1">
-                      <h4 className="font-semibold">{e.title}</h4>
-                      <div className="flex items-center text-sm text-gray-500">
-                        <Clock size={14} className="mr-1" />{" "}
-                        {formatTime(e.time)}
+                    <div className="flex justify-between items-start">
+                      <div className="flex-1">
+                        {/* En-tête avec titre et heure */}
+                        <div className="flex items-center justify-between mb-2">
+                          <h4 className="font-semibold text-teal-700">{e.title}</h4>
+                          <div className="flex items-center text-sm text-gray-500 bg-gray-50 px-2 py-0.5 rounded">
+                            <Clock size={14} className="mr-1" /> 
+                            {formatTime(e.time)}
+                          </div>
+                        </div>
+                        
+                        {/* Informations sur l'employé */}
+                        {e.employee && (
+                          <div className="flex items-center mt-2 bg-indigo-50/50 rounded-md px-2 py-1.5">
+                            {e.employee.imageUrl ? (
+                              <img
+                                src={e.employee.imageUrl}
+                                alt={`${e.employee.firstName} ${e.employee.lastName}`}
+                                className="h-6 w-6 rounded-full object-cover mr-2 ring-1 ring-indigo-200"
+                              />
+                            ) : (
+                              <div
+                                className={`h-6 w-6 rounded-full flex-shrink-0 ${getAvatarColor(
+                                  e.employeeId
+                                )} flex items-center justify-center text-white mr-2 ring-1 ring-indigo-200`}
+                              >
+                                <span className="font-bold text-xs">
+                                  {getInitials(
+                                    e.employee.firstName,
+                                    e.employee.lastName
+                                  )}
+                                </span>
+                              </div>
+                            )}
+                            <span className="text-sm text-indigo-700 font-medium">
+                              {e.employee.firstName} {e.employee.lastName}
+                            </span>
+                          </div>
+                        )}
+                        
+                        {/* Nombre de participants */}
+                        {e.numberOfAttendees > 1 && (
+                          <div className="mt-2 text-xs text-gray-600 flex items-center bg-gray-50/80 px-2 py-1 rounded w-fit">
+                            <Users size={12} className="mr-1 text-gray-500" />
+                            {e.numberOfAttendees} participants
+                          </div>
+                        )}
                       </div>
-                    </div>
 
-                    <button
-                      onClick={() => deleteReservation(e.id)}
-                      className="text-red-400 hover:text-red-600 p-1 rounded-full hover:bg-red-50 opacity-0 group-hover:opacity-100 transition-opacity"
-                      title="Supprimer cette réservation"
-                    >
-                      <X size={18} />
-                    </button>
+                      <button
+                        onClick={(event) =>
+                          confirmDeleteReservation(event, e.id, e.title, e.time)
+                        }
+                        className="text-red-400 hover:text-red-600 ml-2 p-1 rounded-full hover:bg-red-50 opacity-0 group-hover:opacity-100 transition-opacity"
+                        title="Supprimer cette réservation"
+                      >
+                        <X size={16} />
+                      </button>
+                    </div>
                   </div>
                 ))}
-              {!(allEvents[selectedDate.getFullYear()]?.[selectedDate.getMonth()] || []).some(
+              {!(
+                allEvents[selectedDate.getFullYear()]?.[
+                  selectedDate.getMonth()
+                ] || []
+              ).some(
                 (e) => new Date(e.date).getDate() === selectedDate.getDate()
               ) && (
                 <div className="text-center text-gray-500 p-6 bg-gray-50 rounded-lg border border-gray-100">
@@ -1136,8 +1338,8 @@ const Calendar = () => {
                   value={reservationForm.serviceId || ""}
                   onChange={handleReservationInput}
                   className={`w-full border rounded-lg p-2 focus:ring-2 focus:outline-none transition-colors ${
-                    formErrors.serviceId 
-                      ? "border-red-300 bg-red-50 focus:ring-red-200" 
+                    formErrors.serviceId
+                      ? "border-red-300 bg-red-50 focus:ring-red-200"
                       : "focus:ring-emerald-200 border-gray-300"
                   }`}
                 >
@@ -1150,7 +1352,10 @@ const Calendar = () => {
                 </select>
                 {formErrors.serviceId && (
                   <p className="text-red-600 text-sm mt-1 flex items-start">
-                    <AlertCircle size={14} className="mr-1 mt-0.5 flex-shrink-0" />
+                    <AlertCircle
+                      size={14}
+                      className="mr-1 mt-0.5 flex-shrink-0"
+                    />
                     {formErrors.serviceId}
                   </p>
                 )}
@@ -1164,29 +1369,105 @@ const Calendar = () => {
                 if (svc?.requiresEmployeeSelection) {
                   return (
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
                         Employé <span className="text-red-500">*</span>
                       </label>
-                      <select
-                        name="employeeId"
-                        value={reservationForm.employeeId || ""}
-                        onChange={handleReservationInput}
-                        className={`w-full border rounded-lg p-2 focus:ring-2 focus:outline-none transition-colors ${
-                          formErrors.employeeId 
-                            ? "border-red-300 bg-red-50 focus:ring-red-200" 
-                            : "focus:ring-emerald-200 border-gray-300"
+
+                      {/* Nouveau sélecteur d'employés */}
+                      <div
+                        className={`rounded-lg ${
+                          formErrors.employeeId ? "bg-red-50/30" : ""
                         }`}
                       >
-                        <option value="">— Choisir un employé —</option>
-                        {svc.employees.map((emp) => (
-                          <option key={emp.id} value={emp.id}>
-                            {emp.firstName} {emp.lastName}
-                          </option>
-                        ))}
-                      </select>
+                        <div className="flex flex-wrap gap-3 justify-center">
+                          {svc.employees.map((emp) => (
+                            <div
+                              key={emp.id}
+                              onClick={() => {
+                                // Logique pour sélectionner/désélectionner
+                                const newValue =
+                                  +reservationForm.employeeId === emp.id
+                                    ? null
+                                    : emp.id.toString();
+                                handleReservationInput({
+                                  target: {
+                                    name: "employeeId",
+                                    value: newValue,
+                                  },
+                                });
+                              }}
+                              className={`relative transition-all duration-300 cursor-pointer transform ${
+                                +reservationForm.employeeId === emp.id
+                                  ? "scale-105"
+                                  : "hover:scale-105"
+                              }`}
+                            >
+                              <div
+                                className={`w-20 h-20 rounded-lg overflow-hidden ${
+                                  +reservationForm.employeeId === emp.id
+                                    ? "ring-4 ring-indigo-500 shadow-lg"
+                                    : "ring-1 ring-gray-200 hover:ring-indigo-300 shadow-sm"
+                                }`}
+                              >
+                                {emp.imageUrl ? (
+                                  <img
+                                    src={emp.imageUrl}
+                                    alt={`${emp.firstName} ${emp.lastName}`}
+                                    className="w-full h-full object-cover"
+                                  />
+                                ) : (
+                                  <div
+                                    className={`h-full w-full bg-gradient-to-br ${getAvatarColor(
+                                      emp.id
+                                    )} flex items-center justify-center text-white`}
+                                  >
+                                    <span className="font-bold text-lg">
+                                      {getInitials(emp.firstName, emp.lastName)}
+                                    </span>
+                                  </div>
+                                )}
+                              </div>
+
+                              {/* Badge de sélection */}
+                              {+reservationForm.employeeId === emp.id && (
+                                <div className="absolute -top-2 -right-2 bg-indigo-600 text-white rounded-full w-6 h-6 flex items-center justify-center shadow-md animate-fadeIn">
+                                  <Check size={14} />
+                                </div>
+                              )}
+
+                              {/* Nom de l'employé */}
+                              <div className="mt-2 text-center">
+                                <p
+                                  className={`font-medium truncate max-w-[90px] ${
+                                    +reservationForm.employeeId === emp.id
+                                      ? "text-indigo-700"
+                                      : "text-gray-700"
+                                  }`}
+                                >
+                                  {emp.firstName}
+                                </p>
+                                <p
+                                  className={`text-sm truncate max-w-[90px] ${
+                                    +reservationForm.employeeId === emp.id
+                                      ? "text-indigo-600"
+                                      : "text-gray-500"
+                                  }`}
+                                >
+                                  {emp.lastName}
+                                </p>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Message d'erreur */}
                       {formErrors.employeeId && (
-                        <p className="text-red-600 text-sm mt-1 flex items-start">
-                          <AlertCircle size={14} className="mr-1 mt-0.5 flex-shrink-0" />
+                        <p className="text-red-600 text-sm mt-2 flex items-start">
+                          <AlertCircle
+                            size={14}
+                            className="mr-1 mt-0.5 flex-shrink-0"
+                          />
                           {formErrors.employeeId}
                         </p>
                       )}
@@ -1207,14 +1488,17 @@ const Calendar = () => {
                   value={reservationForm.time}
                   onChange={handleReservationInput}
                   className={`w-full border rounded-lg p-2 focus:ring-2 focus:outline-none transition-colors ${
-                    formErrors.time 
-                      ? "border-red-300 bg-red-50 focus:ring-red-200" 
+                    formErrors.time
+                      ? "border-red-300 bg-red-50 focus:ring-red-200"
                       : "focus:ring-emerald-200 border-gray-300"
                   }`}
                 />
                 {formErrors.time && (
                   <p className="text-red-600 text-sm mt-1 flex items-start">
-                    <AlertCircle size={14} className="mr-1 mt-0.5 flex-shrink-0" />
+                    <AlertCircle
+                      size={14}
+                      className="mr-1 mt-0.5 flex-shrink-0"
+                    />
                     {formErrors.time}
                   </p>
                 )}
@@ -1232,14 +1516,17 @@ const Calendar = () => {
                   value={reservationForm.numberOfAttendees || ""}
                   onChange={handleReservationInput}
                   className={`w-full border rounded-lg p-2 focus:ring-2 focus:outline-none transition-colors ${
-                    formErrors.numberOfAttendees 
-                      ? "border-red-300 bg-red-50 focus:ring-red-200" 
+                    formErrors.numberOfAttendees
+                      ? "border-red-300 bg-red-50 focus:ring-red-200"
                       : "focus:ring-emerald-200 border-gray-300"
                   }`}
                 />
                 {formErrors.numberOfAttendees && (
                   <p className="text-red-600 text-sm mt-1 flex items-start">
-                    <AlertCircle size={14} className="mr-1 mt-0.5 flex-shrink-0" />
+                    <AlertCircle
+                      size={14}
+                      className="mr-1 mt-0.5 flex-shrink-0"
+                    />
                     {formErrors.numberOfAttendees}
                   </p>
                 )}
@@ -1264,9 +1551,26 @@ const Calendar = () => {
                 >
                   {loading ? (
                     <span className="flex items-center">
-                      <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      <svg
+                        className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                      >
+                        <circle
+                          className="opacity-25"
+                          cx="12"
+                          cy="12"
+                          r="10"
+                          stroke="currentColor"
+                          strokeWidth="4"
+                        ></circle>
+                        <path
+                          className="opacity-75"
+                          fill="currentColor"
+                          d="M4 12a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                          clip-rule="evenodd"
+                        ></path>
                       </svg>
                       En cours...
                     </span>
@@ -1299,7 +1603,7 @@ const Calendar = () => {
             opacity: 0;
           }
         }
-        
+
         @keyframes slideUp {
           from {
             opacity: 0;
@@ -1310,7 +1614,7 @@ const Calendar = () => {
             transform: translateY(0);
           }
         }
-        
+
         @keyframes slideIn {
           from {
             transform: translateX(40px);
@@ -1321,7 +1625,7 @@ const Calendar = () => {
             opacity: 1;
           }
         }
-        
+
         @keyframes slideOut {
           from {
             transform: translateX(0);
@@ -1333,6 +1637,17 @@ const Calendar = () => {
           }
         }
 
+        @keyframes scaleIn {
+          from {
+            transform: scale(0.95);
+            opacity: 0;
+          }
+          to {
+            transform: scale(1);
+            opacity: 1;
+          }
+        }
+
         .animate-fadeIn {
           animation: fadeIn 0.3s ease-out forwards;
         }
@@ -1340,17 +1655,21 @@ const Calendar = () => {
         .animate-fadeOut {
           animation: fadeOut 0.3s ease-out forwards;
         }
-        
+
         .animate-slideUp {
           animation: slideUp 0.4s ease-out forwards;
         }
-        
+
         .animate-slideIn {
           animation: slideIn 0.5s ease-out forwards;
         }
-        
+
         .animate-slideOut {
           animation: slideOut 0.5s ease-out forwards;
+        }
+
+        .animate-scaleIn {
+          animation: scaleIn 0.3s ease-out forwards;
         }
 
         /* Custom scrollbar styles */
@@ -1372,8 +1691,95 @@ const Calendar = () => {
           background-color: rgba(79, 70, 229, 0.5);
         }
       `}</style>
+
+      {/* Modal de confirmation de suppression */}
+      {deleteConfirmation && (
+        <div
+          className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4 animate-fadeIn"
+          onClick={() => setDeleteConfirmation(null)}
+        >
+          <div
+            className="bg-white rounded-lg shadow-2xl w-full max-w-md overflow-hidden animate-scaleIn"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="bg-red-500 p-4 text-white flex items-center">
+              <AlertCircle size={24} className="mr-2" />
+              <h3 className="text-lg font-medium">Confirmer la suppression</h3>
+            </div>
+
+            <div className="p-6">
+              <div className="mb-4">
+                <p className="text-gray-700 mb-3">
+                  Êtes-vous sûr de vouloir supprimer cette réservation ?
+                </p>
+                <div className="bg-gray-50 p-3 rounded-lg border border-gray-200 mb-2">
+                  <div className="font-medium text-gray-800">
+                    {deleteConfirmation.title}
+                  </div>
+                  <div className="text-sm text-gray-600 flex items-center mt-1">
+                    <Clock size={14} className="mr-1" />
+                    {formatTime(deleteConfirmation.time)}
+                  </div>
+                </div>
+                <p className="text-sm text-red-600">
+                  Cette action est irréversible et supprimera définitivement la
+                  réservation.
+                </p>
+              </div>
+
+              <div className="flex justify-end gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setDeleteConfirmation(null)}
+                  disabled={loading}
+                  className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 bg-white hover:bg-gray-50 transition-colors"
+                >
+                  Annuler
+                </button>
+                <button
+                  onClick={() => deleteReservation(deleteConfirmation.id)}
+                  disabled={loading}
+                  className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-md transition-colors flex items-center"
+                >
+                  {loading ? (
+                    <span className="flex items-center">
+                      <svg
+                        className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                      >
+                        <circle
+                          className="opacity-25"
+                          cx="12"
+                          cy="12"
+                          r="10"
+                          stroke="currentColor"
+                          strokeWidth="4"
+                        ></circle>
+                        <path
+                          className="opacity-75"
+                          fill="currentColor"
+                          d="M4 12a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                          clip-rule="evenodd"
+                        ></path>
+                      </svg>
+                      Suppression...
+                    </span>
+                  ) : (
+                    <>
+                      <X size={18} className="mr-1" />
+                      Supprimer
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
-  );
+  )
 };
 
 export default Calendar;

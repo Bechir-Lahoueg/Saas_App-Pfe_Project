@@ -340,7 +340,7 @@ const HR = () => {
                 </div>
                 <div className="bg-white/20 backdrop-blur-sm rounded-xl px-4 py-2 text-white flex items-center">
                   <User size={18} className="mr-2" />
-                  <span className="font-medium">{employees.filter(e => e.status === 'ACTIVE').length} actifs</span>
+                  <span className="font-medium">{employees.filter(e => e.status === 'ACTIVE').length} disponible</span>
                 </div>
               </div>
             </div>
@@ -368,8 +368,8 @@ const HR = () => {
                 onChange={(e) => setFilterStatus(e.target.value)}
               >
                 <option value="ALL">Tous les statuts</option>
-                <option value="ACTIVE">Actifs</option>
-                <option value="INACTIVE">Inactifs</option>
+                <option value="ACTIVE">Disponible</option>
+                <option value="INACTIVE">Indisponible</option>
               </select>
               
               <button
@@ -573,7 +573,7 @@ const HR = () => {
                       className={`mr-3 ${(editingEmp?.status ?? newEmp.status) === 'ACTIVE' ? 'text-green-500' : 'text-gray-400'}`} 
                     />
                     <div>
-                      <p className="font-medium">Actif</p>
+                      <p className="font-medium">Disponible</p>
                       <p className="text-xs text-gray-500">L'employé est en activité</p>
                     </div>
                   </div>
@@ -591,7 +591,7 @@ const HR = () => {
                       className={`mr-3 ${(editingEmp?.status ?? newEmp.status) === 'INACTIVE' ? 'text-gray-500' : 'text-gray-400'}`} 
                     />
                     <div>
-                      <p className="font-medium">Inactif</p>
+                      <p className="font-medium">Indisponible</p>
                       <p className="text-xs text-gray-500">L'employé est en pause</p>
                     </div>
                   </div>
@@ -735,7 +735,6 @@ const HR = () => {
                             <div className="text-base font-semibold text-gray-900 group-hover:text-indigo-700 transition-colors">
                               {emp.firstName} {emp.lastName}
                             </div>
-                            <div className="text-sm text-gray-500">ID: {emp.id}</div>
                           </div>
                         </div>
                       </td>
@@ -759,7 +758,7 @@ const HR = () => {
                       </td>
                       <td className="px-6 py-4">
                         <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${getStatusClass(emp.status)}`}>
-                          {emp.status === 'ACTIVE' ? 'Actif' : 'Inactif'}
+                          {emp.status === 'ACTIVE' ? 'Disponible' : 'Indisponible'}
                         </span>
                       </td>
                       <td className="px-6 py-4 text-right space-x-1">
@@ -796,12 +795,12 @@ const HR = () => {
                 
                 <div className="hidden md:flex items-center">
                   <CheckCircle size={14} className="mr-1 text-green-500" /> 
-                  <span>{employees.filter(e => e.status === 'ACTIVE').length} actifs</span>
+                  <span>{employees.filter(e => e.status === 'ACTIVE').length} disponible</span>
                 </div>
                 
                 <div className="hidden md:flex items-center">
                   <XCircle size={14} className="mr-1 text-gray-500" /> 
-                  <span>{employees.filter(e => e.status === 'INACTIVE').length} inactifs</span>
+                  <span>{employees.filter(e => e.status === 'INACTIVE').length} indisponible</span>
                 </div>
               </div>
               

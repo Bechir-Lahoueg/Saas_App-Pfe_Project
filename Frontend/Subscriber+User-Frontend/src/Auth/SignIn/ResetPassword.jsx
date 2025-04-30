@@ -192,7 +192,7 @@ const ResetPasswordPage = () => {
               </p>
               <button
                 onClick={() => {
-                  window.location.href = "/login";
+                  window.location.href = "/connexion";
                 }}
                 className="bg-blue-600 text-white py-3 px-6 rounded-md hover:bg-blue-700 transition w-full"
               >
