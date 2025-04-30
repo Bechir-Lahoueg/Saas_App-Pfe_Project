@@ -172,7 +172,7 @@ const Dashboard = () => {
       // Store in cookies for other components
       setCookie("username", username);
       setCookie("subdomain", subdomain);
-      setCookie("userEmail", email);
+      setCookie("tenantId", id)
     } catch (error) {
       console.error("Error parsing JWT token:", error);
       handleLogout();

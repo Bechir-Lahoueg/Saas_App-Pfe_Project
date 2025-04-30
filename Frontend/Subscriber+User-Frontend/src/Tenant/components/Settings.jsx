@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import { UserCircle, Camera, Loader, Check, X, Edit } from 'lucide-react';
+import { getCookie } from './ConfigurationDashboard/authUtils';
 
 const TenantProfilePage = () => {
   const [tenant, setTenant] = useState(null);
@@ -9,30 +10,23 @@ const TenantProfilePage = () => {
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
-  
   const fileInputRef = useRef(null);
   
-  // Obtenir le sous-domaine à partir de l'URL
-  const getSubdomain = () => {
-    const hostname = window.location.hostname;
-    const parts = hostname.split('.');
-    return parts.length > 2 ? parts[0] : null;
-  };
-  
-  const subdomain = getSubdomain() || localStorage.getItem('subdomain');
+
+  const tenantId= getCookie('tenantId')
+  const subdomain = getCookie('subdomain');
   
   // Configuration d'axios
   const API_URL = "http://localhost:8888/auth";
-  const token = localStorage.getItem('accessToken') || '';
   
-  axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-  
+  // axios.defaults.headers.common['X-Tenant-ID'] = `${subdomain}`;
+
   // Récupérer les informations du tenant au chargement
   useEffect(() => {
     const fetchTenantData = async () => {
       try {
         setLoading(true);
-        const response = await axios.get(`${API_URL}/tenant/getTenantBySubdomain/${subdomain}`);
+        const response = await axios.get(`${API_URL}/tenant/get/${tenantId}`);
         setTenant(response.data);
         setError(null);
       } catch (err) {
