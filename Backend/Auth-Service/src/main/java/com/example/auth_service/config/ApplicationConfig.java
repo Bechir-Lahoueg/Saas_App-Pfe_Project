@@ -19,12 +19,10 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 public class ApplicationConfig {
     private final TenantRepository tenantRepository;
 
-
-
     @Bean
     public UserDetailsService userDetailsService() {
         return username -> tenantRepository.findByEmail(username)
-                .orElseThrow(() -> new UsernameNotFoundException("Tenant not found"));
+                .orElseThrow(() -> new UsernameNotFoundException("Tenant not found by userDetails"));
     }
 
     @Bean
