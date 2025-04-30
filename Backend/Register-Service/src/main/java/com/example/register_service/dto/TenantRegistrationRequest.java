@@ -46,8 +46,8 @@ public class TenantRegistrationRequest {
     @NotBlank(message = "City is required")
     private String city;
 
-    @NotBlank(message = "Work category is required")
-    private String workCategory;
+    @NotBlank(message = " category is required")
+    private Long categoryId;
 
 
 }

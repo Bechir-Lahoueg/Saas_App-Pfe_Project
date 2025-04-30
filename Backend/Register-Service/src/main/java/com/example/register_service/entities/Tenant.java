@@ -38,9 +38,8 @@ public class Tenant implements UserDetails {
     private String subdomain;
     private String businessName;
 
-    @JsonBackReference
-    @JoinColumn(name = "category_id")
-    private String category;
+    @Column(name = "category_id", nullable = false)
+    private Long categoryId;
 
 
 

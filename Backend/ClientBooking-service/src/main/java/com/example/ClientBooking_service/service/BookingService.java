@@ -22,12 +22,10 @@ public class BookingService {
         var emps  = schedule.getEmployees(null);
         var resvs = schedule.getReservations(null);
         var media = schedule.getMedia(null);
-        // assemble into an aggregate DTO for your UI
         return new AvailabilityDto(days, svcs, emps, resvs, media);
     }
 
     public ReservationDto makeReservation(CreateReservationRequest req) {
-        // you could add client-specific logic here (e.g. CAPTCHA, email OTP)
         return schedule.createReservation(null, req);
     }
 }

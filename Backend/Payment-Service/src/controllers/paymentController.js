@@ -64,6 +64,7 @@ const initiateRegistrationPayment = async (req, res) => {
       email,
       phone,
       address,
+      categoryId,
       city,
       zipcode,
       country,
@@ -76,7 +77,7 @@ const initiateRegistrationPayment = async (req, res) => {
     } = req.body;
 
     // Vérifier les champs requis
-    if (!email || !firstName || !lastName || !password || !businessName || !subdomain) {
+    if (!email || !firstName || !lastName || !password || !businessName || !subdomain || !categoryId) {
       return res.status(400).json({
         error: 'Missing required tenant registration fields'
       });
@@ -91,10 +92,12 @@ const initiateRegistrationPayment = async (req, res) => {
       password,
       businessName,
       subdomain,
+      categoryId,
       city,
       zipcode,
       country,
     };
+    console.log(registrationData)
 
     const paymentData = {
       receiverWalletId,
