@@ -8,6 +8,6 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
     // Find an employee by email
     Employee findByEmail(String email);
 
-    // Find all employees by status
-    List<Employee> findByStatus(String status);
+    // Find all employees by status (correction: utilisation de l'enum Status)
+    List<Employee> findByStatus(Employee.Status status);
 }

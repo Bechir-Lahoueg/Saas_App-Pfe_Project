@@ -3,6 +3,7 @@ CREATE TABLE employees (
                            first_name VARCHAR(100) NOT NULL,
                            last_name  VARCHAR(100) NOT NULL,
                            email      VARCHAR(255) NOT NULL,
+                           image_url   VARCHAR(255) NULL,
                            phone      VARCHAR(50),
                            status     VARCHAR(20)  NOT NULL
 );

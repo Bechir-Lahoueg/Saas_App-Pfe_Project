@@ -2,7 +2,9 @@ package com.example.Schedule_Service.service;
 
 import com.cloudinary.Cloudinary;
 import com.cloudinary.utils.ObjectUtils;
+import com.example.Schedule_Service.entities.Employee;
 import com.example.Schedule_Service.entities.Media;
+import com.example.Schedule_Service.repository.EmployeeRepository;
 import com.example.Schedule_Service.repository.MediaRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -17,8 +19,10 @@ public class CloudinaryService {
 
     private final Cloudinary cloudinary;
     private final MediaRepository mediaRepository;
+    private final EmployeeRepository employeeRepository;
 
     private static final int MAX_PHOTOS = 5;
+    private static final String EMPLOYEE_FOLDER = "employees";
 
     public enum MediaType {
         LOGO("logo"),
@@ -38,9 +42,10 @@ public class CloudinaryService {
     }
 
     @Autowired
-    public CloudinaryService(Cloudinary cloudinary, MediaRepository mediaRepository) {
+    public CloudinaryService(Cloudinary cloudinary, MediaRepository mediaRepository, EmployeeRepository employeeRepository) {
         this.cloudinary = cloudinary;
         this.mediaRepository = mediaRepository;
+        this.employeeRepository = employeeRepository;
     }
 
     public Media uploadFile(MultipartFile file, String mediaType) {
@@ -83,25 +88,46 @@ public class CloudinaryService {
         }
     }
 
+    // Méthode modifiée pour les images d'employés (sans utiliser imagePublicId)
+    public Employee uploadEmployeeImage(MultipartFile file, Long employeeId) {
+        try {
+            Employee employee = employeeRepository.findById(employeeId)
+                    .orElseThrow(() -> new RuntimeException("Employé non trouvé avec l'ID: " + employeeId));
+
+            // Upload de la nouvelle image
+            Map<?, ?> uploadResult = cloudinary.uploader().upload(
+                    file.getBytes(),
+                    ObjectUtils.asMap(
+                            "resource_type", "image",
+                            "folder", EMPLOYEE_FOLDER
+                    )
+            );
+
+            // Mise à jour uniquement de l'URL de l'image
+            employee.setImageUrl((String) uploadResult.get("url"));
+
+            return employeeRepository.save(employee);
+        } catch (IOException e) {
+            throw new RuntimeException("Échec de l'upload de l'image de l'employé", e);
+        }
+    }
+
     private void validateMediaTypeAndLimits(String mediaType) {
-        if (MediaType.LOGO.getValue().equals(mediaType)) {
-            if (countMediaByType(MediaType.LOGO.getValue()) >= 1) {
-                throw new IllegalStateException("Un seul logo est autorisé. Veuillez supprimer l'existant avant d'en ajouter un nouveau.");
+        boolean isValidType = false;
+        for (MediaType type : MediaType.values()) {
+            if (type.getValue().equals(mediaType)) {
+                isValidType = true;
+                break;
             }
-        } else if (MediaType.BANNER.getValue().equals(mediaType)) {
-            if (countMediaByType(MediaType.BANNER.getValue()) >= 1) {
-                throw new IllegalStateException("Une seule bannière est autorisée. Veuillez supprimer l'existante avant d'en ajouter une nouvelle.");
-            }
-        } else if (MediaType.VIDEO.getValue().equals(mediaType)) {
-            if (countMediaByType(MediaType.VIDEO.getValue()) >= 1) {
-                throw new IllegalStateException("Une seule vidéo est autorisée. Veuillez supprimer l'existante avant d'en ajouter une nouvelle.");
-            }
-        } else if (MediaType.PHOTO.getValue().equals(mediaType)) {
-            if (countMediaByType(MediaType.PHOTO.getValue()) >= MAX_PHOTOS) {
-                throw new IllegalStateException("Maximum " + MAX_PHOTOS + " photos autorisées. Veuillez supprimer une photo existante avant d'en ajouter une nouvelle.");
-            }
-        } else {
-            throw new IllegalArgumentException("Type de média non supporté: " + mediaType + ". Types valides: logo, banner, video, photo");
+        }
+
+        if (!isValidType) {
+            throw new IllegalArgumentException("Type de média non valide: " + mediaType);
+        }
+
+        // Vérification des limites pour les photos
+        if (mediaType.equals(MediaType.PHOTO.getValue()) && countMediaByType(mediaType) >= MAX_PHOTOS) {
+            throw new IllegalStateException("Limite maximum de " + MAX_PHOTOS + " photos atteinte");
         }
     }
 
@@ -119,16 +145,29 @@ public class CloudinaryService {
 
     public void deleteMedia(Long id) {
         Media media = mediaRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Média non trouvé"));
+                .orElseThrow(() -> new RuntimeException("Media non trouvé avec ID: " + id));
 
         try {
+            // Supprime le fichier de Cloudinary
             cloudinary.uploader().destroy(
                     media.getPublicId(),
                     ObjectUtils.asMap("resource_type", media.getResourceType())
             );
-            mediaRepository.delete(media);
+
+            // Supprime l'entrée de la base de données
+            mediaRepository.deleteById(id);
         } catch (IOException e) {
-            throw new RuntimeException("Échec de suppression du média", e);
+            throw new RuntimeException("Échec de la suppression du média", e);
         }
+    }
+
+    // Méthode modifiée pour supprimer l'image d'un employé (sans imagePublicId)
+    public Employee deleteEmployeeImage(Long employeeId) {
+        Employee employee = employeeRepository.findById(employeeId)
+                .orElseThrow(() -> new RuntimeException("Employé non trouvé avec l'ID: " + employeeId));
+
+        // Simplement supprimer la référence à l'image
+        employee.setImageUrl(null);
+        return employeeRepository.save(employee);
     }
 }

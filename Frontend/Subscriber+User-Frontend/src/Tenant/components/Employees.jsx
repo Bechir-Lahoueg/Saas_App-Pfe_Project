@@ -14,7 +14,14 @@ const HR = () => {
   const [filteredEmployees, setFilteredEmployees] = useState([]);
   const [isLoading, setIsLoading] = useState(true); // Démarrer avec loading=true
   const [error, setError] = useState(null);
-  const [newEmp, setNewEmp] = useState({ firstName: '', lastName: '', email: '', phone: '', status: 'ACTIVE' });
+  const [newEmp, setNewEmp] = useState({ 
+    firstName: '', 
+    lastName: '', 
+    email: '', 
+    phone: '', 
+    status: 'ACTIVE',
+    imageUrl: 'https://via.placeholder.com/150'
+  });
   const [editingEmp, setEditingEmp] = useState(null);
   const [showForm, setShowForm] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
@@ -22,6 +29,10 @@ const HR = () => {
   const [showConfirmDelete, setShowConfirmDelete] = useState(null);
   const [sortField, setSortField] = useState('lastName');
   const [sortDirection, setSortDirection] = useState('asc');
+  // Add these state variables at the top with your other state declarations
+  const [selectedImage, setSelectedImage] = useState(null);
+  const [imagePreview, setImagePreview] = useState(null);
+  const [uploadingImage, setUploadingImage] = useState(false);
 
   // ─── Axios config & initial load ─────────────────────────────────
   useEffect(() => {
@@ -124,9 +135,31 @@ const HR = () => {
         setEmployees(es => es.map(x => x.id === editingEmp.id ? editingEmp : x));
         cancelEdit();
       } else {
+        // Créer l'employé avec l'URL par défaut d'abord
         const { data } = await axios.post(`/schedule/employee/create`, newEmp);
-        setEmployees(es => [...es, data]);
-        setNewEmp({ firstName: '', lastName: '', email: '', phone: '', status: 'ACTIVE' });
+        
+        // Si une image est sélectionnée, l'uploader après création
+        if (selectedImage) {
+          const formData = new FormData();
+          formData.append('image', selectedImage);
+          
+          const uploadResponse = await axios.post(`/schedule/employee/upload-image/${data.id}`, formData, {
+            headers: {
+              'Content-Type': 'multipart/form-data'
+            }
+          });
+          
+          // Mettre à jour les employés avec les données qui incluent l'URL Cloudinary
+          setEmployees(es => [...es.filter(e => e.id !== data.id), uploadResponse.data]);
+        } else {
+          // Si pas d'image sélectionnée, ajouter l'employé tel quel
+          setEmployees(es => [...es, data]);
+        }
+        
+        // Réinitialiser le formulaire
+        setNewEmp({ firstName: '', lastName: '', email: '', phone: '', status: 'ACTIVE', imageUrl: 'https://via.placeholder.com/150' });
+        setSelectedImage(null);
+        setImagePreview(null);
         if (employees.length) setShowForm(false);
       }
     } catch (e) {
@@ -187,6 +220,90 @@ const HR = () => {
     const idStr = String(id || '');
     const hash = idStr.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
     return colors[hash % colors.length];
+  };
+
+  // Add this function with your other handlers
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    
+    // Validate file type
+    if (!file.type.match('image.*')) {
+      setError("Veuillez sélectionner une image valide");
+      return;
+    }
+    
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      setError("L'image ne doit pas dépasser 5 Mo");
+      return;
+    }
+    
+    setSelectedImage(file);
+    
+    // Create image preview
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      setImagePreview(e.target.result);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  // Add these functions with your other handlers
+  const uploadEmployeeImage = async (employeeId) => {
+    if (!selectedImage) return;
+    
+    try {
+      setUploadingImage(true);
+      
+      const formData = new FormData();
+      formData.append('image', selectedImage);
+      
+      const response = await axios.post(`/schedule/employee/upload-image/${employeeId}`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      });
+      
+      // Update employees list with new data
+      setEmployees(emps => emps.map(emp => 
+        emp.id === employeeId ? response.data : emp
+      ));
+      
+      // Reset image state
+      setSelectedImage(null);
+      setImagePreview(null);
+      
+      setError(null);
+      // Show success message
+      alert("Image téléchargée avec succès");
+    } catch (err) {
+      console.error(err);
+      setError("Erreur lors du téléchargement de l'image");
+    } finally {
+      setUploadingImage(false);
+    }
+  };
+
+  const removeEmployeeImage = async (employeeId) => {
+    try {
+      setUploadingImage(true);
+      
+      const response = await axios.delete(`/schedule/employee/remove-image/${employeeId}`);
+      
+      // Update employees list with new data
+      setEmployees(emps => emps.map(emp => 
+        emp.id === employeeId ? response.data : emp
+      ));
+      
+      setError(null);
+      alert("Image supprimée avec succès");
+    } catch (err) {
+      console.error(err);
+      setError("Erreur lors de la suppression de l'image");
+    } finally {
+      setUploadingImage(false);
+    }
   };
 
   // ─── Render ───────────────────────────────────────────────────────
@@ -366,6 +483,78 @@ const HR = () => {
                 </div>
               </div>
 
+              <div className="col-span-2">
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Photo de profil
+                </label>
+                <div className="mt-1 flex items-center space-x-5">
+                  <div className="flex-shrink-0">
+                    {imagePreview ? (
+                      <img
+                        src={imagePreview}
+                        alt="Preview"
+                        className="h-24 w-24 rounded-full object-cover border border-gray-300"
+                      />
+                    ) : editingEmp?.imageUrl ? (
+                      <img
+                        src={editingEmp.imageUrl}
+                        alt={`${editingEmp.firstName} ${editingEmp.lastName}`}
+                        className="h-24 w-24 rounded-full object-cover border border-gray-300"
+                      />
+                    ) : (
+                      <div className={`h-24 w-24 rounded-full bg-gradient-to-br ${editingEmp ? getAvatarColor(editingEmp.id) : 'from-gray-400 to-gray-500'} flex items-center justify-center text-white`}>
+                        <span className="font-bold text-xl">
+                          {editingEmp 
+                            ? getInitials(editingEmp.firstName, editingEmp.lastName) 
+                            : getInitials(newEmp.firstName, newEmp.lastName) || 'NN'}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                  <div className="flex flex-col space-y-2">
+                    <label className="relative cursor-pointer bg-white py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none">
+                      <span>Changer de photo</span>
+                      <input 
+                        type="file" 
+                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" 
+                        onChange={handleImageChange}
+                        accept="image/*"
+                      />
+                    </label>
+                    
+                    {(imagePreview || editingEmp?.imageUrl) && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (editingEmp?.imageUrl && !imagePreview) {
+                            if (confirm('Voulez-vous supprimer cette image ?')) {
+                              removeEmployeeImage(editingEmp.id);
+                            }
+                          } else {
+                            setSelectedImage(null);
+                            setImagePreview(null);
+                          }
+                        }}
+                        className="inline-flex justify-center py-2 px-4 border border-red-300 shadow-sm text-sm font-medium rounded-md text-red-700 bg-white hover:bg-red-50"
+                      >
+                        Supprimer la photo
+                      </button>
+                    )}
+                    
+                    {selectedImage && editingEmp && (
+                      <button
+                        type="button"
+                        onClick={() => uploadEmployeeImage(editingEmp.id)}
+                        disabled={uploadingImage}
+                        className="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-300"
+                      >
+                        {uploadingImage ? 'Téléchargement...' : 'Télécharger'}
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Statut
@@ -527,10 +716,20 @@ const HR = () => {
                     >
                       <td className="px-6 py-4">
                         <div className="flex items-center">
-                          <div className={`flex-shrink-0 h-12 w-12 rounded-xl bg-gradient-to-br ${getAvatarColor(emp.id)} text-white flex items-center justify-center shadow-sm transform transition-transform group-hover:scale-110`}>
-                            <span className="font-bold text-lg">
-                              {getInitials(emp.firstName, emp.lastName)}
-                            </span>
+                          <div className="flex-shrink-0 h-12 w-12 rounded-xl overflow-hidden shadow-sm transform transition-transform group-hover:scale-110">
+                            {emp.imageUrl ? (
+                              <img
+                                src={emp.imageUrl}
+                                alt={`${emp.firstName} ${emp.lastName}`}
+                                className="h-12 w-12 object-cover"
+                              />
+                            ) : (
+                              <div className={`h-12 w-12 bg-gradient-to-br ${getAvatarColor(emp.id)} text-white flex items-center justify-center`}>
+                                <span className="font-bold text-lg">
+                                  {getInitials(emp.firstName, emp.lastName)}
+                                </span>
+                              </div>
+                            )}
                           </div>
                           <div className="ml-4">
                             <div className="text-base font-semibold text-gray-900 group-hover:text-indigo-700 transition-colors">
