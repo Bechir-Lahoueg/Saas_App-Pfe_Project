@@ -117,6 +117,8 @@ const Calendar = () => {
   const [selectedDate, setSelectedDate] = useState(null);
   const [timeView, setTimeView] = useState("24h"); // Format d'heure par défaut
   const [tunisianHolidays, setTunisianHolidays] = useState({});
+  const [hasClientEmail, setHasClientEmail] = useState(true);
+  const [reservationDetail, setReservationDetail] = useState(null);
 
   // Mettre à jour les fêtes tunisiennes lorsque l'année change
   useEffect(() => {
@@ -143,6 +145,10 @@ const Calendar = () => {
     time: "09:00",
     numberOfAttendees: 1,
     startTime: "",
+    clientFirstName: "",
+    clientLastName: "",
+    clientPhoneNumber: "",
+    clientEmail: "",
   });
   const [formErrors, setFormErrors] = useState({});
   const [submitSuccess, setSubmitSuccess] = useState(false);
@@ -167,7 +173,7 @@ const Calendar = () => {
     if (subdomain)
       axios.defaults.headers.common["X-Tenant-ID"] =
         decodeURIComponent(subdomain);
-  
+
     // Load initial data sequentially to ensure dependencies are met
     const loadInitialData = async () => {
       try {
@@ -179,9 +185,9 @@ const Calendar = () => {
         console.error("Error loading initial data:", error);
       }
     };
-    
+
     loadInitialData();
-    
+
     // Set selected date
     setSelectedDate(new Date());
   }, []);
@@ -202,7 +208,7 @@ const Calendar = () => {
       return []; // Return empty array on error
     }
   };
-  
+
   const fetchServices = async () => {
     try {
       const { data } = await axios.get("/schedule/service/getall");
@@ -225,24 +231,24 @@ const Calendar = () => {
     try {
       const { data } = await axios.get("/schedule/reservation/getall");
       const byYearAndMonth = {};
-      
+
       // Make sure we have employee data
       let currentEmployees = employees;
       if (currentEmployees.length === 0) {
         // If somehow employees aren't loaded yet, load them now
         currentEmployees = await fetchEmployees();
       }
-      
+
       data.forEach((r) => {
         // Convertir la date UTC en date locale
         const dt = new Date(r.startTime);
-  
+
         const y = dt.getFullYear();
         const m = dt.getMonth();
         const svc = svcList.find((s) => s.id === r.serviceId);
         const emp = currentEmployees.find((e) => e.id === r.employeeId);
         const title = svc ? svc.name : "Réservation";
-  
+
         // Construire l'événement avec les formats de date/heure corrects pour l'affichage
         const evt = {
           id: r.id,
@@ -253,15 +259,20 @@ const Calendar = () => {
           ).padStart(2, "0")}`,
           color: "teal",
           employeeId: r.employeeId,
-          employee: emp, // Now this will have employee data even after refresh
+          employee: emp,
           numberOfAttendees: r.numberOfAttendees,
+          // Ajoute les infos client
+          clientFirstName: r.clientFirstName,
+          clientLastName: r.clientLastName,
+          clientPhoneNumber: r.clientPhoneNumber,
+          clientEmail: r.clientEmail,
         };
-  
+
         // Structure: byYearAndMonth[année][mois] = [événements]
         if (!byYearAndMonth[y]) byYearAndMonth[y] = {};
         byYearAndMonth[y][m] = [...(byYearAndMonth[y][m] || []), evt];
       });
-  
+
       // Remplacer complètement les événements par les réservations
       setAllEvents(byYearAndMonth);
     } catch (error) {
@@ -334,6 +345,28 @@ const Calendar = () => {
     return `${h}:${String(minutes).padStart(2, "0")} ${period}`;
   };
 
+  // Ajoute ces fonctions avec les autres helpers si elles n'existent pas déjà
+
+  // Obtenir un dégradé de couleur basé sur l'ID
+  const getAvatarColor = (id) => {
+    const colors = [
+      "from-blue-500 to-indigo-500",
+      "from-emerald-500 to-teal-500",
+      "from-orange-500 to-amber-500",
+      "from-pink-500 to-rose-500",
+      "from-violet-500 to-purple-500",
+      "from-cyan-500 to-blue-500",
+    ];
+    return `bg-gradient-to-br ${colors[id % colors.length]}`;
+  };
+
+  // Obtenir les initiales
+  const getInitials = (firstName, lastName) => {
+    return `${firstName?.charAt(0) || ""}${
+      lastName?.charAt(0) || ""
+    }`.toUpperCase();
+  };
+
   // ─── Réservation Handlers ─────────────────────────────────────────
   // Modifier la fonction openReservationModal pour accepter un paramètre d'heure
   const openReservationModal = (specificTime = "09:00") => {
@@ -342,28 +375,14 @@ const Calendar = () => {
       return;
     }
 
-    // Vérifier si la date sélectionnée est dans le passé
+    // Vérifier uniquement si la date sélectionnée est dans le passé
     if (isPastDate(selectedDate)) {
       showToast("Impossible de réserver pour une date passée", "error");
       return;
     }
 
-    // Vérifier si la date sélectionnée est un jour férié
-    const holiday = getHolidayInfo(
-      selectedDate.getFullYear(),
-      selectedDate.getMonth(),
-      selectedDate.getDate()
-    );
-
-    if (holiday) {
-      showToast(
-        `Réservation impossible le ${holiday.name} - Jour férié ${
-          holiday.type === "religious" ? "religieux" : "national"
-        }`,
-        "error"
-      );
-      return;
-    }
+    // Supprimer la vérification des jours fériés
+    // Le bloc de code vérifiant si holiday existe et bloquant la réservation doit être supprimé
 
     setReservationForm({
       serviceId: null,
@@ -371,7 +390,12 @@ const Calendar = () => {
       time: specificTime, // Utiliser l'heure spécifique passée en paramètre
       numberOfAttendees: 1,
       startTime: "",
+      clientFirstName: "",
+      clientLastName: "",
+      clientPhoneNumber: "",
+      clientEmail: "",
     });
+    setHasClientEmail(true); // reset checkbox
     setFormErrors({});
     setSubmitSuccess(false);
     setSubmitError("");
@@ -396,6 +420,12 @@ const Calendar = () => {
     ) {
       e.numberOfAttendees = "Au moins 1 participant est requis";
     }
+    if (!reservationForm.clientFirstName) e.clientFirstName = "Prénom requis";
+    if (!reservationForm.clientLastName) e.clientLastName = "Nom requis";
+    if (!reservationForm.clientPhoneNumber)
+      e.clientPhoneNumber = "Téléphone requis";
+    if (hasClientEmail && !reservationForm.clientEmail)
+      e.clientEmail = "Email requis";
     setFormErrors(e);
     return Object.keys(e).length === 0;
   };
@@ -438,6 +468,10 @@ const Calendar = () => {
           : null,
         startTime: localISOTime, // Utiliser l'heure ISO avec compensation de timezone
         numberOfAttendees: reservationForm.numberOfAttendees,
+        clientFirstName: reservationForm.clientFirstName,
+        clientLastName: reservationForm.clientLastName,
+        clientPhoneNumber: reservationForm.clientPhoneNumber,
+        clientEmail: reservationForm.clientEmail,
       });
 
       setSubmitSuccess(true);
@@ -639,8 +673,9 @@ const Calendar = () => {
           </div>
 
           {/* Bouton ajouter (visible au survol) */}
+          {/* Bouton ajouter (visible au survol) */}
           <div className="absolute bottom-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity">
-            {!holiday && !isPast ? (
+            {!isPast ? (
               <button
                 onClick={(e) => {
                   e.stopPropagation();
@@ -651,16 +686,9 @@ const Calendar = () => {
               >
                 +
               </button>
-            ) : isPast ? (
-              <span
-                title="Date passée - Réservation impossible"
-                className="w-6 h-6 bg-gray-100 text-gray-400 rounded-full flex items-center justify-center cursor-not-allowed"
-              >
-                ×
-              </span>
             ) : (
               <span
-                title={`Réservation impossible - ${holiday.name}`}
+                title="Date passée - Réservation impossible"
                 className="w-6 h-6 bg-gray-100 text-gray-400 rounded-full flex items-center justify-center cursor-not-allowed"
               >
                 ×
@@ -1015,18 +1043,16 @@ const Calendar = () => {
                   return (
                     <div
                       className={`
-                      mt-2 p-2 rounded-md flex items-center
-                      ${
-                        holiday.type === "religious"
-                          ? "bg-emerald-100 text-emerald-800"
-                          : "bg-amber-100 text-amber-800"
-                      }
-                    `}
+        mt-2 p-2 rounded-md flex items-center
+        ${
+          holiday.type === "religious"
+            ? "bg-emerald-100 text-emerald-800"
+            : "bg-amber-100 text-amber-800"
+        }
+      `}
                     >
                       <Star size={16} className="mr-2" /> {holiday.name}
-                      <span className="ml-1 text-sm font-medium px-2 py-0.5 rounded bg-red-100 text-red-700">
-                        Réservation impossible
-                      </span>
+                      {/* Supprimer la mention "Réservation impossible" */}
                     </div>
                   );
                 }
@@ -1075,62 +1101,114 @@ const Calendar = () => {
                 .map((e) => (
                   <div
                     key={e.id}
-                    className="bg-white border rounded-lg p-3 shadow-sm hover:shadow-md transition-all border-l-4 border-l-teal-500 group animate-fadeIn"
+                    className="bg-white border rounded-lg p-3 shadow-sm hover:shadow-md transition-all border-l-4 border-l-teal-500 group animate-fadeIn cursor-pointer hover:translate-y-1"
+                    onClick={() => setReservationDetail(e)}
                   >
-                    <div className="flex justify-between items-start">
-                      <div className="flex-1">
-                        {/* En-tête avec titre et heure */}
-                        <div className="flex items-center justify-between mb-2">
-                          <h4 className="font-semibold text-teal-700">{e.title}</h4>
-                          <div className="flex items-center text-sm text-gray-500 bg-gray-50 px-2 py-0.5 rounded">
-                            <Clock size={14} className="mr-1" /> 
-                            {formatTime(e.time)}
+                    <div className="flex-1 space-y-2">
+                      {/* Titre et service */}
+                      <div className="border-b border-gray-100 pb-2">
+                        <h4 className="font-semibold text-teal-700">
+                          {e.title}
+                        </h4>
+                        <div className="flex items-center text-sm text-gray-500 mt-1">
+                          <Clock size={14} className="mr-1" />
+                          {formatTime(e.time)}
+                        </div>
+                      </div>
+
+                      {/* Informations client */}
+                      <div className="border-b border-gray-100 pb-2">
+                        <div className="font-medium text-xs text-gray-500 mb-1">
+                          CLIENT
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <div className="bg-teal-100 text-teal-700 p-1 rounded flex items-center justify-center h-7 w-7">
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              width="14"
+                              height="14"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth="2"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                            >
+                              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                              <circle cx="12" cy="7" r="4"></circle>
+                            </svg>
+                          </div>
+                          <div>
+                            <div className="font-medium text-gray-800">
+                              {e.clientFirstName} {e.clientLastName}
+                            </div>
+                            <div className="text-xs text-gray-600 flex items-center">
+                              <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                width="10"
+                                height="10"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth="2"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                className="mr-1"
+                              >
+                                <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
+                              </svg>
+                              {e.clientPhoneNumber}
+                            </div>
                           </div>
                         </div>
-                        
-                        {/* Informations sur l'employé */}
-                        {e.employee && (
-                          <div className="flex items-center mt-2 bg-indigo-50/50 rounded-md px-2 py-1.5">
-                            {e.employee.imageUrl ? (
-                              <img
-                                src={e.employee.imageUrl}
-                                alt={`${e.employee.firstName} ${e.employee.lastName}`}
-                                className="h-6 w-6 rounded-full object-cover mr-2 ring-1 ring-indigo-200"
-                              />
-                            ) : (
-                              <div
-                                className={`h-6 w-6 rounded-full flex-shrink-0 ${getAvatarColor(
-                                  e.employeeId
-                                )} flex items-center justify-center text-white mr-2 ring-1 ring-indigo-200`}
-                              >
-                                <span className="font-bold text-xs">
+                      </div>
+
+                      {/* Employé */}
+                      {e.employee && (
+                        <div className="pt-1">
+                          <div className="font-medium text-xs text-gray-500 mb-1">
+                            EMPLOYÉ
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <div className="h-7 w-7 rounded-full overflow-hidden border-2 border-indigo-100 flex-shrink-0">
+                              {e.employee.imageUrl ? (
+                                <img
+                                  src={e.employee.imageUrl}
+                                  alt={`${e.employee.firstName} ${e.employee.lastName}`}
+                                  className="w-full h-full object-cover"
+                                />
+                              ) : (
+                                <div
+                                  className={`h-full w-full flex items-center justify-center text-white text-xs font-bold ${getAvatarColor(
+                                    e.employee.id
+                                  )}`}
+                                >
                                   {getInitials(
                                     e.employee.firstName,
                                     e.employee.lastName
                                   )}
-                                </span>
-                              </div>
-                            )}
-                            <span className="text-sm text-indigo-700 font-medium">
+                                </div>
+                              )}
+                            </div>
+                            <span className="text-gray-700">
                               {e.employee.firstName} {e.employee.lastName}
                             </span>
                           </div>
-                        )}
-                        
-                        {/* Nombre de participants */}
-                        {e.numberOfAttendees > 1 && (
-                          <div className="mt-2 text-xs text-gray-600 flex items-center bg-gray-50/80 px-2 py-1 rounded w-fit">
-                            <Users size={12} className="mr-1 text-gray-500" />
-                            {e.numberOfAttendees} participants
-                          </div>
-                        )}
-                      </div>
+                        </div>
+                      )}
 
+                      {/* Bouton supprimer */}
                       <button
-                        onClick={(event) =>
-                          confirmDeleteReservation(event, e.id, e.title, e.time)
-                        }
-                        className="text-red-400 hover:text-red-600 ml-2 p-1 rounded-full hover:bg-red-50 opacity-0 group-hover:opacity-100 transition-opacity"
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          confirmDeleteReservation(
+                            event,
+                            e.id,
+                            e.title,
+                            e.time
+                          );
+                        }}
+                        className="absolute top-2 right-2 text-red-400 hover:text-red-600 p-1 rounded-full hover:bg-red-50 opacity-0 group-hover:opacity-100 transition-opacity"
                         title="Supprimer cette réservation"
                       >
                         <X size={16} />
@@ -1284,302 +1362,537 @@ const Calendar = () => {
 
       {/* ─── Réservation Modal ───────────────────────────────────────── */}
       {showReservationModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-4 animate-fadeIn">
-          <div className="bg-white rounded-lg shadow-2xl w-full max-w-md p-6 animate-slideUp">
-            <div className="flex justify-between items-center mb-4 border-b pb-2">
-              <h3 className="text-xl font-semibold text-emerald-800">
-                Nouvelle réservation
-              </h3>
-              <button
-                onClick={() => setShowReservationModal(false)}
-                className="p-1 rounded-full hover:bg-gray-100 transition-colors"
-              >
-                <X size={24} />
-              </button>
+        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4 animate-fadeIn overflow-auto">
+          <div className="bg-gradient-to-br from-white to-blue-50 rounded-xl shadow-2xl w-full max-w-3xl max-h-[90vh] overflow-y-auto animate-scaleIn">
+            {/* En-tête du formulaire */}
+            <div className="bg-gradient-to-r from-indigo-600 to-blue-600 text-white p-6 rounded-t-xl shadow-md">
+              <div className="flex justify-between items-center">
+                <h3 className="text-xl md:text-2xl font-bold flex items-center">
+                  <Users size={24} className="mr-3" />
+                  Nouvelle réservation
+                </h3>
+                <button
+                  onClick={() => setShowReservationModal(false)}
+                  className="p-2 bg-white/20 hover:bg-white/30 rounded-full transition-colors"
+                >
+                  <X size={22} />
+                </button>
+              </div>
+              <p className="mt-2 text-white/80">
+                {selectedDate &&
+                  selectedDate.toLocaleDateString("fr-FR", {
+                    weekday: "long",
+                    day: "numeric",
+                    month: "long",
+                    year: "numeric",
+                  })}
+              </p>
             </div>
 
-            {submitSuccess && (
-              <div className="mb-4 p-3 bg-emerald-100 text-emerald-700 rounded-lg border-l-4 border-emerald-500 flex items-center animate-fadeIn">
-                <Check className="w-5 h-5 mr-2" />
-                Réservation créée avec succès !
-              </div>
-            )}
+            {/* Corps du formulaire */}
+            <div className="p-6">
+              {submitSuccess && (
+                <div className="mb-6 p-4 bg-emerald-100 text-emerald-800 rounded-xl border border-emerald-200 flex items-center animate-slideIn">
+                  <div className="bg-emerald-500 text-white p-2 rounded-full mr-3">
+                    <Check size={20} />
+                  </div>
+                  <div>
+                    <h4 className="font-semibold">
+                      Réservation créée avec succès !
+                    </h4>
+                    <p className="text-sm text-emerald-700">
+                      La réservation a été ajoutée à votre calendrier.
+                    </p>
+                  </div>
+                </div>
+              )}
 
-            {submitError && (
-              <div className="mb-4 p-3 bg-red-100 text-red-700 rounded-lg border-l-4 border-red-500 flex items-center animate-fadeIn">
-                <AlertCircle className="w-5 h-5 mr-2" />
-                {submitError}
-              </div>
-            )}
+              {submitError && (
+                <div className="mb-6 p-4 bg-red-100 text-red-800 rounded-xl border border-red-200 flex items-center animate-slideIn">
+                  <div className="bg-red-500 text-white p-2 rounded-full mr-3">
+                    <AlertCircle size={20} />
+                  </div>
+                  <div>
+                    <h4 className="font-semibold">Erreur</h4>
+                    <p className="text-sm text-red-700">{submitError}</p>
+                  </div>
+                </div>
+              )}
 
-            <form onSubmit={submitReservation} className="space-y-4">
-              {/* Date sélectionnée */}
-              <div className="mb-4 bg-emerald-50 p-3 rounded-lg border border-emerald-100">
-                <p className="text-sm text-gray-600 mb-1">
-                  Date de réservation:
-                </p>
-                <p className="font-medium text-emerald-800">
-                  {selectedDate.toLocaleDateString("fr-FR", {
-                    weekday: "long",
-                    year: "numeric",
-                    month: "long",
-                    day: "numeric",
-                  })}
-                </p>
-              </div>
+              <form onSubmit={submitReservation} className="space-y-8">
+                {/* Section Service et Employé */}
+                <div className="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
+                  <h4 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+                    <div className="bg-blue-100 text-blue-700 p-2 rounded-lg mr-3">
+                      <CalendarIcon size={20} />
+                    </div>
+                    Détails du service
+                  </h4>
 
-              {/* Service */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Service <span className="text-red-500">*</span>
-                </label>
-                <select
-                  name="serviceId"
-                  value={reservationForm.serviceId || ""}
-                  onChange={handleReservationInput}
-                  className={`w-full border rounded-lg p-2 focus:ring-2 focus:outline-none transition-colors ${
-                    formErrors.serviceId
-                      ? "border-red-300 bg-red-50 focus:ring-red-200"
-                      : "focus:ring-emerald-200 border-gray-300"
-                  }`}
-                >
-                  <option value="">— Choisir un service —</option>
-                  {services.map((s) => (
-                    <option key={s.id} value={s.id}>
-                      {s.name}
-                    </option>
-                  ))}
-                </select>
-                {formErrors.serviceId && (
-                  <p className="text-red-600 text-sm mt-1 flex items-start">
-                    <AlertCircle
-                      size={14}
-                      className="mr-1 mt-0.5 flex-shrink-0"
-                    />
-                    {formErrors.serviceId}
-                  </p>
-                )}
-              </div>
-
-              {/* Employee */}
-              {(() => {
-                const svc = services.find(
-                  (s) => s.id === +reservationForm.serviceId
-                );
-                if (svc?.requiresEmployeeSelection) {
-                  return (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {/* Service */}
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Employé <span className="text-red-500">*</span>
+                      <label className="block text-sm font-medium text-gray-700 mb-1 ml-1">
+                        Service <span className="text-red-500">*</span>
                       </label>
-
-                      {/* Nouveau sélecteur d'employés */}
-                      <div
-                        className={`rounded-lg ${
-                          formErrors.employeeId ? "bg-red-50/30" : ""
+                      <select
+                        name="serviceId"
+                        value={reservationForm.serviceId || ""}
+                        onChange={handleReservationInput}
+                        className={`w-full border rounded-xl p-3 focus:ring-2 focus:outline-none transition-colors ${
+                          formErrors.serviceId
+                            ? "border-red-300 bg-red-50 focus:ring-red-200"
+                            : "focus:ring-blue-200 border-gray-200 hover:border-blue-300"
                         }`}
                       >
-                        <div className="flex flex-wrap gap-3 justify-center">
-                          {svc.employees.map((emp) => (
-                            <div
-                              key={emp.id}
-                              onClick={() => {
-                                // Logique pour sélectionner/désélectionner
-                                const newValue =
-                                  +reservationForm.employeeId === emp.id
-                                    ? null
-                                    : emp.id.toString();
-                                handleReservationInput({
-                                  target: {
-                                    name: "employeeId",
-                                    value: newValue,
-                                  },
-                                });
-                              }}
-                              className={`relative transition-all duration-300 cursor-pointer transform ${
-                                +reservationForm.employeeId === emp.id
-                                  ? "scale-105"
-                                  : "hover:scale-105"
-                              }`}
-                            >
-                              <div
-                                className={`w-20 h-20 rounded-lg overflow-hidden ${
-                                  +reservationForm.employeeId === emp.id
-                                    ? "ring-4 ring-indigo-500 shadow-lg"
-                                    : "ring-1 ring-gray-200 hover:ring-indigo-300 shadow-sm"
-                                }`}
-                              >
-                                {emp.imageUrl ? (
-                                  <img
-                                    src={emp.imageUrl}
-                                    alt={`${emp.firstName} ${emp.lastName}`}
-                                    className="w-full h-full object-cover"
-                                  />
-                                ) : (
-                                  <div
-                                    className={`h-full w-full bg-gradient-to-br ${getAvatarColor(
-                                      emp.id
-                                    )} flex items-center justify-center text-white`}
-                                  >
-                                    <span className="font-bold text-lg">
-                                      {getInitials(emp.firstName, emp.lastName)}
-                                    </span>
-                                  </div>
-                                )}
-                              </div>
-
-                              {/* Badge de sélection */}
-                              {+reservationForm.employeeId === emp.id && (
-                                <div className="absolute -top-2 -right-2 bg-indigo-600 text-white rounded-full w-6 h-6 flex items-center justify-center shadow-md animate-fadeIn">
-                                  <Check size={14} />
-                                </div>
-                              )}
-
-                              {/* Nom de l'employé */}
-                              <div className="mt-2 text-center">
-                                <p
-                                  className={`font-medium truncate max-w-[90px] ${
-                                    +reservationForm.employeeId === emp.id
-                                      ? "text-indigo-700"
-                                      : "text-gray-700"
-                                  }`}
-                                >
-                                  {emp.firstName}
-                                </p>
-                                <p
-                                  className={`text-sm truncate max-w-[90px] ${
-                                    +reservationForm.employeeId === emp.id
-                                      ? "text-indigo-600"
-                                      : "text-gray-500"
-                                  }`}
-                                >
-                                  {emp.lastName}
-                                </p>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-
-                      {/* Message d'erreur */}
-                      {formErrors.employeeId && (
-                        <p className="text-red-600 text-sm mt-2 flex items-start">
+                        <option value="">— Choisir un service —</option>
+                        {services.map((s) => (
+                          <option key={s.id} value={s.id}>
+                            {s.name}
+                          </option>
+                        ))}
+                      </select>
+                      {formErrors.serviceId && (
+                        <p className="text-red-500 text-sm mt-1 flex items-start ml-1">
                           <AlertCircle
                             size={14}
                             className="mr-1 mt-0.5 flex-shrink-0"
                           />
-                          {formErrors.employeeId}
+                          {formErrors.serviceId}
                         </p>
                       )}
                     </div>
-                  );
-                }
-                return null;
-              })()}
 
-              {/* Date & Time */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Heure <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="time"
-                  name="time"
-                  value={reservationForm.time}
-                  onChange={handleReservationInput}
-                  className={`w-full border rounded-lg p-2 focus:ring-2 focus:outline-none transition-colors ${
-                    formErrors.time
-                      ? "border-red-300 bg-red-50 focus:ring-red-200"
-                      : "focus:ring-emerald-200 border-gray-300"
-                  }`}
-                />
-                {formErrors.time && (
-                  <p className="text-red-600 text-sm mt-1 flex items-start">
-                    <AlertCircle
-                      size={14}
-                      className="mr-1 mt-0.5 flex-shrink-0"
-                    />
-                    {formErrors.time}
-                  </p>
-                )}
-              </div>
+                    {/* Heure */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1 ml-1">
+                        Heure <span className="text-red-500">*</span>
+                      </label>
+                      <div className="relative">
+                        <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-gray-500">
+                          <Clock size={18} />
+                        </div>
+                        <input
+                          type="time"
+                          name="time"
+                          value={reservationForm.time}
+                          onChange={handleReservationInput}
+                          className={`w-full border rounded-xl p-3 pl-10 focus:ring-2 focus:outline-none transition-colors ${
+                            formErrors.time
+                              ? "border-red-300 bg-red-50 focus:ring-red-200"
+                              : "focus:ring-blue-200 border-gray-200 hover:border-blue-300"
+                          }`}
+                        />
+                      </div>
+                      {formErrors.time && (
+                        <p className="text-red-500 text-sm mt-1 flex items-start ml-1">
+                          <AlertCircle
+                            size={14}
+                            className="mr-1 mt-0.5 flex-shrink-0"
+                          />
+                          {formErrors.time}
+                        </p>
+                      )}
+                    </div>
+                  </div>
 
-              {/* Participants */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Nombre de participants <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="number"
-                  name="numberOfAttendees"
-                  min="1"
-                  value={reservationForm.numberOfAttendees || ""}
-                  onChange={handleReservationInput}
-                  className={`w-full border rounded-lg p-2 focus:ring-2 focus:outline-none transition-colors ${
-                    formErrors.numberOfAttendees
-                      ? "border-red-300 bg-red-50 focus:ring-red-200"
-                      : "focus:ring-emerald-200 border-gray-300"
-                  }`}
-                />
-                {formErrors.numberOfAttendees && (
-                  <p className="text-red-600 text-sm mt-1 flex items-start">
-                    <AlertCircle
-                      size={14}
-                      className="mr-1 mt-0.5 flex-shrink-0"
-                    />
-                    {formErrors.numberOfAttendees}
-                  </p>
-                )}
-              </div>
+                  {/* Nombre de participants */}
+                  <div className="mt-4">
+                    <label className="block text-sm font-medium text-gray-700 mb-1 ml-1">
+                      Nombre de participants{" "}
+                      <span className="text-red-500">*</span>
+                    </label>
+                    <div className="relative">
+                      <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-gray-500">
+                        <Users size={18} />
+                      </div>
+                      <input
+                        type="number"
+                        name="numberOfAttendees"
+                        min="1"
+                        value={reservationForm.numberOfAttendees || ""}
+                        onChange={handleReservationInput}
+                        className={`w-full border rounded-xl p-3 pl-10 focus:ring-2 focus:outline-none transition-colors ${
+                          formErrors.numberOfAttendees
+                            ? "border-red-300 bg-red-50 focus:ring-red-200"
+                            : "focus:ring-blue-200 border-gray-200 hover:border-blue-300"
+                        }`}
+                      />
+                    </div>
+                    {formErrors.numberOfAttendees && (
+                      <p className="text-red-500 text-sm mt-1 flex items-start ml-1">
+                        <AlertCircle
+                          size={14}
+                          className="mr-1 mt-0.5 flex-shrink-0"
+                        />
+                        {formErrors.numberOfAttendees}
+                      </p>
+                    )}
+                  </div>
 
-              <div className="flex justify-end gap-3 pt-4 border-t mt-6">
-                <button
-                  type="button"
-                  onClick={() => setShowReservationModal(false)}
-                  className="px-4 py-2 border rounded hover:bg-gray-100 transition-colors"
-                >
-                  Annuler
-                </button>
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className={`px-4 py-2 rounded text-white shadow transition-all ${
-                    loading
-                      ? "bg-gray-400 cursor-not-allowed"
-                      : "bg-emerald-600 hover:bg-emerald-700 hover:shadow-lg"
-                  }`}
-                >
-                  {loading ? (
-                    <span className="flex items-center">
-                      <svg
-                        className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
-                        xmlns="http://www.w3.org/2000/svg"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                      >
-                        <circle
-                          className="opacity-25"
-                          cx="12"
-                          cy="12"
-                          r="10"
+                  {/* Affichage conditionnel de la sélection d'employé */}
+                  {(() => {
+                    const svc = services.find(
+                      (s) => s.id === +reservationForm.serviceId
+                    );
+                    if (svc?.requiresEmployeeSelection) {
+                      return (
+                        <div className="mt-6 pt-4 border-t border-gray-100">
+                          <label className="block text-sm font-medium text-gray-700 mb-3 ml-1">
+                            Choisir un employé{" "}
+                            <span className="text-red-500">*</span>
+                          </label>
+                          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 justify-items-center">
+                            {svc.employees.map((emp) => (
+                              <div
+                                key={emp.id}
+                                onClick={() => {
+                                  const newValue =
+                                    +reservationForm.employeeId === emp.id
+                                      ? null
+                                      : emp.id.toString();
+                                  handleReservationInput({
+                                    target: {
+                                      name: "employeeId",
+                                      value: newValue,
+                                    },
+                                  });
+                                }}
+                                className={`bg-white rounded-2xl p-3 shadow-sm border transition-all cursor-pointer transform ${
+                                  +reservationForm.employeeId === emp.id
+                                    ? "scale-105 border-blue-400 ring-2 ring-blue-300 shadow-md"
+                                    : "border-gray-200 hover:border-blue-300 hover:scale-105"
+                                } w-full max-w-[120px]`}
+                              >
+                                <div className="flex flex-col items-center">
+                                  <div
+                                    className={`h-16 w-16 rounded-full overflow-hidden shadow-sm border-2 ${
+                                      +reservationForm.employeeId === emp.id
+                                        ? "border-blue-500"
+                                        : "border-gray-200"
+                                    }`}
+                                  >
+                                    {emp.imageUrl ? (
+                                      <img
+                                        src={emp.imageUrl}
+                                        alt={`${emp.firstName} ${emp.lastName}`}
+                                        className="w-full h-full object-cover"
+                                      />
+                                    ) : (
+                                      <div
+                                        className={`h-full w-full bg-gradient-to-br ${getAvatarColor(
+                                          emp.id
+                                        )} flex items-center justify-center text-white`}
+                                      >
+                                        <span className="font-bold text-lg">
+                                          {getInitials(
+                                            emp.firstName,
+                                            emp.lastName
+                                          )}
+                                        </span>
+                                      </div>
+                                    )}
+                                  </div>
+                                  <p className="text-center mt-2 font-medium text-gray-700 line-clamp-1">
+                                    {emp.firstName}
+                                  </p>
+                                  <p className="text-center text-sm text-gray-500 line-clamp-1">
+                                    {emp.lastName}
+                                  </p>
+                                </div>
+                                {+reservationForm.employeeId === emp.id && (
+                                  <div className="absolute -top-2 -right-2 bg-blue-500 text-white rounded-full w-6 h-6 flex items-center justify-center shadow-md">
+                                    <Check size={14} />
+                                  </div>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                          {formErrors.employeeId && (
+                            <p className="text-red-500 text-sm mt-3 flex items-start ml-1">
+                              <AlertCircle
+                                size={14}
+                                className="mr-1 mt-0.5 flex-shrink-0"
+                              />
+                              {formErrors.employeeId}
+                            </p>
+                          )}
+                        </div>
+                      );
+                    }
+                    return null;
+                  })()}
+                </div>
+
+                {/* Section Informations Client */}
+                <div className="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
+                  <h4 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+                    <div className="bg-emerald-100 text-emerald-700 p-2 rounded-lg mr-3">
+                      <Users size={20} />
+                    </div>
+                    Informations client
+                  </h4>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {/* Prénom */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1 ml-1">
+                        Prénom <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        name="clientFirstName"
+                        value={reservationForm.clientFirstName}
+                        onChange={handleReservationInput}
+                        className={`w-full border rounded-xl p-3 focus:ring-2 focus:outline-none transition-colors ${
+                          formErrors.clientFirstName
+                            ? "border-red-300 bg-red-50 focus:ring-red-200"
+                            : "focus:ring-blue-200 border-gray-200 hover:border-blue-300"
+                        }`}
+                        placeholder="Prénom du client"
+                      />
+                      {formErrors.clientFirstName && (
+                        <p className="text-red-500 text-sm mt-1 flex items-start ml-1">
+                          <AlertCircle
+                            size={14}
+                            className="mr-1 mt-0.5 flex-shrink-0"
+                          />
+                          {formErrors.clientFirstName}
+                        </p>
+                      )}
+                    </div>
+
+                    {/* Nom */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1 ml-1">
+                        Nom <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        name="clientLastName"
+                        value={reservationForm.clientLastName}
+                        onChange={handleReservationInput}
+                        className={`w-full border rounded-xl p-3 focus:ring-2 focus:outline-none transition-colors ${
+                          formErrors.clientLastName
+                            ? "border-red-300 bg-red-50 focus:ring-red-200"
+                            : "focus:ring-blue-200 border-gray-200 hover:border-blue-300"
+                        }`}
+                        placeholder="Nom du client"
+                      />
+                      {formErrors.clientLastName && (
+                        <p className="text-red-500 text-sm mt-1 flex items-start ml-1">
+                          <AlertCircle
+                            size={14}
+                            className="mr-1 mt-0.5 flex-shrink-0"
+                          />
+                          {formErrors.clientLastName}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Téléphone */}
+                  <div className="mt-4">
+                    <label className="block text-sm font-medium text-gray-700 mb-1 ml-1">
+                      Téléphone <span className="text-red-500">*</span>
+                    </label>
+                    <div className="relative">
+                      <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-gray-500">
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          width="18"
+                          height="18"
+                          viewBox="0 0 24 24"
+                          fill="none"
                           stroke="currentColor"
-                          strokeWidth="4"
-                        ></circle>
-                        <path
-                          className="opacity-75"
-                          fill="currentColor"
-                          d="M4 12a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                          clip-rule="evenodd"
-                        ></path>
-                      </svg>
-                      En cours...
-                    </span>
-                  ) : (
-                    "Créer réservation"
-                  )}
-                </button>
-              </div>
-            </form>
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        >
+                          <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
+                        </svg>
+                      </div>
+                      <input
+                        type="tel"
+                        name="clientPhoneNumber"
+                        value={reservationForm.clientPhoneNumber}
+                        onChange={handleReservationInput}
+                        className={`w-full border rounded-xl p-3 pl-10 focus:ring-2 focus:outline-none transition-colors ${
+                          formErrors.clientPhoneNumber
+                            ? "border-red-300 bg-red-50 focus:ring-red-200"
+                            : "focus:ring-blue-200 border-gray-200 hover:border-blue-300"
+                        }`}
+                        placeholder="Numéro de téléphone"
+                      />
+                    </div>
+                    {formErrors.clientPhoneNumber && (
+                      <p className="text-red-500 text-sm mt-1 flex items-start ml-1">
+                        <AlertCircle
+                          size={14}
+                          className="mr-1 mt-0.5 flex-shrink-0"
+                        />
+                        {formErrors.clientPhoneNumber}
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Email (optional) */}
+                  <div className="mt-4">
+                    <div className="flex items-center justify-between">
+                      <label className="flex items-center gap-2 cursor-pointer select-none">
+                        <div className="relative inline-block w-10 h-5 transition-colors duration-200 ease-in-out rounded-full">
+                          <input
+                            type="checkbox"
+                            id="hasClientEmail"
+                            checked={hasClientEmail}
+                            onChange={(e) => {
+                              setHasClientEmail(e.target.checked);
+                              if (!e.target.checked) {
+                                setReservationForm((f) => ({
+                                  ...f,
+                                  clientEmail: "",
+                                }));
+                                setFormErrors((prev) => {
+                                  const updated = { ...prev };
+                                  delete updated.clientEmail;
+                                  return updated;
+                                });
+                              }
+                            }}
+                            className="absolute opacity-0 w-0 h-0"
+                          />
+                          <span
+                            className={`block w-10 h-5 rounded-full transition-colors duration-200 ease-in-out ${
+                              hasClientEmail ? "bg-blue-500" : "bg-gray-300"
+                            }`}
+                          ></span>
+                          <span
+                            className={`absolute left-0.5 top-0.5 bg-white w-4 h-4 rounded-full transition-transform duration-200 ease-in-out ${
+                              hasClientEmail ? "transform translate-x-5" : ""
+                            }`}
+                          ></span>
+                        </div>
+                        <span className="text-sm font-medium text-gray-700">
+                          Le client a un email
+                        </span>
+                      </label>
+                    </div>
+
+                    {hasClientEmail && (
+                      <div className="mt-3">
+                        <div className="relative">
+                          <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-gray-500">
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              width="18"
+                              height="18"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth="2"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                            >
+                              <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+                              <polyline points="22,6 12,13 2,6"></polyline>
+                            </svg>
+                          </div>
+                          <input
+                            type="email"
+                            name="clientEmail"
+                            value={reservationForm.clientEmail}
+                            onChange={handleReservationInput}
+                            className={`w-full border rounded-xl p-3 pl-10 focus:ring-2 focus:outline-none transition-colors ${
+                              formErrors.clientEmail
+                                ? "border-red-300 bg-red-50 focus:ring-red-200"
+                                : "focus:ring-blue-200 border-gray-200 hover:border-blue-300"
+                            }`}
+                            placeholder="Email du client"
+                          />
+                        </div>
+                        {formErrors.clientEmail && (
+                          <p className="text-red-500 text-sm mt-1 flex items-start ml-1">
+                            <AlertCircle
+                              size={14}
+                              className="mr-1 mt-0.5 flex-shrink-0"
+                            />
+                            {formErrors.clientEmail}
+                          </p>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Actions */}
+                <div className="flex justify-end gap-3 pt-2">
+                  <button
+                    type="button"
+                    onClick={() => setShowReservationModal(false)}
+                    className="px-6 py-3 border border-gray-300 rounded-xl font-medium text-gray-700 hover:bg-gray-100 transition-colors"
+                  >
+                    Annuler
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    className={`px-6 py-3 rounded-xl font-medium text-white shadow-md transition-all ${
+                      loading
+                        ? "bg-gray-400 cursor-not-allowed"
+                        : "bg-blue-600 hover:bg-blue-700 hover:shadow-lg"
+                    }`}
+                  >
+                    {loading ? (
+                      <span className="flex items-center">
+                        <svg
+                          className="animate-spin -ml-1 mr-2 h-5 w-5 text-white"
+                          xmlns="http://www.w3.org/2000/svg"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                        >
+                          <circle
+                            className="opacity-25"
+                            cx="12"
+                            cy="12"
+                            r="10"
+                            stroke="currentColor"
+                            strokeWidth="4"
+                          ></circle>
+                          <path
+                            className="opacity-75"
+                            fill="currentColor"
+                            d="M4 12a8 8 0 100-16 8 8 0 000 16z"
+                          ></path>
+                        </svg>
+                        Création en cours...
+                      </span>
+                    ) : (
+                      <>
+                        <span className="flex items-center">
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="20"
+                            height="20"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            className="mr-2"
+                          >
+                            <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                            <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                            <polyline points="7 3 7 8 15 8"></polyline>
+                          </svg>
+                          Créer la réservation
+                        </span>
+                      </>
+                    )}
+                  </button>
+                </div>
+              </form>
+            </div>
           </div>
         </div>
       )}
@@ -1778,8 +2091,94 @@ const Calendar = () => {
           </div>
         </div>
       )}
+      {reservationDetail && (
+        <div
+          className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4 animate-fadeIn"
+          onClick={() => setReservationDetail(null)}
+        >
+          <div
+            className="bg-white rounded-lg shadow-2xl w-full max-w-sm p-6 animate-scaleIn relative"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              className="absolute top-2 right-2 text-gray-400 hover:text-red-500"
+              onClick={() => setReservationDetail(null)}
+            >
+              <X size={22} />
+            </button>
+            <h3 className="text-xl font-semibold text-indigo-700 mb-4 flex items-center">
+              <CalendarIcon size={20} className="mr-2" />
+              Détail réservation
+            </h3>
+            <div className="space-y-3">
+              {/* Service */}
+              <div className="bg-blue-50 p-2 rounded-lg">
+                <span className="font-medium text-blue-700">Service :</span>
+                <span className="ml-1 text-gray-800">
+                  {reservationDetail.title}
+                </span>
+              </div>
+
+              {/* Date et heure */}
+              <div className="bg-gray-50 p-2 rounded-lg flex justify-between">
+                <div>
+                  <span className="font-medium text-gray-700">Date :</span>
+                  <span className="ml-1">{reservationDetail.date}</span>
+                </div>
+                <div>
+                  <span className="font-medium text-gray-700">Heure :</span>
+                  <span className="ml-1">
+                    {formatTime(reservationDetail.time)}
+                  </span>
+                </div>
+              </div>
+
+              {/* Client info */}
+              <div className="bg-teal-50 p-2 rounded-lg space-y-1">
+                <div className="font-medium text-teal-700">
+                  Informations client :
+                </div>
+                <div>
+                  <span className="font-medium text-gray-700">
+                    Nom complet :
+                  </span>{" "}
+                  {reservationDetail.clientFirstName}{" "}
+                  {reservationDetail.clientLastName}
+                </div>
+                <div>
+                  <span className="font-medium text-gray-700">Téléphone :</span>{" "}
+                  {reservationDetail.clientPhoneNumber || "Non renseigné"}
+                </div>
+                {reservationDetail.clientEmail && (
+                  <div>
+                    <span className="font-medium text-gray-700">Email :</span>{" "}
+                    {reservationDetail.clientEmail}
+                  </div>
+                )}
+              </div>
+
+              {/* Employee */}
+              {reservationDetail.employee && (
+                <div className="bg-indigo-50 p-2 rounded-lg">
+                  <span className="font-medium text-indigo-700">Employé :</span>{" "}
+                  {reservationDetail.employee.firstName}{" "}
+                  {reservationDetail.employee.lastName}
+                </div>
+              )}
+
+              {/* Participants */}
+              <div>
+                <span className="font-medium text-gray-700">
+                  Participants :
+                </span>{" "}
+                {reservationDetail.numberOfAttendees}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
-  )
+  );
 };
 
 export default Calendar;
