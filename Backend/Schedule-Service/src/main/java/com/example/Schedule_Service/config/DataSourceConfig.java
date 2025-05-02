@@ -10,7 +10,10 @@ import org.springframework.context.annotation.Configuration;
 import javax.sql.DataSource;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
+
 
 @Slf4j
 @Configuration
@@ -74,5 +77,13 @@ public class DataSourceConfig {
             routingDataSource.setTargetDataSources(new HashMap<>(dataSources));
             routingDataSource.afterPropertiesSet();
         }
+    }
+
+    // USED FOR PENDING RESERVATIONS CLEANUP FOR ALL THE TENANTS (across all the databases)
+    public Set<String> getAllTenantIds() {
+        // Our keys in Map<Object,Object> are the tenant IDs
+        return dataSources.keySet().stream()
+                .map(Object::toString)
+                .collect(Collectors.toSet());
     }
 }

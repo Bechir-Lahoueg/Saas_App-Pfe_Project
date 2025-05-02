@@ -38,13 +38,11 @@ public class RabbitConfig {
     // —————————————————————————————————————————————————————————————————————————
     @Bean
     public Jackson2JsonMessageConverter jackson2JsonMessageConverter() {
-        Jackson2JsonMessageConverter converter = new Jackson2JsonMessageConverter();
-
-        DefaultJackson2JavaTypeMapper typeMapper = new DefaultJackson2JavaTypeMapper();
+        var converter = new Jackson2JsonMessageConverter();
+        var typeMapper = new DefaultJackson2JavaTypeMapper();
         typeMapper.setTypePrecedence(Jackson2JavaTypeMapper.TypePrecedence.TYPE_ID);
 
         Map<String, Class<?>> idClassMapping = new HashMap<>();
-        // keys must match the __TypeId__ header that the producer sets:
         idClassMapping.put(
                 "com.example.ClientBooking_service.events.ReservationCreatedEvent",
                 com.example.notification_service.events.ReservationCreatedEvent.class
@@ -53,11 +51,11 @@ public class RabbitConfig {
                 "com.example.ClientBooking_service.events.ReservationConfirmedEvent",
                 com.example.notification_service.events.ReservationConfirmedEvent.class
         );
-
         typeMapper.setIdClassMapping(idClassMapping);
         converter.setJavaTypeMapper(typeMapper);
         return converter;
     }
+
 
 
     // 2) Tell RabbitTemplate to use JSON

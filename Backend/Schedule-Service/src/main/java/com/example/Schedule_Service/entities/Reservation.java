@@ -25,6 +25,7 @@ public class Reservation {
     private LocalDateTime startTime;
     private LocalDateTime endTime;
     private int numberOfAttendees;
+
     private String clientFirstName;
     private String clientLastName;
     private String clientPhoneNumber;
@@ -47,7 +48,6 @@ public class Reservation {
     public enum Status {
         PENDING,
         CONFIRMED,
-        EXPIRED
     }
 
 }

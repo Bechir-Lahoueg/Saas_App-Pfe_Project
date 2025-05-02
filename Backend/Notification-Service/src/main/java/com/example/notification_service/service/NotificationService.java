@@ -9,12 +9,12 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.stereotype.Service;
 
-import java.time.ZoneId;
-import java.util.concurrent.ScheduledFuture;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.Map;
 import java.time.Instant;
+import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ScheduledFuture;
 
 @RequiredArgsConstructor
 @Service
@@ -22,52 +22,61 @@ public class NotificationService {
 
     private final JavaMailSender mailSender;
     private final TaskScheduler scheduler;
-    private final Map<Long, ScheduledFuture<?>> expireTasks = new ConcurrentHashMap<>();
+
+    /** Tracks the “5 min‑left to confirm” reminders **/
+    private final Map<Long, ScheduledFuture<?>> confirmReminderTasks = new ConcurrentHashMap<>();
+
+    /** Tracks the “12 h‑before appointment” reminders **/
+    private final Map<Long, ScheduledFuture<?>> appointmentReminderTasks = new ConcurrentHashMap<>();
 
     @RabbitListener(queues = "reservation.created.queue")
     public void onCreated(ReservationCreatedEvent evt) {
-        // 1) send confirmation email
-        var msg = new SimpleMailMessage();
-        msg.setTo(evt.clientEmail());
-        msg.setSubject("Please confirm your reservation");
-        msg.setText("Your confirmation code is: " + evt.confirmationCode());
-        mailSender.send(msg);
+        // 1) Send initial confirmation email
+        sendEmail(evt.clientEmail(),
+                "Please confirm your reservation",
+                "Your confirmation code is: " + evt.confirmationCode());
 
-        // 2) schedule an in-memory “reminder to confirm” if you like (not strictly needed)
-        var reminderAt = Instant.now().plus(25, ChronoUnit.MINUTES);
-        var future = scheduler.schedule(
-                () -> sendReminder(evt.clientEmail()),
-                reminderAt
+        // 2) Schedule “5 minutes left to confirm” reminder at T+25m
+        Instant confirmReminderAt = Instant.now().plus(25, ChronoUnit.MINUTES);
+        ScheduledFuture<?> confirmFuture = scheduler.schedule(
+                () -> sendEmail(evt.clientEmail(),
+                        "⚠️ Your reservation is about to expire",
+                        "You have 5 minutes left to confirm your reservation before it is auto‑cancelled."),
+                confirmReminderAt
         );
-        expireTasks.put(evt.reservationId(), future);
+        confirmReminderTasks.put(evt.reservationId(), confirmFuture);
 
-        // 3) schedule SMS reminder 12h before the actual startTime
-        var smsAt = evt.startTime()
+        // 3) Schedule “12 hours before start” reminder
+        Instant appointmentReminderAt = evt.startTime()
                 .minusHours(12)
                 .atZone(ZoneId.systemDefault())
                 .toInstant();
-        scheduler.schedule(
-                () -> sendSms(evt.clientPhoneNumber(), "Reminder: your appointment is in 12 hours"),
-                smsAt
+        ScheduledFuture<?> apptFuture = scheduler.schedule(
+                () -> sendEmail(evt.clientEmail(),
+                        "⏰ Upcoming reservation reminder",
+                        "Just a friendly reminder: your reservation is scheduled at "
+                                + evt.startTime() + "."),
+                appointmentReminderAt
         );
+        appointmentReminderTasks.put(evt.reservationId(), apptFuture);
     }
 
     @RabbitListener(queues = "reservation.confirmed.queue")
     public void onConfirmed(ReservationConfirmedEvent evt) {
-        // cancel the “confirm reminder”
-        var f = expireTasks.remove(evt.reservationId());
-        if (f != null) f.cancel(false);
+        // Cancel the “5 min‑left” confirm reminder
+        ScheduledFuture<?> f1 = confirmReminderTasks.remove(evt.reservationId());
+        if (f1 != null) f1.cancel(false);
+
+        // Cancel the “12 h‑before appointment” reminder
+        ScheduledFuture<?> f2 = appointmentReminderTasks.remove(evt.reservationId());
+        if (f2 != null) f2.cancel(false);
     }
 
-    private void sendReminder(String to) {
-        var msg = new SimpleMailMessage();
+    private void sendEmail(String to, String subject, String body) {
+        SimpleMailMessage msg = new SimpleMailMessage();
         msg.setTo(to);
-        msg.setSubject("Reservation still unconfirmed");
-        msg.setText("You have 5 minutes left to confirm your reservation before it is auto-cancelled.");
+        msg.setSubject(subject);
+        msg.setText(body);
         mailSender.send(msg);
-    }
-
-    private void sendSms(String phone, String text) {
-        // TODO integrate your SMS provider
     }
 }
