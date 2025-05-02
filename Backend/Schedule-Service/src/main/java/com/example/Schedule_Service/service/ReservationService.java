@@ -11,14 +11,17 @@ import com.example.Schedule_Service.repository.WorkingDayRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.time.DayOfWeek;
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
+import java.util.Random;
 
 @Slf4j
 @Service
@@ -45,6 +48,7 @@ public class ReservationService {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Reservation not found"));
     }
 
+    //--------------------------------TENANT------------------------------------------
     @Transactional
     public Reservation createReservation(Reservation reservation) {
         log.info("[START] Creating reservation: {}", reservation);
@@ -173,6 +177,138 @@ public class ReservationService {
         return saved;
     }
 
+    //--------------------CLIENT--------------------------------------------
+    @Transactional
+    public Reservation createClientReservation(Reservation reservation) {
+        log.info("[START] Creating reservation: {}", reservation);
+
+        // 1) fetch service
+        log.info("[STEP 1] Fetching service by ID: {}", reservation.getServiceId());
+        Services service = serviceRepository.findById(reservation.getServiceId())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Service not found"));
+
+        // 2) employee-required check
+        if (service.isRequiresEmployeeSelection()) {
+            log.info("[STEP 2] Service requires employee selection");
+            if (reservation.getEmployeeId() == null) {
+                log.error("[STEP 2] No employee selected");
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                        "This service requires selecting an employee");
+            }
+            Employee emp = employeeRepository.findById(reservation.getEmployeeId())
+                    .orElseThrow(() -> new ResponseStatusException(
+                            HttpStatus.NOT_FOUND, "Employee not found"));
+            log.info("[STEP 2] Employee fetched: {}", emp);
+            if (emp.getStatus() == Employee.Status.INACTIVE) {
+                log.error("[STEP 2] Employee is inactive");
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                        "Employee is not active");
+            }
+        }
+
+        // 3) ensure endTime is set, matches duration, and is after startTime
+        if (reservation.getEndTime() == null) {
+            reservation.setEndTime(reservation.getStartTime().plusMinutes(service.getDuration()));
+            log.info("[STEP 3] auto-set endTime to {}", reservation.getEndTime());
+        }
+        if (!reservation.getEndTime().isAfter(reservation.getStartTime())) {
+            log.error("[STEP 3] endTime {} is not after startTime {}",
+                    reservation.getEndTime(), reservation.getStartTime());
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "endTime must be after startTime");
+        }
+        long actualDuration = java.time.Duration.between(
+                reservation.getStartTime(), reservation.getEndTime()).toMinutes();
+        if (actualDuration != service.getDuration()) {
+            log.error("[STEP 3] actual duration {} does not match service duration {}",
+                    actualDuration, service.getDuration());
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "Reservation length must equal service duration");
+        }
+
+        // 4) no past bookings
+        LocalDateTime now = LocalDateTime.now();
+        if (reservation.getStartTime().isBefore(now)) {
+            log.error("[STEP 4] Reservation start time {} is in the past",
+                    reservation.getStartTime());
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "Reservation start time is in the past");
+        }
+
+        // 5) working-day & timeslot check (unchanged logic, but use endTime)
+        DayOfWeek dow = reservation.getStartTime().getDayOfWeek();
+        WorkingDay wd = workingDayRepository.findByDayOfWeek(dow)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.BAD_REQUEST, "No working-day defined for " + dow));
+        if (!wd.isActive()) {
+            log.error("[STEP 5] Working day {} is inactive", dow);
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "Service is not available on " + dow);
+        }
+        LocalTime startLocal = reservation.getStartTime().toLocalTime();
+        LocalTime endLocal   = reservation.getEndTime().toLocalTime();
+        boolean fits = wd.getTimeSlots().stream().anyMatch(ts ->
+                !startLocal.isBefore(ts.getStartTime()) && !endLocal.isAfter(ts.getEndTime())
+        );
+        if (!fits) {
+            log.error("[STEP 5] {}–{} outside of working slots on {}", startLocal, endLocal, dow);
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "Requested time is outside of working hours on " + dow);
+        }
+
+        // 6) per-service conflict & capacity
+        LocalDateTime newStart = reservation.getStartTime();
+        LocalDateTime newEnd   = reservation.getEndTime();
+        List<Reservation> svcExisting = reservationRepository.findByServiceId(reservation.getServiceId());
+        log.info("[STEP 6] {} existing reservations for service {}", svcExisting.size(), service.getId());
+
+        if (service.isAllowSimultaneous()) {
+            int totalAttendees = reservation.getNumberOfAttendees();
+            for (Reservation r : svcExisting) {
+                if (r.getStartTime().isBefore(newEnd) && r.getEndTime().isAfter(newStart)) {
+                    totalAttendees += r.getNumberOfAttendees();
+                }
+            }
+            log.info("[STEP 6] totalAttendees after new: {}", totalAttendees);
+            if (totalAttendees > service.getCapacity()) {
+                log.error("[STEP 6] exceeds capacity {}", service.getCapacity());
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                        "Reservation exceeds service capacity");
+            }
+        } else {
+            for (Reservation r : svcExisting) {
+                if (r.getStartTime().isBefore(newEnd) && r.getEndTime().isAfter(newStart)) {
+                    log.error("[STEP 6] overlap with reservation {}", r.getId());
+                    throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                            "Overlapping reservation not allowed for this service");
+                }
+            }
+        }
+
+        // 7) employee-level conflict (across *all* services)
+        if (reservation.getEmployeeId() != null) {
+            List<Reservation> empExisting = reservationRepository.findByEmployeeId(reservation.getEmployeeId());
+            log.info("[STEP 7] {} existing reservations for employee {}",
+                    empExisting.size(), reservation.getEmployeeId());
+            for (Reservation r : empExisting) {
+                if (r.getStartTime().isBefore(newEnd) && r.getEndTime().isAfter(newStart)) {
+                    log.error("[STEP 7] employee overlap with reservation {}", r.getId());
+                    throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                            "Selected employee is already booked during that time");
+                }
+            }
+        }
+
+        // 8) persist
+        log.info("[STEP 8] Saving reservation");
+        reservation.setConfirmationCode(String.format("%06d", new Random().nextInt(1_000_000)));
+        reservationRepository.save(reservation);
+
+        // 2) publish event for notifications
+        return reservation;
+    }
+
+
 
     @Transactional
     public Reservation updateReservation(Long id, Reservation updatedReservation) {
@@ -257,4 +393,35 @@ public class ReservationService {
     public void deleteReservation(Long id) {
         reservationRepository.deleteById(id);
     }
+
+    @Scheduled(fixedRate = 60_000) // every minute
+    @Transactional
+    public void deletePendingReservations() {
+        LocalDateTime delay = LocalDateTime.now().minusMinutes(30);
+        List<Reservation> pendingReservations = reservationRepository
+                .findByStatusAndCreatedAtBefore(Reservation.Status.PENDING, delay);
+        if (!pendingReservations.isEmpty()) {
+            log.info("deleting {} reservations that surpassed 30 minutes delay", pendingReservations.size());
+            reservationRepository.deleteAll(pendingReservations);
+        }
+    }
+
+    @Transactional
+    public void confirmReservation(Long id, String code) {
+        Reservation r = reservationRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Not found"));
+        if (r.getStatus() != Reservation.Status.PENDING) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Already confirmed or expired");
+        }
+        if (!r.getConfirmationCode().equals(code)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid code");
+        }
+        r.setStatus(Reservation.Status.CONFIRMED);
+        reservationRepository.save(r);
+        log.info("Reservation {} confirmed", id);
+    }
 }
+
+
+
+

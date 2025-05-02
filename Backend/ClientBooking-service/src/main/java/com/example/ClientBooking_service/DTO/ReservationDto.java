@@ -8,5 +8,10 @@ public record ReservationDto(
         Long employeeId,
         LocalDateTime startTime,
         LocalDateTime endTime,
-        int numberOfAttendees
+        int numberOfAttendees,
+        String clientFirstName,
+        String clientLastName,
+        String clientPhoneNumber,
+        String clientEmail,
+        String confirmationCode
 ) {}

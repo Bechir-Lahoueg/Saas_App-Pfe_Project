@@ -28,7 +28,6 @@ public class Category {
 
     private String imageUrl;
 
-    // Add bidirectional relationship (optional but recommended)
     @OneToMany(mappedBy = "category", cascade = CascadeType.ALL)
     @JsonManagedReference
     private List<Tenant> tenants;

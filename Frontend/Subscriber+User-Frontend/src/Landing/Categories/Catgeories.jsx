@@ -157,7 +157,7 @@ export default function Categories() {
                       </p>
                       
                       <a
-                        href={`/secteurs/${category.categoryName.toLowerCase().replace(/\s+/g, "-")}`}
+                        href={`/secteurs/${category.categoryName}`}
                         className="inline-flex items-center px-4 py-2 bg-gray-100 hover:bg-blue-50 border border-gray-200 hover:border-blue-300 rounded-lg text-sm font-medium text-gray-700 hover:text-blue-600 transition-all duration-300"
                       >
                         <span>Voir les prestataires</span>

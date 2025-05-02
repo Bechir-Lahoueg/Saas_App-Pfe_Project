@@ -48,7 +48,6 @@ public class CategoryController {
 
         Category categoryToUpdate = existingCategory.get();
 
-        // Si une nouvelle image est fournie, supprimer l'ancienne et télécharger la nouvelle
         if (image != null && !image.isEmpty()) {
             if (categoryToUpdate.getImageUrl() != null) {
                 cloudinaryService.deleteImage(categoryToUpdate.getImageUrl());
@@ -56,7 +55,6 @@ public class CategoryController {
             String imageUrl = cloudinaryService.uploadImage(image);
             category.setImageUrl(imageUrl);
         } else {
-            // Conserver l'URL de l'image existante si aucune nouvelle image n'est fournie
             category.setImageUrl(categoryToUpdate.getImageUrl());
         }
 
@@ -94,7 +92,6 @@ public class CategoryController {
             return ResponseEntity.notFound().build();
         }
 
-        // Supprimer l'image de Cloudinary si elle existe
         if (existingCategory.get().getImageUrl() != null) {
             cloudinaryService.deleteImage(existingCategory.get().getImageUrl());
         }
