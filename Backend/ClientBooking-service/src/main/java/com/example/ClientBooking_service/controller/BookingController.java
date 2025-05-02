@@ -24,4 +24,12 @@ public class BookingController {
     public ReservationDto book(@RequestBody CreateReservationRequest req) {
         return booking.makeReservation(req);
     }
+
+    @PostMapping("/confirm/{id}/{code}")
+    public void confirmReservation(
+            @PathVariable Long id,
+            @PathVariable String code
+    )  {
+        booking.confirm(id, code);
+    }
 }

@@ -33,6 +33,20 @@ public class ReservationController {
         return reservationService.createReservation(reservation);
     }
 
+    @PostMapping("/client/create")
+    @ResponseStatus(HttpStatus.CREATED)
+    public Reservation createClientReservation(@RequestBody Reservation r) {
+        return reservationService.createClientReservation(r);
+    }
+
+    @PostMapping("/client/confirm/{id}/{code}")
+    public void confirmReservation(
+            @PathVariable Long   id,
+            @PathVariable String code
+    ) {
+        reservationService.confirmReservation(id, code);
+    }
+
     // Update an existing reservation
     @PutMapping("/update/{id}")
     public Reservation updateReservation(@PathVariable Long id, @RequestBody Reservation reservation) {

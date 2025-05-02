@@ -3,10 +3,7 @@ package com.example.ClientBooking_service.feign;
 import com.example.ClientBooking_service.DTO.*;
 import com.example.ClientBooking_service.config.ScheduleFeignConfig;
 import org.springframework.cloud.openfeign.FeignClient;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -32,10 +29,18 @@ public interface ScheduleClient {
     @GetMapping("/media")
     List<MediaDto> getMedia(@RequestHeader("X-Tenant-ID") String tenantId);
 
-    @PostMapping("/reservation/create")
+    @PostMapping("/reservation/client/create")
     ReservationDto createReservation(
             @RequestHeader("X-Tenant-ID") String tenantId,
             @RequestBody CreateReservationRequest req
     );
+
+    @PostMapping("/reservation/client/confirm/{id}/{code}")
+    void confirmReservation(
+            @RequestHeader("X-Tenant-ID") String tenant,
+            @PathVariable("id")   Long id,
+            @PathVariable("code") String code
+    );
+
 }
 
