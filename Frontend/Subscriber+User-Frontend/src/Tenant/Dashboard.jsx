@@ -77,7 +77,17 @@ const PAGE_TITLES = {
 const Dashboard = () => {
   // States with initial values from localStorage or defaults
   const [isDarkMode, setIsDarkMode] = useState(() => getCookie("darkMode") === "true");
-  const [isSidebarExpanded, setSidebarExpanded] = useState(window.innerWidth >= 1024);
+  
+  // Améliorations pour la sidebar
+  const [isSidebarExpanded, setSidebarExpanded] = useState(() => {
+    // Récupérer la préférence utilisateur du localStorage si elle existe
+    const savedPreference = localStorage.getItem("sidebarExpanded");
+    if (savedPreference !== null) {
+      return JSON.parse(savedPreference);
+    }
+    // Sinon, définir en fonction de la taille de l'écran
+    return window.innerWidth >= 1024;
+  });
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const [activePage, setActivePage] = useState(() => localStorage.getItem("activePage") || "dashboard");
   const [windowWidth, setWindowWidth] = useState(window.innerWidth);
@@ -85,6 +95,7 @@ const Dashboard = () => {
   const [userData, setUserData] = useState(null);
   const [currentDateTime, setCurrentDateTime] = useState(new Date());
   const [notificationCount, setNotificationCount] = useState(3);
+  const [isResizing, setIsResizing] = useState(false); // Pour éviter les animations pendant le redimensionnement
 
   // Memoized formatters
   const formatDate = useCallback((date) => {
@@ -107,6 +118,11 @@ const Dashboard = () => {
     localStorage.setItem("activePage", activePage);
   }, [activePage]);
 
+  // Sauvegarder l'état de la sidebar dans localStorage
+  useEffect(() => {
+    localStorage.setItem("sidebarExpanded", JSON.stringify(isSidebarExpanded));
+  }, [isSidebarExpanded]);
+
   // Apply dark mode
   useEffect(() => {
     if (isDarkMode) {
@@ -122,21 +138,44 @@ const Dashboard = () => {
     }
   }, [isDarkMode]);
 
-  // Handle window resize
+  // Handle window resize - amélioration avec debounce et meilleure réactivité
   useEffect(() => {
+    let resizeTimer;
+    
     const handleResize = () => {
       const width = window.innerWidth;
+      setIsResizing(true);
       setWindowWidth(width);
-      if (width < 1024) {
+      
+      // Fermer automatiquement le menu mobile quand l'écran s'agrandit
+      if (width >= 1024 && isMobileOpen) {
+        setIsMobileOpen(false);
+      }
+      
+      // Ajustements du sidebar en fonction de la taille de l'écran
+      if (width < 768) {
         setSidebarExpanded(false);
       } else if (width >= 1280) {
         setSidebarExpanded(true);
       }
+      
+      // Réactiver les transitions après le redimensionnement
+      clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(() => {
+        setIsResizing(false);
+      }, 300);
     };
-
+    
     window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
-  }, []);
+    
+    // Exécuter une fois au chargement pour s'assurer que tout est bien configuré
+    handleResize();
+    
+    return () => {
+      window.removeEventListener("resize", handleResize);
+      clearTimeout(resizeTimer);
+    };
+  }, [isMobileOpen]);
 
   // Authentication effect - fetch user data from JWT
   useEffect(() => {
@@ -314,6 +353,11 @@ const Dashboard = () => {
     ));
   };
 
+  // Gestion améliorée du toggle de la sidebar
+  const toggleSidebar = useCallback(() => {
+    setSidebarExpanded(prev => !prev);
+  }, []);
+
   return (
     <div className={`${isDarkMode ? "dark" : ""}`}>
       <div className={`flex h-screen bg-gradient-to-br ${
@@ -321,15 +365,15 @@ const Dashboard = () => {
           ? "from-slate-900 via-slate-800/95 to-indigo-950" 
           : "from-blue-50/70 via-white to-indigo-50/60"
       } transition-colors duration-500`}>
-        {/* Mobile overlay */}
+        {/* Mobile overlay avec amélioration de l'animation */}
         {isMobileOpen && (
           <div
-            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40 lg:hidden transition-opacity duration-300"
+            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40 lg:hidden transition-opacity duration-300 animate-fadeIn"
             onClick={() => setIsMobileOpen(false)}
           />
         )}
 
-        {/* Sidebar */}
+        {/* Sidebar avec réactivité améliorée */}
         <aside
           className={`fixed inset-y-0 left-0 z-50 flex flex-col ${
             isSidebarExpanded ? "w-72" : "w-16"
@@ -337,22 +381,27 @@ const Dashboard = () => {
             isDarkMode
               ? "bg-slate-800/95 border-r border-slate-700/50"
               : "bg-white/95 border-r border-slate-200/50"
-          } transition-all duration-300 ease-in-out ${
-            isMobileOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
-          } shadow-xl backdrop-blur-md`}
+          } ${
+            isResizing ? "" : "transition-all duration-300 ease-in-out"
+          } ${
+            isMobileOpen 
+              ? "translate-x-0 shadow-2xl" 
+              : "-translate-x-full lg:translate-x-0 shadow-xl"
+          } backdrop-blur-md`}
         >
-          {/* Improved sidebar toggle */}
+          {/* Amélioration du toggle - meilleur positionnement et visibilité */}
           <div className="absolute -right-3 top-12 hidden lg:block">
             <button
-              onClick={() => setSidebarExpanded(!isSidebarExpanded)}
+              onClick={toggleSidebar}
               className={`flex items-center justify-center h-6 w-6 rounded-full 
               ${
                 isDarkMode
-                  ? "bg-slate-700 text-blue-400 hover:text-blue-300"
-                  : "bg-white text-blue-500 hover:text-blue-600"
+                  ? "bg-slate-700 text-blue-400 hover:text-blue-300 hover:bg-slate-600"
+                  : "bg-white text-blue-500 hover:text-blue-600 hover:bg-blue-50"
               } shadow-lg ring-1 ${
                 isDarkMode ? "ring-slate-600" : "ring-slate-200"
-              } cursor-pointer transition-all duration-300 hover:scale-105`}
+              } cursor-pointer transition-all duration-300 hover:scale-110 active:scale-95`}
+              aria-label={isSidebarExpanded ? "Réduire le menu" : "Étendre le menu"}
             >
               {isSidebarExpanded ? (
                 <ChevronLeft size={14} strokeWidth={2.5} />
@@ -389,15 +438,15 @@ const Dashboard = () => {
             </button>
           </div>
 
-          {/* Rest of the sidebar content remains similar */}
-          {/* User profile section - enhanced */}
+          {/* Reste de la sidebar - améliorations pour l'affichage en mode compact */}
+          {/* User profile section avec affichage adaptatif */}
           <div
             className={`p-4 ${
               isDarkMode ? "border-slate-700/50" : "border-slate-200/70"
             } border-b`}
           >
             <div
-              className={`flex items-center p-2.5 rounded-xl ${
+              className={`flex items-center ${!isSidebarExpanded ? "justify-center" : ""} p-2.5 rounded-xl ${
                 isDarkMode ? "bg-slate-700/50 hover:bg-slate-700/80" : "bg-slate-100/70 hover:bg-slate-100"
               } transition-all duration-200 cursor-pointer`}
             >
@@ -409,7 +458,7 @@ const Dashboard = () => {
                 } transition-colors duration-300`}>
                   <UserCircle size={24} />
                 </div>
-                <span className="absolute bottom-0 right-0 w-3 h-3 rounded-full bg-green-500 ring-2 ring-white animate-pulse"></span>
+                <span className="absolute bottom-0 right-0 w-3 h-3 rounded-full bg-green-500 ring-2 ring-white dark:ring-slate-800 animate-pulse"></span>
               </div>
 
               {isSidebarExpanded && (
@@ -432,13 +481,13 @@ const Dashboard = () => {
             </div>
           </div>
 
-          {/* Menu sections - removed clock/date display */}
+          {/* Menu sections avec meilleure adaptation au mode compact */}
           <div className="flex-1 overflow-hidden hover:overflow-y-auto py-5 px-3.5">
-            {/* Home button - Add this section first */}
+            {/* Home button - amélioration pour le mode compact */}
             <div className="mb-5">
               <a
                 href="/"
-                className={`flex items-center px-3.5 py-3 rounded-xl gap-3 transition-all duration-300 ${
+                className={`flex items-center ${!isSidebarExpanded ? "justify-center" : ""} px-3.5 py-3 rounded-xl gap-3 transition-all duration-300 ${
                   isDarkMode
                     ? "bg-gradient-to-r from-indigo-900/30 to-blue-900/30 text-blue-300 hover:from-indigo-900/40 hover:to-blue-900/40"
                     : "bg-gradient-to-r from-indigo-50 to-blue-50 text-blue-600 hover:from-indigo-100 hover:to-blue-100"
@@ -458,6 +507,7 @@ const Dashboard = () => {
               </a>
             </div>
             
+            {/* Les titres de section s'affichent uniquement en mode étendu */}
             {isSidebarExpanded && (
               <h3 className="text-xs font-semibold uppercase tracking-wider mb-4 px-4 
                 bg-gradient-to-r from-blue-500 to-indigo-500 text-transparent bg-clip-text">
@@ -465,8 +515,47 @@ const Dashboard = () => {
               </h3>
             )}
 
+            {/* MenuItem component amélioré pour mieux s'adapter au mode compact */}
             <ul className="space-y-2.5 mb-6">
-              {renderMenuItems(MAIN_MENU_ITEMS)}
+              {MAIN_MENU_ITEMS.map(item => (
+                <li key={item.id}>
+                  <button
+                    onClick={() => navigateTo(item.id)}
+                    className={`w-full flex items-center ${!isSidebarExpanded ? "justify-center" : ""} px-3.5 py-3 rounded-xl ${isSidebarExpanded ? "gap-3.5" : ""} transition-all duration-300 ${
+                      activePage === item.id 
+                        ? isDarkMode 
+                          ? "bg-gradient-to-r from-blue-600/90 to-indigo-600 text-white font-medium shadow-lg shadow-blue-900/30" 
+                          : "bg-gradient-to-r from-blue-500 to-indigo-500 text-white font-medium shadow-lg shadow-blue-500/30"
+                        : isDarkMode
+                          ? "text-slate-300 hover:bg-slate-700/70 hover:text-white"
+                          : "text-slate-600 hover:bg-blue-50/80 hover:text-blue-700"
+                    } hover:scale-[1.02] active:scale-[0.98]`}
+                  >
+                    <span className={`${
+                      activePage === item.id 
+                        ? "text-white" 
+                        : isDarkMode 
+                          ? "text-blue-400" 
+                          : "text-blue-600"
+                    } transition-all duration-300 ${
+                      activePage === item.id ? "transform scale-110" : ""
+                    }`}>
+                      {item.icon}
+                    </span>
+                    {isSidebarExpanded && (
+                      <span className={`flex-1 text-left font-medium transition-all duration-300 ${
+                        activePage === item.id ? "transform translate-x-0.5" : ""
+                      }`}>
+                        {item.label}
+                      </span>
+                    )}
+                    {/* Si non étendu, ajouter des tooltips */}
+                    {!isSidebarExpanded && (
+                      <span className="sr-only">{item.label}</span>
+                    )}
+                  </button>
+                </li>
+              ))}
             </ul>
 
             {isSidebarExpanded && (
@@ -475,13 +564,57 @@ const Dashboard = () => {
                 Paramètres
               </h3>
             )}
+            {/* Ligne de séparation visuelle quand la sidebar est réduite */}
+            {!isSidebarExpanded && (
+              <div className={`h-0.5 w-5 mx-auto my-6 rounded-full ${
+                isDarkMode ? "bg-slate-700" : "bg-slate-200"
+              }`}></div>
+            )}
 
             <ul className="space-y-2.5">
-              {renderMenuItems(SECONDARY_MENU_ITEMS)}
+              {SECONDARY_MENU_ITEMS.map(item => (
+                <li key={item.id}>
+                  <button
+                    onClick={() => navigateTo(item.id)}
+                    className={`w-full flex items-center ${!isSidebarExpanded ? "justify-center" : ""} px-3.5 py-3 rounded-xl ${isSidebarExpanded ? "gap-3.5" : ""} transition-all duration-300 ${
+                      activePage === item.id 
+                        ? isDarkMode 
+                          ? "bg-gradient-to-r from-blue-600/90 to-indigo-600 text-white font-medium shadow-lg shadow-blue-900/30" 
+                          : "bg-gradient-to-r from-blue-500 to-indigo-500 text-white font-medium shadow-lg shadow-blue-500/30"
+                        : isDarkMode
+                          ? "text-slate-300 hover:bg-slate-700/70 hover:text-white"
+                          : "text-slate-600 hover:bg-blue-50/80 hover:text-blue-700"
+                    } hover:scale-[1.02] active:scale-[0.98]`}
+                  >
+                    <span className={`${
+                      activePage === item.id 
+                        ? "text-white" 
+                        : isDarkMode 
+                          ? "text-blue-400" 
+                          : "text-blue-600"
+                    } transition-all duration-300 ${
+                      activePage === item.id ? "transform scale-110" : ""
+                    }`}>
+                      {item.icon}
+                    </span>
+                    {isSidebarExpanded && (
+                      <span className={`flex-1 text-left font-medium transition-all duration-300 ${
+                        activePage === item.id ? "transform translate-x-0.5" : ""
+                      }`}>
+                        {item.label}
+                      </span>
+                    )}
+                    {/* Si non étendu, ajouter des tooltips */}
+                    {!isSidebarExpanded && (
+                      <span className="sr-only">{item.label}</span>
+                    )}
+                  </button>
+                </li>
+              ))}
             </ul>
           </div>
 
-          {/* Logout button with enhanced styling */}
+          {/* Improved logout button */}
           <div
             className={`p-4 ${
               isDarkMode ? "border-slate-700/50" : "border-slate-200/70"
@@ -489,24 +622,25 @@ const Dashboard = () => {
           >
             <button
               onClick={handleLogout}
-              className={`flex items-center w-full px-3.5 py-2.5 rounded-xl gap-3 transition-all duration-300 
+              className={`flex items-center w-full ${!isSidebarExpanded ? "justify-center" : ""} px-3.5 py-2.5 rounded-xl gap-3 transition-all duration-300 
                 ${
                   isDarkMode
                     ? "bg-gradient-to-r from-red-900/30 to-red-800/20 text-red-300 hover:from-red-900/40 hover:to-red-800/30"
                     : "bg-gradient-to-r from-red-50 to-red-100/50 text-red-600 hover:from-red-100 hover:to-red-50"
-                } hover:shadow-md`}
+                } hover:shadow-md hover:scale-[1.02] active:scale-[0.98]`}
             >
-              <LogOut size={20} className="transition-transform duration-300 group-hover:translate-x-1" />
+              <LogOut size={20} className="transition-transform duration-300" />
               {isSidebarExpanded && <span className="font-medium">Déconnexion</span>}
+              {!isSidebarExpanded && <span className="sr-only">Déconnexion</span>}
             </button>
           </div>
         </aside>
 
-        {/* Main content area */}
+        {/* Main content area - adjust spacing based on sidebar state */}
         <div
           className={`flex-1 flex flex-col ${
             isSidebarExpanded ? "lg:ml-72" : "lg:ml-16"
-          } transition-all duration-300`}
+          } transition-all ${isResizing ? "" : "duration-300"}`}
         >
           {/* Navbar with enhanced styling */}
           <header
@@ -707,6 +841,16 @@ const Dashboard = () => {
         
         .dark .hover\\:overflow-y-auto::-webkit-scrollbar-thumb:hover {
           background-color: rgba(100, 116, 139, 0.5);
+        }
+
+        /* Add fade-in animation for mobile overlay */
+        @keyframes fadeIn {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+
+        .animate-fadeIn {
+          animation: fadeIn 0.3s ease-in-out;
         }
 
         /* Add smooth transitions for all elements */

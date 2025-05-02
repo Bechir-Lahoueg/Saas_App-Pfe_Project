@@ -406,11 +406,6 @@ const WorkingHoursComponent = () => {
           animation: fadeIn 0.5s ease-in-out;
         }
         
-        /* Make the days appear with a staggered animation */
-        [class*="rounded-xl"] {
-          animation: fadeIn 0.5s ease-in-out forwards;
-          opacity: 0;
-        }
       `}</style>
     </div>
   );

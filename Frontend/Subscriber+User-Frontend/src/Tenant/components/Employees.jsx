@@ -33,6 +33,7 @@ const HR = () => {
   const [selectedImage, setSelectedImage] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
   const [uploadingImage, setUploadingImage] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // ─── Axios config & initial load ─────────────────────────────────
   useEffect(() => {
@@ -129,6 +130,8 @@ const HR = () => {
 
   const saveEmployee = async e => {
     e.preventDefault();
+    if (isSubmitting) return; // Empêche double clic
+    setIsSubmitting(true);
     try {
       if (editingEmp) {
         await axios.put(`/schedule/employee/update/${editingEmp.id}`, editingEmp);
@@ -137,26 +140,23 @@ const HR = () => {
       } else {
         // Créer l'employé avec l'URL par défaut d'abord
         const { data } = await axios.post(`/schedule/employee/create`, newEmp);
-        
+
         // Si une image est sélectionnée, l'uploader après création
         if (selectedImage) {
           const formData = new FormData();
           formData.append('image', selectedImage);
-          
+
           const uploadResponse = await axios.post(`/schedule/employee/upload-image/${data.id}`, formData, {
             headers: {
               'Content-Type': 'multipart/form-data'
             }
           });
-          
-          // Mettre à jour les employés avec les données qui incluent l'URL Cloudinary
+
           setEmployees(es => [...es.filter(e => e.id !== data.id), uploadResponse.data]);
         } else {
-          // Si pas d'image sélectionnée, ajouter l'employé tel quel
           setEmployees(es => [...es, data]);
         }
-        
-        // Réinitialiser le formulaire
+
         setNewEmp({ firstName: '', lastName: '', email: '', phone: '', status: 'ACTIVE', imageUrl: 'https://via.placeholder.com/150' });
         setSelectedImage(null);
         setImagePreview(null);
@@ -166,6 +166,8 @@ const HR = () => {
       console.error(e);
       setError("Erreur lors de l'enregistrement");
       setTimeout(() => setError(null), 5000);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -610,11 +612,12 @@ const HR = () => {
                 )}
                 <button
                   type="submit"
+                  disabled={isSubmitting}
                   className={`px-6 py-3 rounded-xl font-medium text-white flex items-center transition-colors ${
                     editingEmp
                       ? 'bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-600 hover:to-yellow-600'
                       : 'bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700'
-                  }`}
+                  } ${isSubmitting ? 'opacity-60 cursor-not-allowed' : ''}`}
                 >
                   {editingEmp ? (
                     <>
@@ -622,7 +625,7 @@ const HR = () => {
                     </>
                   ) : (
                     <>
-                      <UserPlus className="mr-2" size={18} /> Ajouter
+                      <UserPlus className="mr-2" size={18} /> {isSubmitting ? 'Ajout en cours...' : 'Ajouter'}
                     </>
                   )}
                 </button>
