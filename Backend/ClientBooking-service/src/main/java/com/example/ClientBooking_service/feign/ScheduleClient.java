@@ -41,6 +41,5 @@ public interface ScheduleClient {
             @PathVariable("id")   Long id,
             @PathVariable("code") String code
     );
-
 }
 

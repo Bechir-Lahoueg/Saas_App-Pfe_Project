@@ -1,5 +1,6 @@
 package com.example.Schedule_Service.service;
 
+import com.example.Schedule_Service.context.TenantContext;
 import com.example.Schedule_Service.entities.Employee;
 import com.example.Schedule_Service.entities.Reservation;
 import com.example.Schedule_Service.entities.Services;
@@ -394,15 +395,16 @@ public class ReservationService {
         reservationRepository.deleteById(id);
     }
 
-    @Scheduled(fixedRate = 60_000) // every minute
     @Transactional
-    public void deletePendingReservations() {
-        LocalDateTime delay = LocalDateTime.now().minusMinutes(30);
-        List<Reservation> pendingReservations = reservationRepository
-                .findByStatusAndCreatedAtBefore(Reservation.Status.PENDING, delay);
-        if (!pendingReservations.isEmpty()) {
-            log.info("deleting {} reservations that surpassed 30 minutes delay", pendingReservations.size());
-            reservationRepository.deleteAll(pendingReservations);
+    public void deletePendingReservationsForCurrentTenant() {
+        LocalDateTime cutoff = LocalDateTime.now().minusMinutes(30);
+        List<Reservation> stale = reservationRepository
+                .findByStatusAndCreatedAtBefore(Reservation.Status.PENDING, cutoff);
+
+        if (!stale.isEmpty()) {
+            log.info("[{}] deleting {} unconfirmaed reservations",
+                    TenantContext.getCurrentTenant(), stale.size());
+            reservationRepository.deleteAll(stale);
         }
     }
 
