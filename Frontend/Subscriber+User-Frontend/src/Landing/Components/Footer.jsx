@@ -12,9 +12,9 @@ const Footer = () => {
           <div className="lg:col-span-2">
             <div className="mb-6 flex items-center">
               <img 
-                src="src\assets\LogoPlanifygoPNG.png" 
+                src="/src/assets/LogoPlanifygoPNG.png" 
                 alt="PlanifyGo Logo" 
-                className="h-40 w-55 mr-6"
+                className="h-20 w-auto mr-3"
               />
               <h2 className="text-2xl font-bold">
                 <span className="text-blue-400">P</span>lanify<span className="text-blue-400">G</span>o
