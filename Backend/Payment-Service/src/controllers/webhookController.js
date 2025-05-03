@@ -1,4 +1,3 @@
-// src/controllers/webhookController.js
 const Payment = require('../models/Payment');
 const { registerTenant } = require('../services/tenantRegistrationService');
 
