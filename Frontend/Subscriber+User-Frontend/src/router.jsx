@@ -14,7 +14,7 @@ const PasswordChanger = lazy(() => import("./Auth/SignIn/ResetPassword"));
 const Reservation = lazy(() => import("./Client/Reservation"));
 const Catgeories = lazy(() => import("./Landing/Categories/Catgeories"));
 const CategoriesTenants = lazy(() => import("./Landing/Categories/TenantsByCategory"));
-
+const ConfirmReservation = lazy(() => import("./Client/ConfirmReservation"));
 const AppRouter = () => {
   return (
     <Suspense fallback={<LoadingSpinner />}>
@@ -32,6 +32,7 @@ const AppRouter = () => {
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/secteurs" element={<Catgeories />} />
         <Route path="/secteurs/:categoryName" element={<CategoriesTenants />} />
+        <Route path="/reservation/:confirmId" element={<ConfirmReservation />} />
       </Routes>
     </Suspense>
   );

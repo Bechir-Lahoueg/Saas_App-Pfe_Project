@@ -39,7 +39,8 @@ public class SecurityConfig {
                                 "/tenant/reset-password",
                                 "/tenant/login",
                                 "/category/**",
-                                "/tenant/getTenantByCategory/**"
+                                "/tenant/getTenantByCategory/**",
+                                "/tenant/getTenantBySubdomain/**"
                         ).permitAll()
 
                         .anyRequest()
