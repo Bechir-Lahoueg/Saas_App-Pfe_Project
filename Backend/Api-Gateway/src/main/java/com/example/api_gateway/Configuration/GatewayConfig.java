@@ -26,7 +26,7 @@ public class GatewayConfig {
                         .uri("lb://register-service"))
 
                 .route("reporting-service", r -> r
-                        .path("/reports/**")
+                        .path("/report/**")
                         .uri("lb://reporting-service"))
 
                 .route("schedule-service", r -> r

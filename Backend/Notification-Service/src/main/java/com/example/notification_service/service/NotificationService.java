@@ -3,6 +3,7 @@ package com.example.notification_service.service;
 import com.example.notification_service.events.ReservationCreatedEvent;
 import com.example.notification_service.events.ReservationConfirmedEvent;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -16,6 +17,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ScheduledFuture;
 
+@Slf4j
 @RequiredArgsConstructor
 @Service
 public class NotificationService {
@@ -32,6 +34,8 @@ public class NotificationService {
     @RabbitListener(queues = "reservation.created.queue")
     public void onCreated(ReservationCreatedEvent evt) {
         // 1) Send initial confirmation email
+        log.info("Received ReservationCreatedEvent: {}", evt);
+
         sendEmail(evt.clientEmail(),
                 "Please confirm your reservation",
                 "Your confirmation code is: " + evt.confirmationCode());

@@ -41,8 +41,6 @@ public class Tenant implements UserDetails {
     @Column(name = "category_id", nullable = false)
     private Long categoryId;
 
-
-
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return List.of();

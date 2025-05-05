@@ -2,15 +2,21 @@ package com.example.register_service.service;
 
 import com.example.register_service.entities.Tenant;
 import com.example.register_service.dto.TenantRegistrationRequest;
+import com.example.register_service.events.TenantCreatedEvent;
 import com.example.register_service.repository.TenantRepository;
 import com.example.register_service.util.DatabaseCreator;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.flywaydb.core.Flyway;
+import org.springframework.amqp.core.DirectExchange;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
+import java.time.Instant;
 
 @Service
 @RequiredArgsConstructor
@@ -21,6 +27,11 @@ public class TenantService {
     private final TenantRepository tenantRepository;
     private final PasswordEncoder passwordEncoder;
     private final DatabaseCreator databaseCreator;
+    private final RabbitTemplate rabbit;
+
+    @Autowired
+    private final DirectExchange tenantExchange;
+
 
     // Inject the database credentials from the application properties
     @Value("${spring.datasource.username}")
@@ -68,6 +79,13 @@ public class TenantService {
                 .categoryId(request.getCategoryId())
                 .build();
 
-        return tenantRepository.save(tenant);
+                Tenant saved= tenantRepository.save(tenant);
+
+                var event   = new TenantCreatedEvent(saved.getId(), saved.getCategoryId(), Instant.now());
+                log.info("Received TenantCreatedEvent: {}", event);
+                rabbit.convertAndSend(tenantExchange.getName(), "tenant.created", event);
+
+                return saved;
+
     }
 }

@@ -3,21 +3,25 @@ require("dotenv").config();
 const express = require("express");
 const connectDB = require("./src/config/db");
 const paymentRoutes = require('./src/routes/paymentRoutes');
-const webhookRoutes = require('./src/routes/webhookRoutes');
 const eurekaClient = require("./src/utils/eurekaClient");
+const { connectRabbit } = require('./src/config/rabbitmq');
 
 const app = express();
 const PORT = process.env.PORT || 5001;
 
-// Middleware
 app.use(express.json());
 
 // Connexion à la base de données
 connectDB();
 
+connectRabbit()
+    .then(() => console.log('RabbitMQ initialized'))
+    .catch(err => {
+      console.error(' RabbitMQ init failed', err);
+      process.exit(1);
+    });
 // Routes
 app.use('/payment', paymentRoutes);
-app.use('/payments', webhookRoutes);
 
 // Démarrer le serveur
 app.listen(PORT, () => {

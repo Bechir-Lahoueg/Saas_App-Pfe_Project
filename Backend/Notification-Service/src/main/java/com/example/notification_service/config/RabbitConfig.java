@@ -2,6 +2,7 @@ package com.example.notification_service.config;
 
 import org.springframework.amqp.core.*;
 import org.springframework.amqp.rabbit.config.SimpleRabbitListenerContainerFactory;
+import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.support.converter.*;
 import org.springframework.context.annotation.Bean;
@@ -36,32 +37,16 @@ public class RabbitConfig {
     // —————————————————————————————————————————————————————————————————————————
     // 1) JSON converter with a TypeId mapping from client → notification DTO
     // —————————————————————————————————————————————————————————————————————————
+    // 1) register the JSON converter
     @Bean
     public Jackson2JsonMessageConverter jackson2JsonMessageConverter() {
-        var converter = new Jackson2JsonMessageConverter();
-        var typeMapper = new DefaultJackson2JavaTypeMapper();
-        typeMapper.setTypePrecedence(Jackson2JavaTypeMapper.TypePrecedence.TYPE_ID);
-
-        Map<String, Class<?>> idClassMapping = new HashMap<>();
-        idClassMapping.put(
-                "com.example.ClientBooking_service.events.ReservationCreatedEvent",
-                com.example.notification_service.events.ReservationCreatedEvent.class
-        );
-        idClassMapping.put(
-                "com.example.ClientBooking_service.events.ReservationConfirmedEvent",
-                com.example.notification_service.events.ReservationConfirmedEvent.class
-        );
-        typeMapper.setIdClassMapping(idClassMapping);
-        converter.setJavaTypeMapper(typeMapper);
-        return converter;
+        return new Jackson2JsonMessageConverter();
     }
 
-
-
-    // 2) Tell RabbitTemplate to use JSON
+    // 2) override the RabbitTemplate so it uses JSON
     @Bean
     public RabbitTemplate rabbitTemplate(
-            org.springframework.amqp.rabbit.connection.ConnectionFactory cf,
+            ConnectionFactory cf,
             Jackson2JsonMessageConverter converter
     ) {
         RabbitTemplate rt = new RabbitTemplate(cf);
@@ -69,10 +54,10 @@ public class RabbitConfig {
         return rt;
     }
 
-    // 3) Tell @RabbitListener containers to use the same JSON converter
+    // 3) tell listener containers to use JSON as well
     @Bean
     public SimpleRabbitListenerContainerFactory rabbitListenerContainerFactory(
-            org.springframework.amqp.rabbit.connection.ConnectionFactory cf,
+            ConnectionFactory cf,
             Jackson2JsonMessageConverter converter
     ) {
         SimpleRabbitListenerContainerFactory f = new SimpleRabbitListenerContainerFactory();

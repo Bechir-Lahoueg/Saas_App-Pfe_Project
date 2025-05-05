@@ -1,15 +1,20 @@
 package com.example.Schedule_Service.service;
 
+import com.example.Schedule_Service.config.RabbitConfig;
 import com.example.Schedule_Service.context.TenantContext;
 import com.example.Schedule_Service.entities.Employee;
 import com.example.Schedule_Service.entities.Reservation;
 import com.example.Schedule_Service.entities.Services;
 import com.example.Schedule_Service.entities.WorkingDay;
+import com.example.Schedule_Service.events.ReservationConfirmedEvent;
+import com.example.Schedule_Service.events.ReservationCreatedEvent;
 import com.example.Schedule_Service.repository.EmployeeRepository;
 import com.example.Schedule_Service.repository.ReservationRepository;
 import com.example.Schedule_Service.repository.ServiceRepository;
 import com.example.Schedule_Service.repository.WorkingDayRepository;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -24,9 +29,13 @@ import java.time.LocalTime;
 import java.util.List;
 import java.util.Random;
 
+@RequiredArgsConstructor
 @Slf4j
 @Service
 public class ReservationService {
+
+    @Autowired
+    private final RabbitTemplate rabbit;
 
     @Autowired
     private ReservationRepository reservationRepository;
@@ -170,12 +179,22 @@ public class ReservationService {
                 }
             }
         }
+        reservation.setStatus(Reservation.Status.CONFIRMED);
+        reservation.setConfirmationCode(String.format("%06d", new Random().nextInt(1_000_000)));
 
         // 8) persist
         log.info("[STEP 8] Saving reservation");
         Reservation saved = reservationRepository.save(reservation);
         log.info("[SUCCESS] Reservation created: {}", saved);
+
+        var evt = new ReservationConfirmedEvent(
+                reservation.getId()
+        );
+        log.info("[STEP 9] Publishing reservation confirmed event: {}", evt);
+
         return saved;
+
+
     }
 
     //--------------------CLIENT--------------------------------------------
@@ -303,8 +322,20 @@ public class ReservationService {
         // 8) persist
         log.info("[STEP 8] Saving reservation");
         reservation.setConfirmationCode(String.format("%06d", new Random().nextInt(1_000_000)));
+
+
         reservationRepository.save(reservation);
 
+        // publish “created” event
+        var evt = new ReservationCreatedEvent(
+                reservation.getId(),
+                reservation.getClientEmail(),
+                reservation.getClientPhoneNumber(),
+                reservation.getConfirmationCode(),
+                reservation.getStartTime()
+        );
+        log.info("[STEP 9] Publishing reservation created event: {}", evt);
+        rabbit.convertAndSend(RabbitConfig.EXCHANGE, "reservation.created", evt);
         // 2) publish event for notifications
         return reservation;
     }
