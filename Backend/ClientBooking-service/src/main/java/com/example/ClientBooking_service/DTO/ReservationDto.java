@@ -13,5 +13,11 @@ public record ReservationDto(
         String clientLastName,
         String clientPhoneNumber,
         String clientEmail,
-        String confirmationCode
-) {}
+        String confirmationCode,
+        Status status
+) {
+    public enum Status {
+        PENDING,
+        CONFIRMED,
+    }
+}
