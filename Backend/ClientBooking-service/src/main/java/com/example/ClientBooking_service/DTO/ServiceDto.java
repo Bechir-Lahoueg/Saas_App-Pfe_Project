@@ -9,5 +9,7 @@ public record ServiceDto(
         Boolean requiresEmployeeSelection,
         Boolean allowSimultaneous,
         Integer capacity,
-        List<EmployeeDto> employees
+        List<EmployeeDto> employees,
+        Integer price
+
 ) {}

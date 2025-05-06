@@ -21,7 +21,11 @@ import {
   PanelRight,
   Info,
   Coffee,
-  Clock8
+  Clock8,
+  Image,
+  FileType,
+  Home,
+  CreditCard
 } from "lucide-react";
 import { UserCircle } from "lucide-react";
 
@@ -33,30 +37,28 @@ import Employees from "./components/Employees";
 import CalendarPage from "./components/Calendar";
 import Notifications from "./components/Notifications";
 import SettingsPage from "./components/Settings";
-import Informations from "./components/Informations";
+import Media from "./components/Media";
 import WorkingHours from "./components/WorkingHours";
 import Services from "./components/Services";
-import Break from "./components/Break";
 
 // Constants and utilities
 import { parseJwt, getCookie, setCookie, deleteCookie, getRootHost } from "./components/ConfigurationDashboard/authUtils";
 
 import axios from "axios";
 
-// Redefined menu items with new icons and structure
+// Redefined menu items with improved icons
 const MAIN_MENU_ITEMS = [
   { id: "dashboard", label: "Tableau de bord", icon: <LayoutDashboard size={20} /> },
-  { id: "calendar", label: "Calendrier", icon: <Calendar size={20} /> },
-  { id: "invoice", label: "Facturation", icon: <FileText size={20} /> },
   { id: "analytics", label: "Statistiques", icon: <BarChart3 size={20} /> },
+  { id: "calendar", label: "Calendrier", icon: <Calendar size={20} /> },
+  { id: "workinghours", label: "Horaires", icon: <Clock8 size={20} /> },
+  { id: "services", label: "Services", icon: <PanelRight size={20} /> },
   { id: "employees", label: "Employée", icon: <Users size={20} /> },
+  { id: "media", label: "Media", icon: <Image size={20} /> },
 ];
 
 const SECONDARY_MENU_ITEMS = [
-  { id: "services", label: "Services", icon: <PanelRight size={20} /> },
-  { id: "workinghours", label: "Horaires", icon: <Clock8 size={20} /> },
-  { id: "break", label: "Pause", icon: <Coffee size={20} /> },
-  { id: "information", label: "Informations", icon: <Info size={20} /> },
+  { id: "invoice", label: "Facturation", icon: <CreditCard size={20} /> },
   { id: "settings", label: "Paramètres", icon: <Settings size={20} /> },
 ];
 
@@ -64,12 +66,11 @@ const PAGE_TITLES = {
   dashboard: "Tableau de bord",
   analytics: "Statistiques",
   invoice: "Facturation",
+  calendar: "Calendrier",  
   employees: "Employée",
-  calendar: "Calendrier",
   notifications: "Notifications",
   settings: "Paramètres",
-  break: "Pause",
-  information: "Informations",
+  media: "Media",
   workinghours: "Horaires",
   services: "Services",
 };
@@ -96,6 +97,8 @@ const Dashboard = () => {
   const [currentDateTime, setCurrentDateTime] = useState(new Date());
   const [notificationCount, setNotificationCount] = useState(3);
   const [isResizing, setIsResizing] = useState(false); // Pour éviter les animations pendant le redimensionnement
+  const [tenantData, setTenantData] = useState(null);
+  const [profileImage, setProfileImage] = useState(null);
 
   // Memoized formatters
   const formatDate = useCallback((date) => {
@@ -218,6 +221,29 @@ const Dashboard = () => {
     }
   }, []);
 
+  const fetchTenantData = useCallback(async () => {
+    try {
+      const tenantId = getCookie('tenantId');
+      if (!tenantId) return;
+      
+      const API_URL = "http://localhost:8888/auth";
+      const response = await axios.get(`${API_URL}/tenant/get/${tenantId}`);
+      
+      setTenantData(response.data);
+      if (response.data?.profileImageUrl) {
+        setProfileImage(response.data.profileImageUrl);
+      }
+    } catch (error) {
+      console.error("Erreur lors du chargement des données du tenant:", error);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (userData?.id) {
+      fetchTenantData();
+    }
+  }, [userData, fetchTenantData]);
+
   // Event handlers using useCallback
   const toggleDarkMode = useCallback(() => {
     const newDarkMode = !isDarkMode;
@@ -281,8 +307,7 @@ const Dashboard = () => {
       calendar: <CalendarPage userData={userData} />,
       notifications: <Notifications userData={userData} />,
       settings: <SettingsPage userData={userData} />,
-      break: <Break userData={userData} />,
-      information: <Informations userData={userData} />,
+      media: <Media userData={userData} />,
       workinghours: <WorkingHours userData={userData} />,
       services: <Services userData={userData} />
     };
@@ -451,13 +476,25 @@ const Dashboard = () => {
               } transition-all duration-200 cursor-pointer`}
             >
               <div className="relative">
-                <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                  isDarkMode 
-                    ? "bg-gradient-to-br from-blue-500/30 to-indigo-600/30 text-blue-400" 
-                    : "bg-gradient-to-br from-blue-100 to-indigo-100 text-blue-600"
-                } transition-colors duration-300`}>
-                  <UserCircle size={24} />
-                </div>
+                {profileImage ? (
+                  <div className={`w-10 h-10 rounded-full overflow-hidden border-2 ${
+                    isDarkMode ? "border-slate-600" : "border-white"
+                  }`}>
+                    <img 
+                      src={profileImage} 
+                      alt={getBusinessName}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                ) : (
+                  <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                    isDarkMode 
+                      ? "bg-gradient-to-br from-blue-500/30 to-indigo-600/30 text-blue-400" 
+                      : "bg-gradient-to-br from-blue-100 to-indigo-100 text-blue-600"
+                  } transition-colors duration-300`}>
+                    <UserCircle size={24} />
+                  </div>
+                )}
                 <span className="absolute bottom-0 right-0 w-3 h-3 rounded-full bg-green-500 ring-2 ring-white dark:ring-slate-800 animate-pulse"></span>
               </div>
 
@@ -496,10 +533,7 @@ const Dashboard = () => {
                 <div className={`flex items-center justify-center ${
                   isDarkMode ? "text-blue-400" : "text-blue-600"
                 }`}>
-                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
-                    <polyline points="9 22 9 12 15 12 15 22"></polyline>
-                  </svg>
+                  <Home size={20} />
                 </div>
                 {isSidebarExpanded && (
                   <span className="font-medium">Page d'accueil</span>
@@ -742,7 +776,7 @@ const Dashboard = () => {
                 <span className="text-sm font-medium">{formatTime(currentDateTime)}</span>
               </div>
 
-              {/* Redesigned control buttons */}
+              {/* Redesigned control buttons - sans le bouton de profil */}
               <div className="flex items-center gap-2">
                 {/* Theme toggle button */}
                 <button
@@ -767,6 +801,7 @@ const Dashboard = () => {
                       ? "bg-slate-700/50 hover:bg-slate-700/70 text-slate-300 hover:text-white"
                       : "bg-slate-100/70 hover:bg-slate-100 text-slate-600 hover:text-slate-800"
                   } shadow-sm relative transition-all duration-200 hover:shadow`}
+                  onClick={() => navigateTo("notifications")}
                 >
                   <Bell size={18} />
                   {notificationCount > 0 && (
@@ -774,23 +809,6 @@ const Dashboard = () => {
                       {notificationCount}
                     </span>
                   )}
-                </button>
-
-                {/* User profile button with improved styling */}
-                <button
-                  className={`p-2 rounded-full ${
-                    isDarkMode
-                      ? "bg-slate-700/50 hover:bg-slate-700/70"
-                      : "bg-slate-100/70 hover:bg-slate-100"
-                  } shadow-sm transition-all duration-200 hover:shadow`}
-                >
-                  <div className={`h-7 w-7 rounded-full flex items-center justify-center ${
-                    isDarkMode 
-                      ? "bg-gradient-to-br from-blue-500/20 to-indigo-500/20 text-blue-400" 
-                      : "bg-gradient-to-br from-blue-100 to-indigo-100/80 text-blue-600"
-                  } shadow-inner transition-colors duration-300`}>
-                    <UserCircle size={18} />
-                  </div>
                 </button>
               </div>
             </div>

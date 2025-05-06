@@ -15,6 +15,8 @@ const Reservation = lazy(() => import("./Client/Reservation"));
 const Catgeories = lazy(() => import("./Landing/Categories/Catgeories"));
 const CategoriesTenants = lazy(() => import("./Landing/Categories/TenantsByCategory"));
 const ConfirmReservation = lazy(() => import("./Client/ConfirmReservation"));
+const Historique = lazy(() => import("./Client/Historique"));
+
 const AppRouter = () => {
   return (
     <Suspense fallback={<LoadingSpinner />}>
@@ -31,6 +33,8 @@ const AppRouter = () => {
         <Route path="/reservation" element={<Reservation />} />
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/secteurs" element={<Catgeories />} />
+        <Route path="/reservation/historique" element={<Historique />} /> {/* Nouvelle route pour l'historique */}
+
         <Route path="/secteurs/:categoryName" element={<CategoriesTenants />} />
         <Route path="/reservation/:confirmId" element={<ConfirmReservation />} />
       </Routes>

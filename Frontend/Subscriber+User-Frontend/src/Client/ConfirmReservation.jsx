@@ -11,18 +11,13 @@ import {
 } from "lucide-react";
 
 export default function EnhancedConfirmationCode() {
-  const { confirmId } = useParams(); // Extract parameter from URL
+  const { confirmId } = useParams();
   const [reservationId, setReservationId] = useState("");
   const [confirmationCode, setConfirmationCode] = useState([
-    "",
-    "",
-    "",
-    "",
-    "",
-    "",
+    "","","","","","",
   ]);
   const [tenant, setTenant] = useState("");
-  const [status, setStatus] = useState("idle"); // idle, loading, success, error
+  const [status, setStatus] = useState("idle");
   const [message, setMessage] = useState("");
   const [focusedIndex, setFocusedIndex] = useState(0);
   const [showSuccessView, setShowSuccessView] = useState(false);
@@ -30,14 +25,11 @@ export default function EnhancedConfirmationCode() {
   const navigate = useNavigate();
   const inputRefs = useRef([]);
 
-  // Base URL for API
   const API_BASE = `http://${window.location.hostname}:8888`;
 
-  // Extract tenant from hostname and get stored reservation details on component mount
   useEffect(() => {
     setTenant(window.location.hostname.split(".")[0]);
 
-    // First check if confirmId exists in URL, if not, use sessionStorage as fallback
     if (confirmId) {
       setReservationId(confirmId);
     } else {
@@ -47,13 +39,11 @@ export default function EnhancedConfirmationCode() {
       }
     }
 
-    // Focus the first input on component mount
     if (inputRefs.current[0]) {
       inputRefs.current[0].focus();
     }
-  }, [confirmId]); // Add confirmId as dependency
+  }, [confirmId]);
 
-  // Animation for the floating image
   useEffect(() => {
     const floatAnimation = () => {
       const image = document.getElementById("floating-image");
