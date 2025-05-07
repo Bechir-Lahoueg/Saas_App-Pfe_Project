@@ -1,8 +1,8 @@
-package com.example.Schedule_Service.events;
+package com.example.reporting_service.events;
 
 import java.time.LocalDateTime;
 
-public record ReservationCreatedEvent(
+public record ReservationConfirmedEvent(
         Long reservationId,
         String clientEmail,
         String clientPhoneNumber,
@@ -10,15 +10,14 @@ public record ReservationCreatedEvent(
         LocalDateTime startTime,
         Status status
 ) {
-    /** Convenience ctor: defaults status → PENDING **/
-    public ReservationCreatedEvent(
+    public ReservationConfirmedEvent(
             Long reservationId,
             String clientEmail,
             String clientPhoneNumber,
             String confirmationCode,
             LocalDateTime startTime
     ) {
-        this(reservationId, clientEmail, clientPhoneNumber, confirmationCode, startTime, Status.PENDING);
+        this(reservationId, clientEmail, clientPhoneNumber, confirmationCode, startTime, Status.CONFIRMED);
     }
 
     public enum Status {

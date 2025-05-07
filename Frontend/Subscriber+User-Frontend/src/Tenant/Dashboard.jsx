@@ -4,7 +4,6 @@ import {
   Bell,
   Calendar,
   Menu,
-  ChevronDown,
   Moon,
   Sun,
   ChevronRight,
@@ -14,18 +13,13 @@ import {
   X,
   LayoutDashboard,
   Settings,
-  MessageSquare,
-  FileText,
   Users,
   BarChart3,
   PanelRight,
-  Info,
-  Coffee,
   Clock8,
   Image,
-  FileType,
   Home,
-  CreditCard
+  CreditCard,
 } from "lucide-react";
 import { UserCircle } from "lucide-react";
 
@@ -42,13 +36,23 @@ import WorkingHours from "./components/WorkingHours";
 import Services from "./components/Services";
 
 // Constants and utilities
-import { parseJwt, getCookie, setCookie, deleteCookie, getRootHost } from "./components/ConfigurationDashboard/authUtils";
+import {
+  parseJwt,
+  getCookie,
+  setCookie,
+  deleteCookie,
+  getRootHost,
+} from "./components/ConfigurationDashboard/authUtils";
 
 import axios from "axios";
 
 // Redefined menu items with improved icons
 const MAIN_MENU_ITEMS = [
-  { id: "dashboard", label: "Tableau de bord", icon: <LayoutDashboard size={20} /> },
+  {
+    id: "dashboard",
+    label: "Tableau de bord",
+    icon: <LayoutDashboard size={20} />,
+  },
   { id: "analytics", label: "Statistiques", icon: <BarChart3 size={20} /> },
   { id: "calendar", label: "Calendrier", icon: <Calendar size={20} /> },
   { id: "workinghours", label: "Horaires", icon: <Clock8 size={20} /> },
@@ -66,7 +70,7 @@ const PAGE_TITLES = {
   dashboard: "Tableau de bord",
   analytics: "Statistiques",
   invoice: "Facturation",
-  calendar: "Calendrier",  
+  calendar: "Calendrier",
   employees: "Employée",
   notifications: "Notifications",
   settings: "Paramètres",
@@ -77,8 +81,10 @@ const PAGE_TITLES = {
 
 const Dashboard = () => {
   // States with initial values from localStorage or defaults
-  const [isDarkMode, setIsDarkMode] = useState(() => getCookie("darkMode") === "true");
-  
+  const [isDarkMode, setIsDarkMode] = useState(
+    () => getCookie("darkMode") === "true"
+  );
+
   // Améliorations pour la sidebar
   const [isSidebarExpanded, setSidebarExpanded] = useState(() => {
     // Récupérer la préférence utilisateur du localStorage si elle existe
@@ -90,24 +96,111 @@ const Dashboard = () => {
     return window.innerWidth >= 1024;
   });
   const [isMobileOpen, setIsMobileOpen] = useState(false);
-  const [activePage, setActivePage] = useState(() => localStorage.getItem("activePage") || "dashboard");
+  const [activePage, setActivePage] = useState(
+    () => localStorage.getItem("activePage") || "dashboard"
+  );
   const [windowWidth, setWindowWidth] = useState(window.innerWidth);
-  const [activeSubmenu, setActiveSubmenu] = useState(null);
   const [userData, setUserData] = useState(null);
   const [currentDateTime, setCurrentDateTime] = useState(new Date());
   const [notificationCount, setNotificationCount] = useState(3);
   const [isResizing, setIsResizing] = useState(false); // Pour éviter les animations pendant le redimensionnement
   const [tenantData, setTenantData] = useState(null);
   const [profileImage, setProfileImage] = useState(null);
+  const [sessionExpired, setSessionExpired] = useState(false);
+  const port = window.location.port ? `:${window.location.port}` : "";
+  const rootUrl = `${window.location.protocol}//${getRootHost()}${port}/`;
 
-  // Memoized formatters
-  const formatDate = useCallback((date) => {
-    const options = { weekday: "long", year: "numeric", month: "long", day: "numeric" };
-    return date.toLocaleDateString("fr-FR", options);
+  const handleLogout = useCallback(() => {
+    localStorage.removeItem("activePage");
+    ["accessToken", "username", "subdomain", "userEmail"].forEach(deleteCookie);
+    const rootHost = getRootHost();
+    const port = window.location.port ? `:${window.location.port}` : "";
+    window.location.href = `${window.location.protocol}//${rootHost}${port}/connexion`;
+  }, []);
+
+  useEffect(() => {
+    const accessToken = getCookie("accessToken");
+    if (!accessToken) {
+      handleLogout();
+      return;
+    }
+    try {
+      const payload = parseJwt(accessToken);
+      if (!payload) {
+        throw new Error("Invalid token payload");
+      }
+      // Extract user data first
+      const { subdomain, id, email, sub } = payload;
+      const username = sub || "";
+
+      // Configure axios defaults
+      axios.defaults.baseURL = "http://localhost:8888";
+      axios.defaults.withCredentials = true;
+      axios.defaults.headers.common["Authorization"] = `Bearer ${accessToken}`;
+      axios.defaults.headers.common["X-Tenant-ID"] = subdomain;
+
+      // Set userData state
+      setUserData({
+        id,
+        email,
+        username,
+        subdomain,
+        businessName: subdomain,
+      });
+
+      // Store in cookies for other components
+      setCookie("username", username);
+      setCookie("subdomain", subdomain);
+      setCookie("tenantId", id);
+
+      // Now schedule auto‑expire
+      const expiryMs = payload.exp * 1000 - Date.now();
+      const minutes = Math.floor(expiryMs / 60000);
+      const seconds = Math.round((expiryMs % 60000) / 1000);
+      console.log(`JWT expires in ${minutes}m ${seconds}s`);
+      if (expiryMs > 0) {
+        const timer = setTimeout(() => setSessionExpired(true), expiryMs);
+        return () => clearTimeout(timer);
+      } else {
+        setSessionExpired(true);
+      }
+    } catch (error) {
+      console.error("Error parsing JWT token:", error);
+      handleLogout();
+    }
+  }, [handleLogout]);
+
+  // Authentication & token expiry effect
+  useEffect(() => {
+    const accessToken = getCookie("accessToken");
+    if (!accessToken) {
+      handleLogout();
+      return;
+    }
+    try {
+      const payload = parseJwt(accessToken);
+      if (!payload) throw new Error("Invalid token payload");
+      // schedule auto‑expire
+      const expiryMs = payload.exp * 1000 - Date.now();
+      if (expiryMs <= 0) {
+        setSessionExpired(true);
+      } else {
+        const t = setTimeout(() => setSessionExpired(true), expiryMs);
+        return () => clearTimeout(t);
+      }
+      // set axios defaults, userData, cookies…
+      /* existing user setup */
+    } catch (error) {
+      console.error("Error parsing JWT token:", error);
+      handleLogout();
+    }
   }, []);
 
   const formatTime = useCallback((date) => {
-    return date.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" });
+    return date.toLocaleTimeString("fr-FR", {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
   }, []);
 
   // Effect for updating time
@@ -133,102 +226,63 @@ const Dashboard = () => {
     } else {
       document.documentElement.classList.remove("dark");
     }
-    
+
     // Update color theme in meta tag for mobile status bar
     const metaThemeColor = document.querySelector("meta[name=theme-color]");
     if (metaThemeColor) {
-      metaThemeColor.setAttribute("content", isDarkMode ? "#0f172a" : "#ffffff");
+      metaThemeColor.setAttribute(
+        "content",
+        isDarkMode ? "#0f172a" : "#ffffff"
+      );
     }
   }, [isDarkMode]);
 
   // Handle window resize - amélioration avec debounce et meilleure réactivité
   useEffect(() => {
     let resizeTimer;
-    
+
     const handleResize = () => {
       const width = window.innerWidth;
       setIsResizing(true);
       setWindowWidth(width);
-      
+
       // Fermer automatiquement le menu mobile quand l'écran s'agrandit
       if (width >= 1024 && isMobileOpen) {
         setIsMobileOpen(false);
       }
-      
+
       // Ajustements du sidebar en fonction de la taille de l'écran
       if (width < 768) {
         setSidebarExpanded(false);
       } else if (width >= 1280) {
         setSidebarExpanded(true);
       }
-      
+
       // Réactiver les transitions après le redimensionnement
       clearTimeout(resizeTimer);
       resizeTimer = setTimeout(() => {
         setIsResizing(false);
       }, 300);
     };
-    
+
     window.addEventListener("resize", handleResize);
-    
+
     // Exécuter une fois au chargement pour s'assurer que tout est bien configuré
     handleResize();
-    
     return () => {
       window.removeEventListener("resize", handleResize);
       clearTimeout(resizeTimer);
     };
   }, [isMobileOpen]);
 
-  // Authentication effect - fetch user data from JWT
-  useEffect(() => {
-    const accessToken = getCookie("accessToken");
-
-    if (!accessToken) {
-      window.location.href = "/connexion";
-      return;
-    }
-
-    try {
-      const payload = parseJwt(accessToken);
-      if (!payload) throw new Error("Invalid token payload");
-
-      // Extract user data
-      const { subdomain, id, email, sub } = payload;
-      let username = sub || "";
-
-      // Configure axios
-      axios.defaults.baseURL = "http://localhost:8888";
-      axios.defaults.withCredentials = true;
-      axios.defaults.headers.common["Authorization"] = `Bearer ${accessToken}`;
-      axios.defaults.headers.common["X-Tenant-ID"] = subdomain;
-
-      setUserData({
-        id,
-        email,
-        username,
-        subdomain,
-        businessName: subdomain
-      });
-
-      // Store in cookies for other components
-      setCookie("username", username);
-      setCookie("subdomain", subdomain);
-      setCookie("tenantId", id)
-    } catch (error) {
-      console.error("Error parsing JWT token:", error);
-      handleLogout();
-    }
-  }, []);
-
   const fetchTenantData = useCallback(async () => {
     try {
-      const tenantId = getCookie('tenantId');
+      const tenantId = getCookie("tenantId");
       if (!tenantId) return;
-      
+
       const API_URL = "http://localhost:8888/auth";
       const response = await axios.get(`${API_URL}/tenant/get/${tenantId}`);
-      
+
       setTenantData(response.data);
       if (response.data?.profileImageUrl) {
         setProfileImage(response.data.profileImageUrl);
@@ -252,31 +306,27 @@ const Dashboard = () => {
     const cookieOpts = [
       "Domain=.127.0.0.1.nip.io",
       "Path=/",
-      "SameSite=Lax"
+      "SameSite=Lax",
     ].join("; ");
 
     document.cookie = `darkMode=${newDarkMode.toString()}; ${cookieOpts}`;
   }, [isDarkMode]);
 
-  const handleLogout = useCallback(() => {
-    localStorage.removeItem("activePage");
-
-    ["accessToken", "refreshToken", "username", "userLastName", "subdomain", "userEmail"].forEach(deleteCookie);
-
-    const rootHost = getRootHost();
-    const port = window.location.port ? `:${window.location.port}` : "";
-    window.location.href = `${window.location.protocol}//${rootHost}${port}/connexion`;
-  }, []);
-
-  const navigateTo = useCallback((pageId) => {
-    setActivePage(pageId);
-    if (windowWidth < 1024) {
-      setIsMobileOpen(false);
-    }
-  }, [windowWidth]);
+  const navigateTo = useCallback(
+    (pageId) => {
+      setActivePage(pageId);
+      if (windowWidth < 1024) {
+        setIsMobileOpen(false);
+      }
+    },
+    [windowWidth]
+  );
 
   // Memoized getters
-  const getTitle = useMemo(() => PAGE_TITLES[activePage] || "Tableau de bord", [activePage]);
+  const getTitle = useMemo(
+    () => PAGE_TITLES[activePage] || "Tableau de bord",
+    [activePage]
+  );
 
   const getUserName = useMemo(() => {
     if (userData?.username) {
@@ -288,7 +338,9 @@ const Dashboard = () => {
 
   const getBusinessName = useMemo(() => {
     if (userData?.subdomain) {
-      return userData.subdomain.charAt(0).toUpperCase() + userData.subdomain.slice(1);
+      return (
+        userData.subdomain.charAt(0).toUpperCase() + userData.subdomain.slice(1)
+      );
     }
     const subdomain = getCookie("subdomain");
     if (subdomain) {
@@ -300,7 +352,12 @@ const Dashboard = () => {
   // Memoized page renderer
   const renderPage = useMemo(() => {
     const components = {
-      dashboard: <DashboardContent sidebarExpanded={isSidebarExpanded} userData={userData} />,
+      dashboard: (
+        <DashboardContent
+          sidebarExpanded={isSidebarExpanded}
+          userData={userData}
+        />
+      ),
       analytics: <Analytics userData={userData} />,
       invoice: <Invoice userData={userData} />,
       employees: <Employees userData={userData} />,
@@ -309,56 +366,64 @@ const Dashboard = () => {
       settings: <SettingsPage userData={userData} />,
       media: <Media userData={userData} />,
       workinghours: <WorkingHours userData={userData} />,
-      services: <Services userData={userData} />
+      services: <Services userData={userData} />,
     };
-    
+
     return components[activePage] || components.dashboard;
   }, [activePage, isSidebarExpanded, userData]);
 
   // MenuItem component with enhanced design
   const MenuItem = ({ item, isActive, onClick }) => {
-    const isMainItem = MAIN_MENU_ITEMS.some(menuItem => menuItem.id === item.id);
+    const isMainItem = MAIN_MENU_ITEMS.some(
+      (menuItem) => menuItem.id === item.id
+    );
 
     return (
       <li>
         <button
           onClick={onClick}
           className={`w-full flex items-center px-3.5 py-3 rounded-xl gap-3.5 transition-all duration-300 ${
-            isActive 
-              ? isDarkMode 
-                ? "bg-gradient-to-r from-blue-600/90 to-indigo-600 text-white font-medium shadow-lg shadow-blue-900/30" 
+            isActive
+              ? isDarkMode
+                ? "bg-gradient-to-r from-blue-600/90 to-indigo-600 text-white font-medium shadow-lg shadow-blue-900/30"
                 : "bg-gradient-to-r from-blue-500 to-indigo-500 text-white font-medium shadow-lg shadow-blue-500/30"
               : isDarkMode
-                ? "text-slate-300 hover:bg-slate-700/70 hover:text-white"
-                : "text-slate-600 hover:bg-blue-50/80 hover:text-blue-700"
+              ? "text-slate-300 hover:bg-slate-700/70 hover:text-white"
+              : "text-slate-600 hover:bg-blue-50/80 hover:text-blue-700"
           }`}
         >
-          <span className={`${
-            isActive 
-              ? "text-white" 
-              : isDarkMode 
-                ? "text-blue-400" 
+          <span
+            className={`${
+              isActive
+                ? "text-white"
+                : isDarkMode
+                ? "text-blue-400"
                 : "text-blue-600"
-          } transition-all duration-300 ${
-            isActive ? "transform scale-110" : "group-hover:scale-110"
-          }`}>
+            } transition-all duration-300 ${
+              isActive ? "transform scale-110" : "group-hover:scale-110"
+            }`}
+          >
             {item.icon}
           </span>
           {isSidebarExpanded && (
-            <span className={`flex-1 text-left font-medium transition-all duration-300 ${
-              isActive ? "transform translate-x-0.5" : ""
-            }`}>
+            <span
+              className={`flex-1 text-left font-medium transition-all duration-300 ${
+                isActive ? "transform translate-x-0.5" : ""
+              }`}
+            >
               {item.label}
             </span>
           )}
           {isSidebarExpanded && item.badge && (
-            <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
-              isActive 
-                ? "bg-white/20 text-white" 
-                : isDarkMode 
-                  ? "bg-slate-700 text-slate-300" 
+            <span
+              className={`px-2 py-0.5 rounded-full text-xs font-medium ${
+                isActive
+                  ? "bg-white/20 text-white"
+                  : isDarkMode
+                  ? "bg-slate-700 text-slate-300"
                   : "bg-blue-100 text-blue-800"
-            }`}>
+              }`}
+            >
               {item.badge}
             </span>
           )}
@@ -367,29 +432,20 @@ const Dashboard = () => {
     );
   };
 
-  const renderMenuItems = (items) => {
-    return items.map(item => (
-      <MenuItem
-        key={item.id}
-        item={item}
-        isActive={activePage === item.id}
-        onClick={() => navigateTo(item.id)}
-      />
-    ));
-  };
-
   // Gestion améliorée du toggle de la sidebar
   const toggleSidebar = useCallback(() => {
-    setSidebarExpanded(prev => !prev);
+    setSidebarExpanded((prev) => !prev);
   }, []);
 
   return (
     <div className={`${isDarkMode ? "dark" : ""}`}>
-      <div className={`flex h-screen bg-gradient-to-br ${
-        isDarkMode 
-          ? "from-slate-900 via-slate-800/95 to-indigo-950" 
-          : "from-blue-50/70 via-white to-indigo-50/60"
-      } transition-colors duration-500`}>
+      <div
+        className={`flex h-screen bg-gradient-to-br ${
+          isDarkMode
+            ? "from-slate-900 via-slate-800/95 to-indigo-950"
+            : "from-blue-50/70 via-white to-indigo-50/60"
+        } transition-colors duration-500`}
+      >
         {/* Mobile overlay avec amélioration de l'animation */}
         {isMobileOpen && (
           <div
@@ -406,11 +462,9 @@ const Dashboard = () => {
             isDarkMode
               ? "bg-slate-800/95 border-r border-slate-700/50"
               : "bg-white/95 border-r border-slate-200/50"
-          } ${
-            isResizing ? "" : "transition-all duration-300 ease-in-out"
-          } ${
-            isMobileOpen 
-              ? "translate-x-0 shadow-2xl" 
+          } ${isResizing ? "" : "transition-all duration-300 ease-in-out"} ${
+            isMobileOpen
+              ? "translate-x-0 shadow-2xl"
               : "-translate-x-full lg:translate-x-0 shadow-xl"
           } backdrop-blur-md`}
         >
@@ -426,7 +480,9 @@ const Dashboard = () => {
               } shadow-lg ring-1 ${
                 isDarkMode ? "ring-slate-600" : "ring-slate-200"
               } cursor-pointer transition-all duration-300 hover:scale-110 active:scale-95`}
-              aria-label={isSidebarExpanded ? "Réduire le menu" : "Étendre le menu"}
+              aria-label={
+                isSidebarExpanded ? "Réduire le menu" : "Étendre le menu"
+              }
             >
               {isSidebarExpanded ? (
                 <ChevronLeft size={14} strokeWidth={2.5} />
@@ -444,8 +500,8 @@ const Dashboard = () => {
           >
             <div
               className={`font-bold text-base ${
-                isDarkMode 
-                  ? "bg-gradient-to-r from-blue-400 to-indigo-400 text-transparent bg-clip-text" 
+                isDarkMode
+                  ? "bg-gradient-to-r from-blue-400 to-indigo-400 text-transparent bg-clip-text"
                   : "bg-gradient-to-r from-blue-600 to-indigo-500 text-transparent bg-clip-text"
               }`}
             >
@@ -471,27 +527,35 @@ const Dashboard = () => {
             } border-b`}
           >
             <div
-              className={`flex items-center ${!isSidebarExpanded ? "justify-center" : ""} p-2.5 rounded-xl ${
-                isDarkMode ? "bg-slate-700/50 hover:bg-slate-700/80" : "bg-slate-100/70 hover:bg-slate-100"
+              className={`flex items-center ${
+                !isSidebarExpanded ? "justify-center" : ""
+              } p-2.5 rounded-xl ${
+                isDarkMode
+                  ? "bg-slate-700/50 hover:bg-slate-700/80"
+                  : "bg-slate-100/70 hover:bg-slate-100"
               } transition-all duration-200 cursor-pointer`}
             >
               <div className="relative">
                 {profileImage ? (
-                  <div className={`w-10 h-10 rounded-full overflow-hidden border-2 ${
-                    isDarkMode ? "border-slate-600" : "border-white"
-                  }`}>
-                    <img 
-                      src={profileImage} 
+                  <div
+                    className={`w-10 h-10 rounded-full overflow-hidden border-2 ${
+                      isDarkMode ? "border-slate-600" : "border-white"
+                    }`}
+                  >
+                    <img
+                      src={profileImage}
                       alt={getBusinessName}
                       className="w-full h-full object-cover"
                     />
                   </div>
                 ) : (
-                  <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                    isDarkMode 
-                      ? "bg-gradient-to-br from-blue-500/30 to-indigo-600/30 text-blue-400" 
-                      : "bg-gradient-to-br from-blue-100 to-indigo-100 text-blue-600"
-                  } transition-colors duration-300`}>
+                  <div
+                    className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                      isDarkMode
+                        ? "bg-gradient-to-br from-blue-500/30 to-indigo-600/30 text-blue-400"
+                        : "bg-gradient-to-br from-blue-100 to-indigo-100 text-blue-600"
+                    } transition-colors duration-300`}
+                  >
                     <UserCircle size={24} />
                   </div>
                 )}
@@ -509,7 +573,11 @@ const Dashboard = () => {
                   </p>
                   <div className="flex items-center gap-2">
                     <span className="inline-block w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></span>
-                    <p className={`text-xs ${isDarkMode ? "text-slate-300" : "text-slate-500"}`}>
+                    <p
+                      className={`text-xs ${
+                        isDarkMode ? "text-slate-300" : "text-slate-500"
+                      }`}
+                    >
                       En ligne
                     </p>
                   </div>
@@ -521,65 +589,82 @@ const Dashboard = () => {
           {/* Menu sections avec meilleure adaptation au mode compact */}
           <div className="flex-1 overflow-hidden hover:overflow-y-auto py-5 px-3.5">
             {/* Home button - amélioration pour le mode compact */}
-            <div className="mb-5">
+            
+            {/* <div className="mb-5">
               <a
-                href="/"
-                className={`flex items-center ${!isSidebarExpanded ? "justify-center" : ""} px-3.5 py-3 rounded-xl gap-3 transition-all duration-300 ${
+                href={rootUrl}
+                className={`flex items-center ${
+                  !isSidebarExpanded ? "justify-center" : ""
+                } px-3.5 py-3 rounded-xl gap-3 transition-all duration-300 ${
                   isDarkMode
                     ? "bg-gradient-to-r from-indigo-900/30 to-blue-900/30 text-blue-300 hover:from-indigo-900/40 hover:to-blue-900/40"
                     : "bg-gradient-to-r from-indigo-50 to-blue-50 text-blue-600 hover:from-indigo-100 hover:to-blue-100"
                 } hover:shadow-md`}
               >
-                <div className={`flex items-center justify-center ${
-                  isDarkMode ? "text-blue-400" : "text-blue-600"
-                }`}>
+                <div
+                  className={`flex items-center justify-center ${
+                    isDarkMode ? "text-blue-400" : "text-blue-600"
+                  }`}
+                >
                   <Home size={20} />
                 </div>
                 {isSidebarExpanded && (
                   <span className="font-medium">Page d'accueil</span>
                 )}
               </a>
-            </div>
-            
+            </div> */}
+
             {/* Les titres de section s'affichent uniquement en mode étendu */}
             {isSidebarExpanded && (
-              <h3 className="text-xs font-semibold uppercase tracking-wider mb-4 px-4 
-                bg-gradient-to-r from-blue-500 to-indigo-500 text-transparent bg-clip-text">
+              <h3
+                className="text-xs font-semibold uppercase tracking-wider mb-4 px-4 
+                bg-gradient-to-r from-blue-500 to-indigo-500 text-transparent bg-clip-text"
+              >
                 Menu principal
               </h3>
             )}
 
             {/* MenuItem component amélioré pour mieux s'adapter au mode compact */}
             <ul className="space-y-2.5 mb-6">
-              {MAIN_MENU_ITEMS.map(item => (
+              {MAIN_MENU_ITEMS.map((item) => (
                 <li key={item.id}>
                   <button
                     onClick={() => navigateTo(item.id)}
-                    className={`w-full flex items-center ${!isSidebarExpanded ? "justify-center" : ""} px-3.5 py-3 rounded-xl ${isSidebarExpanded ? "gap-3.5" : ""} transition-all duration-300 ${
-                      activePage === item.id 
-                        ? isDarkMode 
-                          ? "bg-gradient-to-r from-blue-600/90 to-indigo-600 text-white font-medium shadow-lg shadow-blue-900/30" 
+                    className={`w-full flex items-center ${
+                      !isSidebarExpanded ? "justify-center" : ""
+                    } px-3.5 py-3 rounded-xl ${
+                      isSidebarExpanded ? "gap-3.5" : ""
+                    } transition-all duration-300 ${
+                      activePage === item.id
+                        ? isDarkMode
+                          ? "bg-gradient-to-r from-blue-600/90 to-indigo-600 text-white font-medium shadow-lg shadow-blue-900/30"
                           : "bg-gradient-to-r from-blue-500 to-indigo-500 text-white font-medium shadow-lg shadow-blue-500/30"
                         : isDarkMode
-                          ? "text-slate-300 hover:bg-slate-700/70 hover:text-white"
-                          : "text-slate-600 hover:bg-blue-50/80 hover:text-blue-700"
+                        ? "text-slate-300 hover:bg-slate-700/70 hover:text-white"
+                        : "text-slate-600 hover:bg-blue-50/80 hover:text-blue-700"
                     } hover:scale-[1.02] active:scale-[0.98]`}
                   >
-                    <span className={`${
-                      activePage === item.id 
-                        ? "text-white" 
-                        : isDarkMode 
-                          ? "text-blue-400" 
+                    <span
+                      className={`${
+                        activePage === item.id
+                          ? "text-white"
+                          : isDarkMode
+                          ? "text-blue-400"
                           : "text-blue-600"
-                    } transition-all duration-300 ${
-                      activePage === item.id ? "transform scale-110" : ""
-                    }`}>
+                      } transition-all duration-300 ${
+                        activePage === item.id ? "transform scale-110" : ""
+                      }`}
+                    >
                       {item.icon}
                     </span>
                     {isSidebarExpanded && (
-                      <span className={`flex-1 text-left font-medium transition-all duration-300 ${
-                        activePage === item.id ? "transform translate-x-0.5" : ""
-                      }`}>
+                      <span
+                        className={`flex-1 text-left font-medium transition-all duration-300 ${
+                          activePage === item.id
+                            ? "transform translate-x-0.5"
+                            : ""
+                        }`}
+                      >
                         {item.label}
                       </span>
                     )}
@@ -593,48 +678,62 @@ const Dashboard = () => {
             </ul>
 
             {isSidebarExpanded && (
-              <h3 className="text-xs font-semibold uppercase tracking-wider mt-8 mb-4 px-4
-                bg-gradient-to-r from-blue-500 to-indigo-500 text-transparent bg-clip-text">
+              <h3
+                className="text-xs font-semibold uppercase tracking-wider mt-8 mb-4 px-4
+                bg-gradient-to-r from-blue-500 to-indigo-500 text-transparent bg-clip-text"
+              >
                 Paramètres
               </h3>
             )}
             {/* Ligne de séparation visuelle quand la sidebar est réduite */}
             {!isSidebarExpanded && (
-              <div className={`h-0.5 w-5 mx-auto my-6 rounded-full ${
-                isDarkMode ? "bg-slate-700" : "bg-slate-200"
-              }`}></div>
+              <div
+                className={`h-0.5 w-5 mx-auto my-6 rounded-full ${
+                  isDarkMode ? "bg-slate-700" : "bg-slate-200"
+                }`}
+              ></div>
             )}
 
             <ul className="space-y-2.5">
-              {SECONDARY_MENU_ITEMS.map(item => (
+              {SECONDARY_MENU_ITEMS.map((item) => (
                 <li key={item.id}>
                   <button
                     onClick={() => navigateTo(item.id)}
-                    className={`w-full flex items-center ${!isSidebarExpanded ? "justify-center" : ""} px-3.5 py-3 rounded-xl ${isSidebarExpanded ? "gap-3.5" : ""} transition-all duration-300 ${
-                      activePage === item.id 
-                        ? isDarkMode 
-                          ? "bg-gradient-to-r from-blue-600/90 to-indigo-600 text-white font-medium shadow-lg shadow-blue-900/30" 
+                    className={`w-full flex items-center ${
+                      !isSidebarExpanded ? "justify-center" : ""
+                    } px-3.5 py-3 rounded-xl ${
+                      isSidebarExpanded ? "gap-3.5" : ""
+                    } transition-all duration-300 ${
+                      activePage === item.id
+                        ? isDarkMode
+                          ? "bg-gradient-to-r from-blue-600/90 to-indigo-600 text-white font-medium shadow-lg shadow-blue-900/30"
                           : "bg-gradient-to-r from-blue-500 to-indigo-500 text-white font-medium shadow-lg shadow-blue-500/30"
                         : isDarkMode
-                          ? "text-slate-300 hover:bg-slate-700/70 hover:text-white"
-                          : "text-slate-600 hover:bg-blue-50/80 hover:text-blue-700"
+                        ? "text-slate-300 hover:bg-slate-700/70 hover:text-white"
+                        : "text-slate-600 hover:bg-blue-50/80 hover:text-blue-700"
                     } hover:scale-[1.02] active:scale-[0.98]`}
                   >
-                    <span className={`${
-                      activePage === item.id 
-                        ? "text-white" 
-                        : isDarkMode 
-                          ? "text-blue-400" 
+                    <span
+                      className={`${
+                        activePage === item.id
+                          ? "text-white"
+                          : isDarkMode
+                          ? "text-blue-400"
                           : "text-blue-600"
-                    } transition-all duration-300 ${
-                      activePage === item.id ? "transform scale-110" : ""
-                    }`}>
+                      } transition-all duration-300 ${
+                        activePage === item.id ? "transform scale-110" : ""
+                      }`}
+                    >
                       {item.icon}
                     </span>
                     {isSidebarExpanded && (
-                      <span className={`flex-1 text-left font-medium transition-all duration-300 ${
-                        activePage === item.id ? "transform translate-x-0.5" : ""
-                      }`}>
+                      <span
+                        className={`flex-1 text-left font-medium transition-all duration-300 ${
+                          activePage === item.id
+                            ? "transform translate-x-0.5"
+                            : ""
+                        }`}
+                      >
                         {item.label}
                       </span>
                     )}
@@ -656,7 +755,9 @@ const Dashboard = () => {
           >
             <button
               onClick={handleLogout}
-              className={`flex items-center w-full ${!isSidebarExpanded ? "justify-center" : ""} px-3.5 py-2.5 rounded-xl gap-3 transition-all duration-300 
+              className={`flex items-center w-full ${
+                !isSidebarExpanded ? "justify-center" : ""
+              } px-3.5 py-2.5 rounded-xl gap-3 transition-all duration-300 
                 ${
                   isDarkMode
                     ? "bg-gradient-to-r from-red-900/30 to-red-800/20 text-red-300 hover:from-red-900/40 hover:to-red-800/30"
@@ -664,8 +765,12 @@ const Dashboard = () => {
                 } hover:shadow-md hover:scale-[1.02] active:scale-[0.98]`}
             >
               <LogOut size={20} className="transition-transform duration-300" />
-              {isSidebarExpanded && <span className="font-medium">Déconnexion</span>}
-              {!isSidebarExpanded && <span className="sr-only">Déconnexion</span>}
+              {isSidebarExpanded && (
+                <span className="font-medium">Déconnexion</span>
+              )}
+              {!isSidebarExpanded && (
+                <span className="sr-only">Déconnexion</span>
+              )}
             </button>
           </div>
         </aside>
@@ -702,8 +807,8 @@ const Dashboard = () => {
                 <div className="flex flex-col">
                   <h1
                     className={`text-xl font-semibold ${
-                      isDarkMode 
-                        ? "bg-gradient-to-r from-blue-300 to-indigo-200 text-transparent bg-clip-text" 
+                      isDarkMode
+                        ? "bg-gradient-to-r from-blue-300 to-indigo-200 text-transparent bg-clip-text"
                         : "bg-gradient-to-r from-blue-600 to-indigo-600 text-transparent bg-clip-text"
                     }`}
                   >
@@ -711,7 +816,7 @@ const Dashboard = () => {
                   </h1>
                   <div className="h-0.5 w-12 mt-0.5 rounded-full bg-gradient-to-r from-blue-500 to-indigo-500 opacity-80"></div>
                 </div>
-                
+
                 {activePage === "analytics" && (
                   <div
                     className={`hidden sm:flex items-center px-2.5 py-1 rounded-full text-xs font-medium
@@ -741,22 +846,29 @@ const Dashboard = () => {
                   } 
                     border shadow-sm hover:shadow-md w-64 text-sm transition-all duration-300
                     focus:outline-none focus:ring-2 ${
-                      isDarkMode 
-                        ? "focus:ring-blue-500/30 focus:border-blue-500/40" 
+                      isDarkMode
+                        ? "focus:ring-blue-500/30 focus:border-blue-500/40"
                         : "focus:ring-blue-400/20 focus:border-blue-400/50"
                     } focus:w-72`}
                 />
-                <div className={`absolute left-3.5 top-2.5 ${
-                  isDarkMode ? "text-blue-400" : "text-blue-500"
-                } transition-all duration-300 group-focus-within:text-blue-500`}>
-                  <Search size={17} className="group-focus-within:scale-110 transition-transform" />
+                <div
+                  className={`absolute left-3.5 top-2.5 ${
+                    isDarkMode ? "text-blue-400" : "text-blue-500"
+                  } transition-all duration-300 group-focus-within:text-blue-500`}
+                >
+                  <Search
+                    size={17}
+                    className="group-focus-within:scale-110 transition-transform"
+                  />
                 </div>
                 <div className="absolute right-3.5 top-2.5 opacity-0 group-focus-within:opacity-100 transition-opacity">
-                  <span className={`text-xs px-1.5 py-0.5 rounded ${
-                    isDarkMode 
-                      ? "bg-slate-600 text-slate-300" 
-                      : "bg-slate-200 text-slate-500"
-                  }`}>
+                  <span
+                    className={`text-xs px-1.5 py-0.5 rounded ${
+                      isDarkMode
+                        ? "bg-slate-600 text-slate-300"
+                        : "bg-slate-200 text-slate-500"
+                    }`}
+                  >
                     /
                   </span>
                 </div>
@@ -772,8 +884,13 @@ const Dashboard = () => {
                 } 
                 shadow-sm transition-all duration-200`}
               >
-                <Clock size={16} className={isDarkMode ? "text-blue-400" : "text-blue-500"} />
-                <span className="text-sm font-medium">{formatTime(currentDateTime)}</span>
+                <Clock
+                  size={16}
+                  className={isDarkMode ? "text-blue-400" : "text-blue-500"}
+                />
+                <span className="text-sm font-medium">
+                  {formatTime(currentDateTime)}
+                </span>
               </div>
 
               {/* Redesigned control buttons - sans le bouton de profil */}
@@ -786,12 +903,15 @@ const Dashboard = () => {
                       : "bg-slate-100/70 hover:bg-slate-100 text-slate-600 hover:text-slate-800"
                   } shadow-sm transition-all duration-200 hover:shadow`}
                   onClick={toggleDarkMode}
-                  aria-label={isDarkMode ? "Activer le mode jour" : "Activer le mode nuit"}
-                >
-                  {isDarkMode ? 
-                    <Sun size={18} className="text-amber-300" /> : 
-                    <Moon size={18} className="text-indigo-600" />
+                  aria-label={
+                    isDarkMode ? "Activer le mode jour" : "Activer le mode nuit"
                   }
+                >
+                  {isDarkMode ? (
+                    <Sun size={18} className="text-amber-300" />
+                  ) : (
+                    <Moon size={18} className="text-indigo-600" />
+                  )}
                 </button>
 
                 {/* Notification button */}
@@ -824,13 +944,33 @@ const Dashboard = () => {
           </main>
         </div>
       </div>
+      {/* Session expired modal */}
+      {sessionExpired && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white dark:bg-gray-600 p-6 rounded-lg shadow-lg max-w-sm text-center space-y-4">
+            <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
+              Session expirée
+            </h2>
+            <p className="text-gray-700 dark:text-gray-300">
+              Votre session a expiré. Vous allez être redirigé vers la page de
+              connexion.
+            </p>
+            <button
+              onClick={handleLogout}
+              className="mt-2 w-full py-2 px-4 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition"
+            >
+              Reconnexion
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Expanded global style */}
       <style jsx global>{`
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        @import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap");
 
         html {
-          font-family: 'Inter', sans-serif;
+          font-family: "Inter", sans-serif;
           scroll-behavior: smooth;
         }
 
@@ -856,15 +996,19 @@ const Dashboard = () => {
         .dark .hover\\:overflow-y-auto::-webkit-scrollbar-thumb {
           background-color: rgba(100, 116, 139, 0.3);
         }
-        
+
         .dark .hover\\:overflow-y-auto::-webkit-scrollbar-thumb:hover {
           background-color: rgba(100, 116, 139, 0.5);
         }
 
         /* Add fade-in animation for mobile overlay */
         @keyframes fadeIn {
-          from { opacity: 0; }
-          to { opacity: 1; }
+          from {
+            opacity: 0;
+          }
+          to {
+            opacity: 1;
+          }
         }
 
         .animate-fadeIn {
@@ -873,18 +1017,21 @@ const Dashboard = () => {
 
         /* Add smooth transitions for all elements */
         * {
-          transition-property: background-color, border-color, color, fill, stroke, opacity, box-shadow, transform, filter, backdrop-filter;
+          transition-property: background-color, border-color, color, fill,
+            stroke, opacity, box-shadow, transform, filter, backdrop-filter;
           transition-duration: 300ms;
           transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
         }
-        
+
         /* Enhance focus styles */
-        button:focus, input:focus {
+        button:focus,
+        input:focus {
           outline: 2px solid rgba(59, 130, 246, 0.5);
           outline-offset: 2px;
         }
-        
-        .dark button:focus, .dark input:focus {
+
+        .dark button:focus,
+        .dark input:focus {
           outline-color: rgba(59, 130, 246, 0.3);
         }
       `}</style>
