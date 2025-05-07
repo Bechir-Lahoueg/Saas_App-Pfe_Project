@@ -7,13 +7,12 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 
 @RequiredArgsConstructor
 @Service
-public class ReportingService {
+public class AdminReportingService {
 
     @Autowired
     private final TenantEventRepository tenRepo;

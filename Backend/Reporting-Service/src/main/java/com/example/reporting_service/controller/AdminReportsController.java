@@ -2,20 +2,20 @@ package com.example.reporting_service.controller;
 
 
 import com.example.reporting_service.dto.CategoryRankingDto;
-import com.example.reporting_service.service.ReportingService;
+import com.example.reporting_service.service.AdminReportingService;
 import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
-import java.time.Instant;
+
 import java.util.List;
 
 @AllArgsConstructor
 @RestController
-@RequestMapping("/adminReports")
+@RequestMapping("/admin")
 public class AdminReportsController {
 
     @Autowired
-    private final ReportingService svc;
+    private final AdminReportingService svc;
 
 
     @GetMapping("/total-categories")

@@ -1,4 +1,4 @@
-package com.example.Schedule_Service.events;
+package com.example.reporting_service.events;
 
 import java.time.LocalDateTime;
 

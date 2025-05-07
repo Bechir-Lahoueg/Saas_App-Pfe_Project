@@ -188,9 +188,14 @@ public class ReservationService {
         log.info("[SUCCESS] Reservation created: {}", saved);
 
         var evt = new ReservationConfirmedEvent(
-                reservation.getId()
+                reservation.getId(),
+                reservation.getClientEmail(),
+                reservation.getClientPhoneNumber(),
+                reservation.getConfirmationCode(),
+                reservation.getStartTime()
         );
         log.info("[STEP 9] Publishing reservation confirmed event: {}", evt);
+        rabbit.convertAndSend("reservation.confirmed", evt);
 
         return saved;
 
@@ -451,6 +456,17 @@ public class ReservationService {
         }
         r.setStatus(Reservation.Status.CONFIRMED);
         reservationRepository.save(r);
+
+        // 2) publish Rabbit “reservation.confirmed” event
+        var confirmedEvt = new ReservationConfirmedEvent(
+                r.getId(),
+                r.getClientEmail(),
+                r.getClientPhoneNumber(),
+                r.getConfirmationCode(),
+                r.getStartTime()
+        );
+        rabbit.convertAndSend(RabbitConfig.EXCHANGE, "reservation.confirmed", confirmedEvt);
+        log.info("Publishing reservation confirmed event: {}", confirmedEvt);
         log.info("Reservation {} confirmed", id);
     }
 }

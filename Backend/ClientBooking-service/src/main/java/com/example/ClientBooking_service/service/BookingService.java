@@ -17,9 +17,6 @@ import org.springframework.stereotype.Service;
 public class BookingService {
 
     private final ScheduleClient schedule;
-//    private final RabbitTemplate rabbit;
-
-
 
     public AvailabilityDto fetchAvailability() {
         var days  = schedule.getWorkingDays(null);
@@ -31,24 +28,13 @@ public class BookingService {
     }
 
     public ReservationDto makeReservation(CreateReservationRequest req) {
-        // call schedule-service
-        ReservationDto r = schedule.createReservation(null, req);
-
-
-
-        return r;
+        return schedule.createReservation(null, req);
     }
 
     @Transactional
     public void confirm(Long id, String code) {
-        // 1) propagate to schedule‐service
         schedule.confirmReservation(null, id, code);
 
-//        // 2) publish Rabbit “reservation.confirmed” event
-//        var evt = new ReservationConfirmedEvent(id);
-//        rabbit.convertAndSend(RabbitConfig.EXCHANGE,
-//                "reservation.confirmed",
-//                evt);
     }
 
 }
