@@ -1,4 +1,4 @@
-CREATE TABLE employees (
+CREATE TABLE IF NOT EXISTS employees (
                            id BIGSERIAL PRIMARY KEY,
                            first_name VARCHAR(100) NOT NULL,
                            last_name  VARCHAR(100) NOT NULL,
@@ -7,7 +7,7 @@ CREATE TABLE employees (
                            phone      VARCHAR(50),
                            status     VARCHAR(20)  NOT NULL
 );
-CREATE TABLE service_employees (
+CREATE TABLE IF NOT EXISTS service_employees (
                                    service_id  BIGINT NOT NULL,
                                    employee_id BIGINT NOT NULL,
                                    CONSTRAINT pk_service_employees PRIMARY KEY (service_id, employee_id),

@@ -1,4 +1,4 @@
-CREATE TABLE media (
+CREATE TABLE IF NOT EXISTS media (
                        id BIGSERIAL PRIMARY KEY,
                        url VARCHAR(255) NOT NULL,
                        media_type VARCHAR(255) NOT NULL,
