@@ -50,7 +50,7 @@ public class EventListenerService {
         // You can add logic to store tenant information in the database if needed
     }
 
-    @RabbitListener(queues = "reservation.created.queue")
+    @RabbitListener(queues = "reservation.created.reporting.queue")
     public void onReservationCreated(ReservationCreatedEvent e) {
         var res = new ReservationCreatedEntity();
         log.info("Received ReservationCreatedEvent: {}", e);
@@ -66,7 +66,7 @@ public class EventListenerService {
         // You can add logic to store reservation information in the database if needed
     }
 
-    @RabbitListener(queues = "reservation.confirmed.queue")
+    @RabbitListener(queues = "reservation.confirmed.reporting.queue")
     public void onReservationConfirmed(ReservationConfirmedEvent e) {
         var res = new ReservationConfirmedEntity();
         log.info("Received ReservationConfirmedEvent: {}", e);

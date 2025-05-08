@@ -1,5 +1,7 @@
 package com.example.Schedule_Service.config;
 
+import com.example.Schedule_Service.events.ReservationCreatedEvent;
+import com.example.Schedule_Service.events.ReservationConfirmedEvent;
 import org.springframework.amqp.core.Binding;
 import org.springframework.amqp.core.BindingBuilder;
 import org.springframework.amqp.core.DirectExchange;
@@ -12,55 +14,56 @@ import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import java.util.Map;
+
 @Configuration
 public class RabbitConfig {
-
     public static final String EXCHANGE = "reservation.events";
 
-    @Bean Queue createdQueue() {
-        return new Queue("reservation.created.queue", true);
+    //––– This service’s *own* queues (won’t collide) –––
+    @Bean Queue scheduleCreatedQueue()   { return new Queue("reservation.created.schedule.queue", true); }
+    @Bean Queue scheduleConfirmedQueue() { return new Queue("reservation.confirmed.schedule.queue", true); }
+    @Bean DirectExchange exchange()      { return new DirectExchange(EXCHANGE); }
+
+    @Bean Binding bindScheduleCreated(Queue scheduleCreatedQueue, DirectExchange exchange) {
+        return BindingBuilder.bind(scheduleCreatedQueue)
+                .to(exchange)
+                .with("reservation.created");
     }
 
-    @Bean Queue confirmedQueue() {
-        return new Queue("reservation.confirmed.queue", true);
+    @Bean Binding bindScheduleConfirmed(Queue scheduleConfirmedQueue, DirectExchange exchange) {
+        return BindingBuilder.bind(scheduleConfirmedQueue)
+                .to(exchange)
+                .with("reservation.confirmed");
     }
 
-    @Bean DirectExchange exchange() {
-        return new DirectExchange(EXCHANGE);
-    }
-
-    @Bean Binding b1(Queue createdQueue, DirectExchange exchange) {
-        return BindingBuilder.bind(createdQueue).to(exchange).with("reservation.created");
-    }
-
-    @Bean Binding b2(Queue confirmedQueue, DirectExchange exchange) {
-        return BindingBuilder.bind(confirmedQueue).to(exchange).with("reservation.confirmed");
-    }
-
-    // 1) register a JSON converter that writes the FQCN as __TypeId__
     @Bean
     public Jackson2JsonMessageConverter jackson2JsonMessageConverter() {
         Jackson2JsonMessageConverter converter = new Jackson2JsonMessageConverter();
         DefaultJackson2JavaTypeMapper tm = new DefaultJackson2JavaTypeMapper();
         tm.setTypePrecedence(DefaultJackson2JavaTypeMapper.TypePrecedence.TYPE_ID);
-        // trust only your events package
+
+        // Trust only this package, map FQCN → local classes
         tm.setTrustedPackages("com.example.Schedule_Service.events");
+        tm.setIdClassMapping(Map.of(
+                "com.example.Schedule_Service.events.ReservationCreatedEvent",
+                ReservationCreatedEvent.class,
+                "com.example.Schedule_Service.events.ReservationConfirmedEvent",
+                ReservationConfirmedEvent.class
+        ));
+
         converter.setJavaTypeMapper(tm);
         return converter;
     }
 
-    // 2) use JSON on the RabbitTemplate
     @Bean
-    public RabbitTemplate rabbitTemplate(
-            ConnectionFactory cf,
-            Jackson2JsonMessageConverter converter
-    ) {
+    public RabbitTemplate rabbitTemplate(ConnectionFactory cf,
+                                         Jackson2JsonMessageConverter converter) {
         RabbitTemplate rt = new RabbitTemplate(cf);
         rt.setMessageConverter(converter);
         return rt;
     }
 
-    // 3) and on all @RabbitListener containers
     @Bean
     public SimpleRabbitListenerContainerFactory rabbitListenerContainerFactory(
             ConnectionFactory cf,
