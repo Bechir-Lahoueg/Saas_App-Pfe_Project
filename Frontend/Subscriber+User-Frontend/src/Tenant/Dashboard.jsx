@@ -10,6 +10,7 @@ import {
   LogOut,
   ChevronLeft,
   Clock,
+  HelpCircle,
   X,
   LayoutDashboard,
   Settings,
@@ -25,7 +26,7 @@ import { UserCircle } from "lucide-react";
 
 // Page components
 import DashboardContent from "./components/DashboardContent";
-import Analytics from "./components/Analytics";
+import Aide from "./components/Help";
 import Invoice from "./components/Invoice";
 import Employees from "./components/Employees";
 import CalendarPage from "./components/Calendar";
@@ -53,12 +54,12 @@ const MAIN_MENU_ITEMS = [
     label: "Tableau de bord",
     icon: <LayoutDashboard size={20} />,
   },
-  { id: "analytics", label: "Statistiques", icon: <BarChart3 size={20} /> },
   { id: "calendar", label: "Calendrier", icon: <Calendar size={20} /> },
   { id: "workinghours", label: "Horaires", icon: <Clock8 size={20} /> },
   { id: "services", label: "Services", icon: <PanelRight size={20} /> },
   { id: "employees", label: "Employée", icon: <Users size={20} /> },
   { id: "media", label: "Media", icon: <Image size={20} /> },
+  { id: "aide", label: "Aide", icon: <HelpCircle size={20} /> },
 ];
 
 const SECONDARY_MENU_ITEMS = [
@@ -68,7 +69,7 @@ const SECONDARY_MENU_ITEMS = [
 
 const PAGE_TITLES = {
   dashboard: "Tableau de bord",
-  analytics: "Statistiques",
+  aide: "Aide",
   invoice: "Facturation",
   calendar: "Calendrier",
   employees: "Employée",
@@ -358,7 +359,7 @@ const Dashboard = () => {
           userData={userData}
         />
       ),
-      analytics: <Analytics userData={userData} />,
+      aide: <Aide userData={userData} />,
       invoice: <Invoice userData={userData} />,
       employees: <Employees userData={userData} />,
       calendar: <CalendarPage userData={userData} />,
@@ -589,7 +590,7 @@ const Dashboard = () => {
           {/* Menu sections avec meilleure adaptation au mode compact */}
           <div className="flex-1 overflow-hidden hover:overflow-y-auto py-5 px-3.5">
             {/* Home button - amélioration pour le mode compact */}
-            
+
             {/* <div className="mb-5">
               <a
                 href={rootUrl}
@@ -817,7 +818,7 @@ const Dashboard = () => {
                   <div className="h-0.5 w-12 mt-0.5 rounded-full bg-gradient-to-r from-blue-500 to-indigo-500 opacity-80"></div>
                 </div>
 
-                {activePage === "analytics" && (
+                {activePage === "aide" && (
                   <div
                     className={`hidden sm:flex items-center px-2.5 py-1 rounded-full text-xs font-medium
                     ${
@@ -834,41 +835,56 @@ const Dashboard = () => {
             </div>
 
             <div className="flex items-center gap-3 md:gap-4">
-              {/* Redesigned search bar */}
-              <div className="relative hidden md:block group ">
+              {/* Bouton "Voir ma page client" en taille légèrement réduite */}
+              <div className="relative hidden md:block">
                 <a
-                href={`${window.location.origin}/reservation`}
-                  className={`py-2.5 pl-4 pr-4 rounded-full  ${
-                    isDarkMode
-                      ? "bg-blue-500 bg-blue-500 text-white placeholder:text-slate-400 font-bold"
-                      : "bg-blue-500 bg-blue-500 text-white placeholder:text-slate-400 font-bold"
-                  } 
-                    border shadow-sm hover:shadow-md w-64 text-sm transition-all duration-300
-                    focus:outline-none focus:ring-2 ${
-                      isDarkMode
-                        ? "focus:ring-blue-500/30 focus:border-blue-500/40"
-                        : "focus:ring-blue-400/20 focus:border-blue-400/50"
-                    } focus:w-72`}
+                  href={`${window.location.origin}/reservation`}
+                  className={`group flex items-center gap-1.5 py-1.5 px-4 rounded-full text-sm
+      ${
+        isDarkMode
+          ? "bg-gradient-to-r from-blue-600/90 via-indigo-600 to-violet-600/90 text-white"
+          : "bg-gradient-to-r from-blue-500/90 via-indigo-500 to-violet-500/90 text-white"
+      }
+      font-medium overflow-hidden relative z-10 transition-all duration-300
+      shadow-md hover:shadow-xl hover:shadow-blue-500/20 dark:hover:shadow-indigo-700/20
+      hover:translate-y-[-1px] active:translate-y-[1px]
+      border border-white/20`}
+                  target="_blank"
+                  rel="noopener noreferrer"
                 >
-                  Voir ma page client
-                </a>
-                <div
-                  className={`absolute left-3.5 top-2.5 ${
-                    isDarkMode ? "text-blue-400" : "text-blue-500"
-                  } transition-all duration-300 group-focus-within:text-blue-500`}
-                >
-                </div>
-                <div className="absolute right-3.5 top-2.5 opacity-0 group-focus-within:opacity-100 transition-opacity">
-                  <span
-                    className={`text-xs px-1.5 py-0.5 rounded ${
-                      isDarkMode
-                        ? "bg-slate-600 text-slate-300"
-                        : "bg-slate-200 text-slate-500"
-                    }`}
+                  {/* Effet particule/brillance */}
+                  <span className="absolute top-0 left-0 w-full h-full bg-white/10 opacity-0 group-hover:opacity-20 transition-opacity duration-300"></span>
+
+                  {/* Animation lumineuse */}
+                  <span className="absolute -inset-x-10 top-0 h-full w-20 bg-white/20 skew-x-[-30deg] transform -translate-x-full group-hover:translate-x-[28rem] transition-transform duration-1000 ease-in-out"></span>
+
+                  {/* Icône externe avec animation - taille réduite */}
+                  <svg
+                    className="transition-transform duration-300 transform group-hover:scale-110 group-hover:rotate-[-10deg] text-white/80 group-hover:text-white"
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
                   >
-                    /
+                    <path d="M15 3h6v6"></path>
+                    <path d="M10 14L21 3"></path>
+                    <path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"></path>
+                  </svg>
+
+                  {/* Texte avec effet */}
+                  <span className="relative transform group-hover:translate-x-1 transition-transform duration-300">
+                    Voir ma page client
                   </span>
-                </div>
+
+                  {/* Petit indicateur ping - position ajustée */}
+                  <span className="absolute top-1 right-1.5 w-1 h-1 rounded-full bg-white/70 animate-ping"></span>
+                  <span className="absolute top-1 right-1.5 w-1 h-1 rounded-full bg-white/90"></span>
+                </a>
               </div>
 
               {/* Enhanced time display */}
