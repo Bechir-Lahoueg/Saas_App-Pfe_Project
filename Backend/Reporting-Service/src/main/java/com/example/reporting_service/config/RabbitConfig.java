@@ -1,7 +1,5 @@
 package com.example.reporting_service.config;
 
-
-import com.example.reporting_service.events.ReservationConfirmedEvent;
 import lombok.RequiredArgsConstructor;
 import org.springframework.amqp.core.Binding;
 import org.springframework.amqp.core.BindingBuilder;
@@ -15,7 +13,6 @@ import org.springframework.amqp.support.converter.DefaultJackson2JavaTypeMapper;
 import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-
 import java.util.HashMap;
 import java.util.Map;
 
@@ -54,12 +51,8 @@ public class RabbitConfig {
         return new Queue("payment.completed.queue", true);
     }
 
-    @Bean Queue reservationCreatedQueue() {
-        return new Queue("reservation.created.queue", true);
-    }
-    @Bean Queue reservationConfirmedQueue() {
-        return new Queue("reservation.confirmed.queue", true);
-    }
+    @Bean Queue reservationCreatedReportingQueue()   { return new Queue("reservation.created.reporting.queue", true); }
+    @Bean Queue reservationConfirmedReportingQueue() { return new Queue("reservation.confirmed.reporting.queue", true); }
 
     @Bean Queue tenantCreatedQueue() {
         return new Queue("tenant.created.queue", true);
@@ -78,14 +71,21 @@ public class RabbitConfig {
         return BindingBuilder.bind(paymentCompletedQueue).to(paymentExchange).with("payment.completed");
     }
 
-    @Bean Binding bindReservationCreated(Queue reservationCreatedQueue, DirectExchange reservationExchange) {
-        return BindingBuilder.bind(reservationCreatedQueue).to(reservationExchange).with("reservation.created");
+    @Bean Binding bindReservationCreatedReporting(Queue reservationCreatedReportingQueue,
+                                                  DirectExchange reservationExchange) {
+        return BindingBuilder.bind(reservationCreatedReportingQueue)
+                .to(reservationExchange)
+                .with("reservation.created");
     }
 
-    @Bean
-    public Binding bindReservationConfirmed(Queue reservationConfirmedQueue, DirectExchange reservationExchange) {
-        return BindingBuilder.bind(reservationConfirmedQueue).to(reservationExchange).with("reservation.confirmed");
+
+    @Bean Binding bindReservationConfirmedReporting(Queue reservationConfirmedReportingQueue,
+                                                    DirectExchange reservationExchange) {
+        return BindingBuilder.bind(reservationConfirmedReportingQueue)
+                .to(reservationExchange)
+                .with("reservation.confirmed");
     }
+
 
     @Bean
     public Jackson2JsonMessageConverter jackson2JsonMessageConverter() {
@@ -103,6 +103,11 @@ public class RabbitConfig {
                 "com.example.Schedule_Service.events.ReservationConfirmedEvent",
                 com.example.reporting_service.events.ReservationConfirmedEvent.class
         );
+        idClassMapping.put(
+                "com.example.auth_service.events.CategoryCreatedEvent",
+                com.example.reporting_service.events.CategoryCreatedEvent.class
+        );
+
         tm.setIdClassMapping(idClassMapping);
 
         tm.setTrustedPackages("*");

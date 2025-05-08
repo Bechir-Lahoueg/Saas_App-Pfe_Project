@@ -835,14 +835,13 @@ const Dashboard = () => {
 
             <div className="flex items-center gap-3 md:gap-4">
               {/* Redesigned search bar */}
-              <div className="relative hidden md:block group">
-                <input
-                  type="text"
-                  placeholder="Rechercher..."
-                  className={`py-2.5 pl-10 pr-4 rounded-full ${
+              <div className="relative hidden md:block group ">
+                <a
+                href={`${window.location.origin}/reservation`}
+                  className={`py-2.5 pl-4 pr-4 rounded-full  ${
                     isDarkMode
-                      ? "bg-slate-700/60 border-slate-600/40 text-gray-100 placeholder:text-slate-400"
-                      : "bg-slate-100/60 border-slate-200/50 text-gray-800 placeholder:text-slate-400"
+                      ? "bg-blue-500 bg-blue-500 text-white placeholder:text-slate-400 font-bold"
+                      : "bg-blue-500 bg-blue-500 text-white placeholder:text-slate-400 font-bold"
                   } 
                     border shadow-sm hover:shadow-md w-64 text-sm transition-all duration-300
                     focus:outline-none focus:ring-2 ${
@@ -850,16 +849,14 @@ const Dashboard = () => {
                         ? "focus:ring-blue-500/30 focus:border-blue-500/40"
                         : "focus:ring-blue-400/20 focus:border-blue-400/50"
                     } focus:w-72`}
-                />
+                >
+                  Voir ma page client
+                </a>
                 <div
                   className={`absolute left-3.5 top-2.5 ${
                     isDarkMode ? "text-blue-400" : "text-blue-500"
                   } transition-all duration-300 group-focus-within:text-blue-500`}
                 >
-                  <Search
-                    size={17}
-                    className="group-focus-within:scale-110 transition-transform"
-                  />
                 </div>
                 <div className="absolute right-3.5 top-2.5 opacity-0 group-focus-within:opacity-100 transition-opacity">
                   <span

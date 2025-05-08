@@ -31,7 +31,7 @@ public class NotificationService {
     /** Tracks the “12 h‑before appointment” reminders **/
     private final Map<Long, ScheduledFuture<?>> appointmentReminderTasks = new ConcurrentHashMap<>();
 
-    @RabbitListener(queues = "reservation.created.queue")
+    @RabbitListener(queues = "reservation.created.notification.queue")
     public void onCreated(ReservationCreatedEvent evt) {
         // 1) Send initial confirmation email
         log.info("Received ReservationCreatedEvent: {}", evt);
@@ -65,15 +65,13 @@ public class NotificationService {
         appointmentReminderTasks.put(evt.reservationId(), apptFuture);
     }
 
-    @RabbitListener(queues = "reservation.confirmed.queue")
+    @RabbitListener(queues = "reservation.confirmed.notification.queue")
     public void onConfirmed(ReservationConfirmedEvent evt) {
         // Cancel the “5 min‑left” confirm reminder
+        log.info("removing the 5 min expiration reminder for reservationId: {}", evt.reservationId());
         ScheduledFuture<?> f1 = confirmReminderTasks.remove(evt.reservationId());
         if (f1 != null) f1.cancel(false);
 
-        // Cancel the “12 h‑before appointment” reminder
-        ScheduledFuture<?> f2 = appointmentReminderTasks.remove(evt.reservationId());
-        if (f2 != null) f2.cancel(false);
     }
 
     private void sendEmail(String to, String subject, String body) {

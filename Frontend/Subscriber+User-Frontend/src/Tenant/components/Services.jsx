@@ -111,7 +111,7 @@ export default function ServicesPage() {
       setServices(svcs => svcs.filter(s => keyOf(s) !== key));
       showSuccessToast("Service supprimé avec succès");
     } catch (e) {
-      setError("Erreur lors de la suppression du service");
+      setError("Erreur lors de la suppression du service. Ce service contient des réservations.");
     }
   }
 

@@ -1,7 +1,12 @@
 package com.example.auth_service.service;
 
+import com.example.auth_service.entities.Category;
 import com.example.auth_service.entities.Tenant;
 import com.example.auth_service.repository.TenantRepository;
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,8 +44,10 @@ public class TenantService {
         tenant.setLastName(tenantDetails.getLastName());
         tenant.setPhone(tenantDetails.getPhone());
         tenant.setBusinessName(tenantDetails.getBusinessName());
-        tenant.setSubdomain(tenantDetails.getSubdomain());
         tenant.setAddress(tenantDetails.getAddress());
+        tenant.setCity(tenantDetails.getCity());
+        tenant.setZipcode(tenantDetails.getZipcode());
+        tenant.setCountry(tenantDetails.getCountry());
 
         if (tenantDetails.getPassword() != null && !tenantDetails.getPassword().isEmpty()) {
             tenantDetails.setPassword(passwordEncoder.encode(tenantDetails.getPassword()));

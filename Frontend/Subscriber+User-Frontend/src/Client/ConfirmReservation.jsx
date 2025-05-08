@@ -74,7 +74,7 @@ export default function EnhancedConfirmationCode() {
   useEffect(() => {
     if (showSuccessView) {
       const timer = setTimeout(() => {
-        navigate('/');
+        navigate('/reservation');
       }, 4000);
       
       return () => clearTimeout(timer);
