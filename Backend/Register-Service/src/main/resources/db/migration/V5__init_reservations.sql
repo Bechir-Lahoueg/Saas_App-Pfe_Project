@@ -1,4 +1,4 @@
-CREATE TABLE reservations (
+CREATE TABLE IF NOT EXISTS reservations (
                               id                    BIGSERIAL PRIMARY KEY,
                               service_id            BIGINT    NOT NULL,
                               employee_id           BIGINT,
