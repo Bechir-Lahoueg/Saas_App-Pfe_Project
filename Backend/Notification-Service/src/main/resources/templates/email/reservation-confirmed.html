@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Confirmation de Réservation</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        .header {
+            background-color: #28a745;
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+        .content {
+            padding: 20px;
+            border: 1px solid #ddd;
+        }
+        .confirmation-code {
+            background-color: #f8f8f8;
+            padding: 10px;
+            font-size: 18px;
+            font-weight: bold;
+            text-align: center;
+            margin: 20px 0;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 12px;
+            color: #777;
+        }
+    </style>
+</head>
+<body>
+<div class="header">
+    <h1>Confirmation de Réservation</h1>
+</div>
+<div class="content">
+    <p>Bonjour,</p>
+    <p>Votre réservation a été confirmée avec succès!</p>
+    <p>Détails de la réservation:</p>
+    <ul>
+        <li>Numéro de réservation: <span th:text="${reservationId}"></span></li>
+        <li>Date et heure: <span th:text="${startTime}"></span></li>
+    </ul>
+    <div class="confirmation-code">
+        Code de confirmation: <span th:text="${confirmationCode}"></span>
+    </div>
+    <p>Merci de votre confiance.</p>
+</div>
+<div class="footer">
+    <p>Ceci est un email automatique, merci de ne pas y répondre.</p>
+    <p>© 2024 Votre Entreprise</p>
+</div>
+</body>
+</html>

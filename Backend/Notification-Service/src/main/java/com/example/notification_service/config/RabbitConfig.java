@@ -90,6 +90,17 @@ public class RabbitConfig {
         SimpleRabbitListenerContainerFactory f = new SimpleRabbitListenerContainerFactory();
         f.setConnectionFactory(cf);
         f.setMessageConverter(converter);
+
+        // Activer la transmission des en-têtes tenant
+        f.setAfterReceivePostProcessors(message -> {
+            String tenantId = (String) message.getMessageProperties().getHeaders().get("X-Tenant-ID");
+            if (tenantId == null || tenantId.isEmpty()) {
+                tenantId = "saas_app";  // Valeur par défaut
+            }
+            message.getMessageProperties().setHeader("X-Tenant-ID", tenantId);
+            return message;
+        });
+
         return f;
     }
 }

@@ -957,26 +957,125 @@ const Dashboard = () => {
           </main>
         </div>
       </div>
-      {/* Session expired modal */}
+      {/* Session expired modal - Design amélioré */}
       {sessionExpired && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white dark:bg-gray-600 p-6 rounded-lg shadow-lg max-w-sm text-center space-y-4">
-            <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
-              Session expirée
-            </h2>
-            <p className="text-gray-700 dark:text-gray-300">
-              Votre session a expiré. Vous allez être redirigé vers la page de
-              connexion.
-            </p>
-            <button
-              onClick={handleLogout}
-              className="mt-2 w-full py-2 px-4 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition"
-            >
-              Reconnexion
-            </button>
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 animate-fadeIn">
+          <div
+            className={`w-full max-w-md transform transition-all duration-300 animate-scale-up mx-4
+        ${
+          isDarkMode
+            ? "bg-gradient-to-br from-slate-800 to-slate-900 text-white border border-slate-700/50"
+            : "bg-gradient-to-br from-white to-slate-50 text-slate-800 border border-slate-200/70"
+        } 
+        rounded-2xl overflow-hidden shadow-2xl`}
+          >
+            {/* Header avec icône */}
+            <div className={`px-6 pt-6 pb-2 flex flex-col items-center`}>
+              <div
+                className={`w-16 h-16 rounded-full mb-4 flex items-center justify-center 
+          ${
+            isDarkMode
+              ? "bg-red-900/20 text-red-400"
+              : "bg-red-100 text-red-500"
+          }`}
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-8 w-8"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
+                  <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
+                  <line x1="4" y1="4" x2="20" y2="20"></line>
+                </svg>
+              </div>
+              <h2
+                className={`text-2xl font-bold text-center ${
+                  isDarkMode ? "text-white" : "text-gray-900"
+                }`}
+              >
+                Session expirée
+              </h2>
+
+              <div className="w-12 h-1 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full my-3"></div>
+            </div>
+
+            {/* Contenu */}
+            <div className={`px-6 pt-2 pb-6`}>
+              <p
+                className={`text-center mb-6 ${
+                  isDarkMode ? "text-slate-300" : "text-gray-600"
+                }`}
+              >
+                Votre session a expiré pour des raisons de sécurité. Veuillez
+                vous reconnecter pour continuer à utiliser PlanifyGo.
+              </p>
+
+              {/* Bouton amélioré */}
+              <button
+                onClick={handleLogout}
+                className={`w-full py-3 px-4 flex items-center justify-center gap-2 rounded-xl 
+            bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-medium
+            transform transition-all duration-300 shadow-lg
+            hover:shadow-blue-500/25 hover:translate-y-[-2px] active:translate-y-[1px]
+            focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:ring-offset-2 
+            ${
+              isDarkMode
+                ? "focus:ring-offset-slate-900"
+                : "focus:ring-offset-white"
+            }`}
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-5 w-5"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4M10 17l5-5-5-5M15 12H3"></path>
+                </svg>
+                Se reconnecter
+              </button>
+
+              {/* Timer */}
+              <p
+                className={`text-center text-xs mt-4 ${
+                  isDarkMode ? "text-slate-400" : "text-gray-500"
+                }`}
+              >
+                Redirection automatique dans{" "}
+                <span className="font-medium">10</span> secondes...
+              </p>
+            </div>
           </div>
         </div>
       )}
+
+      {/* Ajoutez ceci aux styles globaux existants */}
+      <style jsx global>{`
+        @keyframes scaleUp {
+          from {
+            opacity: 0;
+            transform: scale(0.95);
+          }
+          to {
+            opacity: 1;
+            transform: scale(1);
+          }
+        }
+
+        .animate-scale-up {
+          animation: scaleUp 0.3s ease-out forwards;
+        }
+      `}</style>
 
       {/* Expanded global style */}
       <style jsx global>{`
