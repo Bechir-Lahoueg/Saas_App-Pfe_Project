@@ -28,12 +28,7 @@ const DashboardContent = ({ sidebarExpanded }) => {
   const [timeframe, setTimeframe] = useState('all');
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [animate, setAnimate] = useState(false);
-  const [reservationSummary, setReservationSummary] = useState({
-    total: 0,
-    confirmed: 0,
-    pending: 0
-  });
-
+  
   // New state for date range & export
   const [dateRange, setDateRange] = useState({ 
     start: subMonths(new Date(), 1), 
@@ -94,18 +89,8 @@ const DashboardContent = ({ sidebarExpanded }) => {
     }
   };
 
-  const fetchReservationSummary = async () => {
-    try {
-      const response = await axios.get('http://localhost:8888/report/tenant/reservations/summary');
-      setReservationSummary(response.data);
-    } catch (err) {
-      console.error('Erreur lors du chargement des données de réservation:', err);
-    }
-  };
-
   useEffect(() => {
     fetchData();
-    fetchReservationSummary();
   }, []);
 
   // Les fonctions existantes pour les graphiques restent les mêmes...
@@ -341,9 +326,27 @@ const DashboardContent = ({ sidebarExpanded }) => {
   const potentialRevenue = calculatePotentialRevenue();
 
   const getConfirmationRate = () => {
-    if (reservationSummary.total === 0) return 0;
-    return Math.round((reservationSummary.confirmed / reservationSummary.total) * 100);
+    if (!analyticsData || !analyticsData.reservations || analyticsData.reservations.length === 0) return 0;
+    
+    const totalReservations = analyticsData.reservations.length;
+    const confirmedReservations = analyticsData.reservations.filter(r => r.status === 'CONFIRMED').length;
+    
+    return Math.round((confirmedReservations / totalReservations) * 100);
   };
+
+  const getReservationStats = () => {
+    if (!analyticsData || !analyticsData.reservations) {
+      return { total: 0, confirmed: 0, pending: 0 };
+    }
+    
+    const total = analyticsData.reservations.length;
+    const confirmed = analyticsData.reservations.filter(r => r.status === 'CONFIRMED').length;
+    const pending = analyticsData.reservations.filter(r => r.status === 'PENDING').length;
+    
+    return { total, confirmed, pending };
+  };
+
+  const reservationStats = getReservationStats();
 
   const ConfirmationRateCard = () => (
     <div className="bg-white p-4 sm:p-6 rounded-2xl shadow-md border border-gray-100 transform transition-transform hover:scale-[1.01]">
@@ -363,8 +366,8 @@ const DashboardContent = ({ sidebarExpanded }) => {
             <PieChart>
               <Pie
                 data={[
-                  { name: 'Confirmées', value: reservationSummary.confirmed },
-                  { name: 'En attente', value: reservationSummary.pending }
+                  { name: 'Confirmées', value: reservationStats.confirmed },
+                  { name: 'En attente', value: reservationStats.pending }
                 ]}
                 cx="50%"
                 cy="50%"
@@ -386,11 +389,11 @@ const DashboardContent = ({ sidebarExpanded }) => {
       <div className="grid grid-cols-1 xs:grid-cols-2 gap-3 sm:gap-4 mt-2">
         <div className="bg-indigo-50 p-2 sm:p-3 rounded-xl">
           <p className="text-xs text-indigo-600 font-medium">Réservations confirmées</p>
-          <p className="text-base sm:text-lg font-semibold text-indigo-900">{reservationSummary.confirmed}</p>
+          <p className="text-base sm:text-lg font-semibold text-indigo-900">{reservationStats.confirmed}</p>
         </div>
         <div className="bg-amber-50 p-2 sm:p-3 rounded-xl">
           <p className="text-xs text-amber-600 font-medium">Réservations en attente</p>
-          <p className="text-base sm:text-lg font-semibold text-amber-900">{reservationSummary.pending}</p>
+          <p className="text-base sm:text-lg font-semibold text-amber-900">{reservationStats.pending}</p>
         </div>
       </div>
     </div>
@@ -430,10 +433,6 @@ const DashboardContent = ({ sidebarExpanded }) => {
       
       const response = await axios.get(`http://localhost:8888/booking/client/reservation/getAvailability?startDate=${startDate}&endDate=${endDate}`);
       setAnalyticsData(response.data);
-      
-      // Also update reservation summary with same filters
-      const summaryResponse = await axios.get(`http://localhost:8888/report/tenant/reservations/summary?startDate=${startDate}&endDate=${endDate}`);
-      setReservationSummary(summaryResponse.data);
       
       setIsRefreshing(false);
       setLoading(false);
