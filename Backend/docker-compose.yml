@@ -1,0 +1,145 @@
+version: '3.8'
+
+services:
+  service-discovery:
+    build: ./Service-Discovery
+    ports:
+      - "8761:8761"
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8761/actuator/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  api-gateway:
+    build: ./Api-Gateway
+    ports:
+      - "8888:8888"
+    depends_on:
+      service-discovery:
+        condition: service_healthy
+    networks:
+      - app-network
+
+  auth-service:
+    build: ./Auth-Service
+    ports:
+      - "8086:8086"
+    depends_on:
+      service-discovery:
+        condition: service_healthy
+    networks:
+      - app-network
+
+  payment-service:
+    build: ./Payment-Service
+    ports:
+      - "5001:5001"
+    environment:
+      - MONGO_URI=mongodb+srv://safwenenacheb17:safwenenacheb17@payment-service.f0qhb.mongodb.net/?retryWrites=true&w=majority&appName=Payment-Service
+      - PORT=5001
+      - KONNECT_API_KEY=67dd5a752f786e7f60691967:BcTXdYquEql7EzbId65fTjvEm8
+      - KONNECT_API_URL=https://api.sandbox.konnect.network/api/v2
+      - RABBITMQ_URL=amqp://guest:guest@rabbitmq:5672
+      - REGISTRATION_SERVICE_URL=http://register-service:8084
+    depends_on:
+      service-discovery:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_started
+    networks:
+      - app-network
+
+  clientbooking-service:
+    build: ./ClientBooking-service
+    ports:
+      - "8083:8083"
+    depends_on:
+      service-discovery:
+        condition: service_healthy
+    networks:
+      - app-network
+
+  reporting-service:
+    build: ./Reporting-Service
+    ports:
+      - "8092:8092"
+    depends_on:
+      service-discovery:
+        condition: service_healthy
+    networks:
+      - app-network
+
+  notification-service:
+    build: ./Notification-Service
+    ports:
+      - "8081:8081"
+    depends_on:
+      service-discovery:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_started
+    networks:
+      - app-network
+
+  register-service:
+    build: ./Register-Service
+    ports:
+      - "8084:8084"
+    depends_on:
+      service-discovery:
+        condition: service_healthy
+    networks:
+      - app-network
+
+  schedule-service:
+    build: ./Schedule-Service
+    ports:
+      - "8082:8082"
+    depends_on:
+      service-discovery:
+        condition: service_healthy
+    networks:
+      - app-network
+
+  # Add RabbitMQ service
+  rabbitmq:
+    image: rabbitmq:3-management
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "check_port_connectivity"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Add PostgreSQL service for Auth-Service
+  postgres:
+    image: postgres:latest
+    environment:
+      POSTGRES_DB: saas_app
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: safwene17
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  postgres-data:
