@@ -1,6 +1,6 @@
 import React, { Suspense, lazy } from "react";
 import { Route, Routes } from "react-router-dom";
-import ProtectedRoute from "./Utils/ProtectedRoute";
+// import ProtectedRoute from "./Utils/ProtectedRoute";
 
 // Import lazy-loaded components
 const Erreur = lazy(() => import("./Pages/ErreurPage"));
@@ -19,9 +19,9 @@ const AppRouter = () => {
         <Route path="/Erreur" element={<Erreur />} />
 
         {/* Protected routes */}
-        <Route element={<ProtectedRoute />}>
+        {/* <Route element={<ProtectedRoute />}> */}
           <Route path="/dashbord" element={<Dashbord />} />
-        </Route>
+        {/* </Route> */}
 
         <Route path="/connexion" element={<LogAdmin />} />
       </Routes>

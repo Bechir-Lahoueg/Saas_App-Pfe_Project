@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 
 // Configuration d'axios avec l'URL de base
 axios.defaults.baseURL = 'http://localhost:8888';
+axios.defaults.headers.common['Authorization'] = `Bearer ${localStorage.getItem('accessToken')}`;
 
 const GestionCategories = () => {
   const [categories, setCategories] = useState([]);
@@ -20,6 +21,8 @@ const GestionCategories = () => {
   const [editId, setEditId] = useState(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [categoryToDelete, setCategoryToDelete] = useState(null);
+
+  
 
   // Charger les catégories au chargement du composant
   useEffect(() => {

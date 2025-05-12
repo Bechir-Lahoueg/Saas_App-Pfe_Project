@@ -101,8 +101,9 @@ public class CategoryController {
         return ResponseEntity.noContent().build();
     }
 
-    @GetMapping("/categories/ranking")
-    public List<CategoryRankingDto> categoryRanking() {
-        return categoryService.categoryRanking();
+    @GetMapping("/ranking")
+    public ResponseEntity<List<CategoryRankingDto>> categoryRanking() {
+        List<CategoryRankingDto> ranking = categoryService.categoryRanking();
+        return ResponseEntity.ok(ranking);
     }
 }
