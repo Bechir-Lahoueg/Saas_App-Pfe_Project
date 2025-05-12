@@ -1,5 +1,6 @@
 package com.example.auth_service.service;
 
+import com.example.auth_service.dto.CategoryRankingDto;
 import com.example.auth_service.entities.Category;
 import com.example.auth_service.events.CategoryCreatedEvent;
 import com.example.auth_service.repository.CategoryRepository;
@@ -11,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -57,4 +59,19 @@ public class CategoryService {
     public void deleteCategory(Long id) {
         categoryRepository.deleteById(id);
     }
+
+    public List<CategoryRankingDto> categoryRanking() {
+        var rows = categoryRepository.findTopCategoriesByTenantCountRaw();
+        var out = new ArrayList<CategoryRankingDto>();
+        for (var r : rows) {
+            out.add(new CategoryRankingDto(
+                    (Long) r[0],      // categoryId
+                    (String) r[1],    // categoryName
+                    ((Number) r[2]).longValue()
+            ));
+        }
+        return out;
+    }
 }
+
+

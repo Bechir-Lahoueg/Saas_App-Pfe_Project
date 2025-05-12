@@ -1,4 +1,4 @@
-package com.example.reporting_service.dto;
+package com.example.auth_service.dto;
 
 public record CategoryRankingDto(
         Long   categoryId,

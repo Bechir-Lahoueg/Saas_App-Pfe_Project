@@ -1,5 +1,6 @@
 package com.example.auth_service.controller;
 
+import com.example.auth_service.dto.CategoryRankingDto;
 import com.example.auth_service.entities.Category;
 import com.example.auth_service.service.CategoryService;
 import com.example.auth_service.service.CloudinaryService;
@@ -98,5 +99,10 @@ public class CategoryController {
 
         categoryService.deleteCategory(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/categories/ranking")
+    public List<CategoryRankingDto> categoryRanking() {
+        return categoryService.categoryRanking();
     }
 }
