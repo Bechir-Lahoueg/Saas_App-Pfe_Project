@@ -30,9 +30,7 @@ public class AdminController {
 
         return ResponseEntity.ok(
                 LoginResponseAdmin.builder()
-//                        .accessToken(jwtService.generateToken(admin))
-//                        .refreshToken(jwtService.generateRefreshToken(admin))
-                        .admin(admin)
+                        .accessToken(jwtService.generateToken(admin))
                         .build()
         );
     }

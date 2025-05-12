@@ -1,5 +1,6 @@
 package com.example.auth_service.service;
 
+import com.example.auth_service.entities.Admin;
 import com.example.auth_service.entities.Tenant;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
@@ -56,6 +57,11 @@ public class JwtService {
             Tenant t = (Tenant) userDetails;
             claims.put("id",        t.getId());
             claims.put("subdomain", t.getSubdomain());
+        }
+        else if(userDetails instanceof Admin) {
+            Admin a = (Admin) userDetails;
+            claims.put("id", a.getId());
+            claims.put("name", a.getName());
         }
 
         // username() is the email, so we set that as the JWT subject
