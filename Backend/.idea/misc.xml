@@ -33,6 +33,7 @@
     <option name="ignoredFiles">
       <set>
         <option value="$PROJECT_DIR$/Integration-Service/pom.xml" />
+        <option value="$PROJECT_DIR$/Reporting-Service/pom.xml" />
         <option value="$PROJECT_DIR$/communs-library/pom.xml" />
         <option value="$PROJECT_DIR$/multitenancy-lib/pom.xml" />
       </set>

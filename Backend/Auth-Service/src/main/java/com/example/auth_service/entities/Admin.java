@@ -17,7 +17,10 @@ public class Admin implements UserDetails {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
+/// role admin
+///
+///
+///
     private String name;  // ✅ name avant email
     private String email;
     private String password;

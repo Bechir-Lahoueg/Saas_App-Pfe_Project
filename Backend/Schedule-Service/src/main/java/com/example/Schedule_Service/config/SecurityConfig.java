@@ -24,15 +24,15 @@ public class SecurityConfig {
         http
                 .csrf(csrf->csrf.disable())
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers(
-                                "/reservation/**",
-                                "/employee/**",
-                                "/service/**",
-                                "/working-day/**",
-                                "/media/**"
-                        )
-                        .permitAll()  // Include context path
-                        .anyRequest().authenticated()
+//                        .requestMatchers(
+//                                "/reservation/**",
+//                                "/employee/**",
+//                                "/service/**",
+//                                "/working-day/**",
+//                                "/media/**"
+//                        )
+                                .anyRequest().permitAll()  // Include context path
+//                        .anyRequest().authenticated()
                 );
 
         return http.build();
