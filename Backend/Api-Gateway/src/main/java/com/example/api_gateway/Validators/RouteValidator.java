@@ -21,6 +21,8 @@ public class RouteValidator {
             "/auth/tenant/login",
             "/auth/tenant/getTenantByCategory",
             "/auth/tenant/getTenantBySubdomain",
+            "/auth/tenant/check-email",
+            "/auth/tenant/check-subdomain",
 
             //REGISTER SERVICE PUBLIC ROUTES
             "/register/tenant/signup",
