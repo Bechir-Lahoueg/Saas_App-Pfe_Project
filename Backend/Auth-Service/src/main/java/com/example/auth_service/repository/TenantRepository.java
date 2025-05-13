@@ -11,4 +11,6 @@ public interface TenantRepository extends JpaRepository<Tenant, UUID> {
     Optional<Tenant> findByEmail(String email);
     List<Tenant> findByCategory_CategoryName(String categoryName);
     Optional<Tenant> findBySubdomain(String subdomain);
+    boolean existsByEmail(String email);
+    boolean existsBySubdomain(String subdomain);
 }

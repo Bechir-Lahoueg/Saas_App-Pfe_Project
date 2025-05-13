@@ -13,7 +13,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @RestController
@@ -93,5 +95,21 @@ public class TenantController {
     public ResponseEntity<Tenant> getTenantBySubdomain(@PathVariable String subdomain) {
         Tenant tenant = tenantService.getTenantBySubdomain(subdomain);
         return ResponseEntity.ok(tenant);
+    }
+
+    @GetMapping("/check-email/{email}")
+    public ResponseEntity<Map<String, Boolean>> checkEmailExists(@PathVariable String email) {
+        boolean exists = tenantService.existsByEmail(email);
+        Map<String, Boolean> response = new HashMap<>();
+        response.put("exists", exists);
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/check-subdomain/{subdomain}")
+    public ResponseEntity<Map<String, Boolean>> checkSubdomainExists(@PathVariable String subdomain) {
+        boolean exists = tenantService.existsBySubdomain(subdomain);
+        Map<String, Boolean> response = new HashMap<>();
+        response.put("exists", exists);
+        return ResponseEntity.ok(response);
     }
 }

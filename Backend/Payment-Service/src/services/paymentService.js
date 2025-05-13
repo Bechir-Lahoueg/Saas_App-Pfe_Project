@@ -3,7 +3,6 @@ const axios = require('axios');
 const konnectApiService = require("./konnectApiService");
 const Payment = require("../models/Payment");
 const {registerTenant} = require("./tenantRegistrationService");
-const { publish } = require('../config/rabbitmq');
 
 const KONNECT_API_URL = process.env.KONNECT_API_URL;
 const API_KEY = process.env.KONNECT_API_KEY;
@@ -18,9 +17,6 @@ const initiatePayment = async (paymentData) => {
       description: paymentData.description,
       acceptedPaymentMethods: paymentData.acceptedPaymentMethods || ["wallet", "bank_card", "e-DINAR"],
       lifespan: paymentData.lifespan || 10,
-      addPaymentFeesToAmount: paymentData.addPaymentFeesToAmount || true,
-      // webhook: `${process.env.BASE_URL || 'http://localhost:5001'}/payments/webhook`,
-      // silentWebhook: true,
       successUrl: paymentData.successUrl || "http://localhost:5173/paiement?step=3&status=success",
       failUrl: paymentData.failUrl || "http://localhost:5173/paiement?step=3&status=failed",
       theme: paymentData.theme || "dark"
@@ -101,9 +97,6 @@ const completePayment = async (paymentRef) => {
       tenantRegistrationId: payment.tenantRegistrationId || null,
       timestamp: new Date().toISOString()
     };
-    console.log('Publishing event: payment.completed', JSON.stringify(paymentCompletedEvent, null, 2));
-    publish('payment.completed', paymentCompletedEvent);
-
 
     return {
       success: verificationResponse.success,
@@ -126,14 +119,6 @@ const completePayment = async (paymentRef) => {
     };
   } catch (error) {
     console.error('Payment completion failed:', error.message);
-        publish(
-              'payment.failed',
-              {
-                paymentRef,
-                error: error.message,
-                timestamp: new Date().toISOString()
-          }
-        );
     throw error;
   }
 };

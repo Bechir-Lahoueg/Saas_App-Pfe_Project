@@ -35,6 +35,11 @@ public class TenantService {
         return tenantRepository.findByCategory_CategoryName(categoryName);
     }
 
+    public boolean existsByEmail(String email) {
+        // Implementation depends on your repository layer
+        return tenantRepository.existsByEmail(email);
+    }
+
     @Transactional
     public Tenant updateTenant(UUID tenantId, Tenant tenantDetails) {
         Tenant tenant = tenantRepository.findById(tenantId)
@@ -98,5 +103,9 @@ public class TenantService {
         } else {
             throw new RuntimeException("Authentication failed");
         }
+    }
+
+    public boolean existsBySubdomain(String subdomain) {
+        return tenantRepository.existsBySubdomain(subdomain);
     }
 }

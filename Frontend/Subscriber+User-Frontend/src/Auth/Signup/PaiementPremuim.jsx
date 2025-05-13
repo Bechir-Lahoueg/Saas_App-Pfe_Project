@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, use } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate, useLocation } from "react-router-dom";
 import axios from "axios";
@@ -22,12 +22,21 @@ const TenantRegistrationPage = () => {
     city: "",
     zipcode: "",
     country: "",
-    categoryId: "", 
-   });
+    categoryId: "",
+  });
   const [paymentInfo, setPaymentInfo] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [paymentStatus, setPaymentStatus] = useState(null);
+  const [orderId, setOrderId] = useState(null);
+
+  const generateOrderId = () => {
+    return `REG-${Date.now()}`;
+  };
+
+  useEffect(() => {
+    setOrderId(generateOrderId());
+  }, []);
 
   useEffect(() => {
     const fetchCategories = async () => {
@@ -37,60 +46,124 @@ const TenantRegistrationPage = () => {
         );
         setCategories(data);
       } catch (err) {
-        console.error("Error fetching categories:", err);
         setError("Impossible de charger les secteurs");
       }
     };
     fetchCategories();
   }, []);
 
-  const handleChange = e => {
+  const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [name]: name === "categoryId" ? Number(value) : value
+      [name]: name === "categoryId" ? Number(value) : value,
     }));
+  };
+
+  const checkExistingCredentials = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      // Check email existence
+      const emailResponse = await axios.get(
+        `http://localhost:8888/auth/tenant/check-email/${formData.email}`
+      );
+
+      if (emailResponse.data.exists) {
+        setError(
+          "Email existe déjant. Veuillez utiliser un autre email."
+        );
+        setLoading(false);
+        return false;
+      }
+
+      // Check subdomain existence using the new endpoint
+      const subdomainResponse = await axios.get(
+        `http://localhost:8888/auth/tenant/check-subdomain/${formData.subdomain}`
+      );
+
+      if (subdomainResponse.data.exists) {
+        setError(
+          "Subdomaine existe déjà. Veuillez utiliser un autre subdomaine."
+        );
+        setLoading(false);
+        return false;
+      }
+
+      return true;
+    } catch (err) {
+      setError(
+        "Un errur s'est produit lors de la vérification des informations. Veuillez réessayer."
+      );
+      setLoading(false);
+      return false;
+    }
   };
 
   const validateForm = () => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!formData.email || !emailRegex.test(formData.email)) {
-      setError("Please enter a valid email");
+      setError("Veuillez entrer un email valide");
       return false;
     }
     if (!formData.password || formData.password.length < 6) {
-      setError("Password must be at least 6 characters");
+      setError("Le mot de passe doit comporter au moins 6 caractères");
       return false;
     }
     if (!formData.firstName || !formData.lastName) {
-      setError("First name and last name are required");
+      setError("Nom et prénom sont requis");
       return false;
     }
+    
+    // Add phone validation (numbers only, exactly 6 digits)
+    const phoneRegex = /^\d{8}$/;
+    if (formData.phone && !phoneRegex.test(formData.phone)) {
+      setError("Le numéro de téléphone doit contenir exactement 8 chiffres");
+      return false;
+    }
+    
     if (!formData.businessName || !formData.subdomain) {
-      setError("Business name and subdomain are required");
+      setError("Nom de l'entreprise et sous-domaine sont requis");
       return false;
     }
-    if (!formData.city || !formData.zipcode) {
-      setError("City and zipcode are required");
+    
+    // Add zipcode validation (numbers only)
+    const zipcodeRegex = /^\d+$/;
+    if (!formData.zipcode || !zipcodeRegex.test(formData.zipcode)) {
+      setError("Le code postal doit contenir uniquement des chiffres");
+      return false;
+    }
+    
+    if (!formData.city) {
+      setError("Ville est requise");
+      return false;
+    }
+    if (!formData.country) {
+      setError("Pays est requis");
       return false;
     }
     if (!formData.categoryId) {
-      setError("Please select a business sector");
+      setError("Veuillez sélectionner un secteur d'activité");
       return false;
     }
     return true;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setError(null);
     if (!validateForm()) return;
-    setStep(2);
-    console.log(formData)
-  };
+    const credentialsValid = await checkExistingCredentials();
+    if (!credentialsValid) return;
 
-  const generateOrderId = () => {
-    return `REG-${Date.now()}`;
+    // Generate a new order ID and update the state
+    const newOrderId = generateOrderId();
+    setOrderId(newOrderId);
+
+    setLoading(false);
+    setStep(2);
+    console.log(formData);
   };
 
   const handleInitiatePayment = async () => {
@@ -101,7 +174,7 @@ const TenantRegistrationPage = () => {
       const paymentData = {
         receiverWalletId: "67dd5a772f786e7f6069197a",
         token: "TND",
-        amount: 300,
+        amount: 50000,
         firstName: formData.firstName,
         lastName: formData.lastName,
         email: formData.email,
@@ -113,11 +186,10 @@ const TenantRegistrationPage = () => {
         businessName: formData.businessName,
         subdomain: formData.subdomain,
         password: formData.password,
-        categoryId: formData.categoryId, // Add sector to payment data
+        categoryId: formData.categoryId,
         successUrl: `${window.location.origin}/paiement?step=3&status=success`,
         failUrl: `${window.location.origin}/paiement?step=3&status=failed`,
       };
-      
 
       const response = await fetch(
         "http://localhost:8888/payment/tenant-registration",
@@ -133,20 +205,27 @@ const TenantRegistrationPage = () => {
       const result = await response.json();
 
       if (response.ok && result.payUrl) {
+        // Set loading to false BEFORE redirecting
+        setLoading(false);
+
         setPaymentInfo({
           paymentId: result.paymentRef,
           paymentUrl: result.payUrl,
         });
-        window.location.href = result.payUrl;
+
+        // Delay the redirect slightly to ensure state updates
+        setTimeout(() => {
+          window.location.href = result.payUrl;
+        }, 100);
       } else {
         throw new Error(result.error || "Failed to initiate payment");
       }
     } catch (err) {
       setError(err.message || "Payment initialization failed");
       setStep(1);
-    } finally {
-      setLoading(false);
+      setLoading(false); // Make sure to set loading to false on error
     }
+    // Remove the finally block since we're handling loading state explicitly
   };
 
   useEffect(() => {
@@ -243,20 +322,6 @@ const TenantRegistrationPage = () => {
         {/* First part of fields up to businessName */}
         {[
           {
-            id: "email",
-            label: "Email",
-            type: "email",
-            required: true,
-            icon: "mail",
-          },
-          {
-            id: "password",
-            label: "Password",
-            type: "password",
-            required: true,
-            icon: "lock",
-          },
-          {
             id: "firstName",
             label: "First Name",
             type: "text",
@@ -271,11 +336,28 @@ const TenantRegistrationPage = () => {
             icon: "user",
           },
           {
+            id: "email",
+            label: "Email",
+            type: "email",
+            required: true,
+            icon: "mail",
+          },
+          {
+            id: "password",
+            label: "Password",
+            type: "password",
+            required: true,
+            icon: "lock",
+          },
+
+          {
             id: "phone",
             label: "Phone",
             type: "tel",
             required: false,
             icon: "phone",
+            pattern: "[0-9]{8}",
+            title: "Le numéro de téléphone doit contenir exactement 8 chiffres",
           },
           {
             id: "businessName",
@@ -306,6 +388,8 @@ const TenantRegistrationPage = () => {
                 className="w-full pl-10 pr-4 py-3 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all duration-200"
                 required={field.required}
                 placeholder={`Enter your ${field.label.toLowerCase()}`}
+                pattern={field.pattern}
+                title={field.title}
               />
             </div>
           </div>
@@ -370,6 +454,55 @@ const TenantRegistrationPage = () => {
           </div>
         </div>
 
+        {/* Country dropdown */}
+        <div key="country" className="relative">
+          <label
+            className="block text-sm font-medium text-gray-800 mb-2"
+            htmlFor="country"
+          >
+            Country <span className="text-indigo-500">*</span>
+          </label>
+          <div className="relative rounded-lg shadow-sm">
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <span className="text-gray-400">{renderIcon("globe")}</span>
+            </div>
+            <select
+              id="country"
+              name="country"
+              value={formData.country}
+              onChange={handleChange}
+              className="w-full pl-10 pr-10 py-3 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all duration-200 appearance-none bg-white"
+              required
+            >
+              <option value="" disabled>
+                Select your country
+              </option>
+              <option value="Tunisia">Tunisia</option>
+              <option value="France">France</option>
+              <option value="United States">United States</option>
+              <option value="Germany">Germany</option>
+              <option value="Canada">Canada</option>
+              <option value="Japan">Japan</option>
+              <option value="Australia">Australia</option>
+            </select>
+            <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-gray-400">
+              <svg
+                className="w-5 h-5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d="M19 9l-7 7-7-7"
+                ></path>
+              </svg>
+            </div>
+          </div>
+        </div>
+
         {/* Remaining fields after businessName */}
         {[
           {
@@ -385,13 +518,6 @@ const TenantRegistrationPage = () => {
             type: "text",
             required: true,
             icon: "map",
-          },
-          {
-            id: "country",
-            label: "Country",
-            type: "text",
-            required: true,
-            icon: "globe",
           },
         ].map((field) => (
           <div key={field.id} className="relative">
@@ -461,15 +587,14 @@ const TenantRegistrationPage = () => {
             <div className="absolute left-3 top-3 text-gray-400">
               {renderIcon("home")}
             </div>
-            <textarea
+            <input
               id="address"
               name="address"
               value={formData.address}
               onChange={handleChange}
               className="w-full pl-10 pr-4 py-3 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all duration-200"
-              rows="3"
               placeholder="Enter your full address"
-            ></textarea>
+            ></input>
           </div>
         </div>
       </div>
@@ -559,7 +684,7 @@ const TenantRegistrationPage = () => {
             </svg>
             Amount:
           </span>
-          <span className="text-xl font-bold text-gray-800">300 TND</span>
+          <span className="text-xl font-bold text-gray-800">50 TND</span>
         </div>
 
         <div className="flex justify-between items-center">
@@ -577,9 +702,7 @@ const TenantRegistrationPage = () => {
             </svg>
             Reference:
           </span>
-          <span className="font-medium text-gray-800">
-            {paymentInfo?.paymentId || generateOrderId()}
-          </span>
+          <span className="font-medium text-gray-800">{orderId}</span>
         </div>
       </motion.div>
 
