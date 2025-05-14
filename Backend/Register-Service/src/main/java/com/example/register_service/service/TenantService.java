@@ -79,13 +79,7 @@ public class TenantService {
                 .categoryId(request.getCategoryId())
                 .build();
 
-                Tenant saved= tenantRepository.save(tenant);
-
-                var event   = new TenantCreatedEvent(saved.getId(), saved.getCategoryId(), Instant.now());
-                log.info("Received TenantCreatedEvent: {}", event);
-                rabbit.convertAndSend(tenantExchange.getName(), "tenant.created", event);
-
-                return saved;
+        return tenantRepository.save(tenant);
 
     }
 }

@@ -10,20 +10,16 @@ const FAQSection = () => {
       answer: "PlanifyGo permet à vos clients de réserver vos services en ligne 24h/24. Vous configurez vos disponibilités, services et employés dans l'interface d'administration, et vos clients peuvent ensuite prendre rendez-vous directement via votre page PlanifyGo personnalisée."
     },
     {
-      question: "Puis-je synchroniser PlanifyGo avec mon calendrier existant ?",
-      answer: "Absolument ! PlanifyGo s'intègre avec Google Calendar et Outlook. Tous vos rendez-vous apparaissent dans votre calendrier habituel et les créneaux occupés sont automatiquement bloqués pour éviter les doubles réservations."
-    },
-    {
       question: "Comment les clients reçoivent-ils des rappels de rendez-vous ?",
       answer: "PlanifyGo envoie automatiquement des rappels par email aux clients avant leurs rendez-vous."
     },
     {
       question: "Y a-t-il des frais supplémentaires pour les paiements en ligne ?",
-      answer: "PlanifyGo s'intègre avec Konnect qui applique des frais de transaction de 2%. Notre solution elle-même n'applique pas de frais supplémentaires."
+      answer: "PlanifyGo s'intègre avec Konnect qui applique des frais de transaction de 0%. Notre solution elle-même n'applique pas de frais supplémentaires."
     },
     {
       question: "Puis-je utiliser PlanifyGo sur mon site web existant ?",
-      answer: "Cette fonctionnalité n'est pas encore disponible mais sera implémentée dans une future version de PlanifyGo."
+      answer: "Cette fonctionnalité n'est pas encore disponible mais sera implémentée dans une future version de PlanifyGo. Mais vous pouvez toujours partager le lien de votre page PlanifyGo avec vos clients en média sociale."
     }
   ];
 
@@ -124,7 +120,7 @@ const FAQSection = () => {
                   Contactez-nous
                 </span>
               </button>
-              <button 
+              {/* <button 
                 onClick={handleDocumentationClick}
                 className="bg-transparent border border-white text-white font-medium rounded-full px-6 py-3 hover:bg-white hover:text-gray-900 transition-all duration-200 shadow-md hover:shadow-lg text-sm"
               >
@@ -134,7 +130,7 @@ const FAQSection = () => {
                   </svg>
                   Documentation
                 </span>
-              </button>
+              </button> */}
             </div>
           </div>
         </div>

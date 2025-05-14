@@ -381,7 +381,7 @@ export default function EnhancedConfirmationCode() {
             </div>
 
             {/* Resend Section */}
-            <div className="flex flex-col items-center">
+            {/* <div className="flex flex-col items-center">
               <p className="text-gray-500 text-sm mb-2">
                 Vous n'avez pas reçu le code ?
               </p>
@@ -395,7 +395,7 @@ export default function EnhancedConfirmationCode() {
                 />
                 <span>Renvoyer le Code</span>
               </button>
-            </div>
+            </div> */}
 
             {/* Help Section */}
             <div className="mt-8 pt-4 border-t border-gray-100">

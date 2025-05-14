@@ -135,7 +135,6 @@ const Navbar = () => {
               <NavItem
                 id="accueil"
                 label="Accueil"
-                isActive={activeSection === "accueil"}
                 scrolled={scrolled}
                 redirectTo="/"
               />
@@ -156,14 +155,14 @@ const Navbar = () => {
                 onToggle={handleDropdownToggle}
                 items={dropdownContent.secteurs}
               /> */}
-              <NavItem
+              {/* <NavItem
                 id="fonctionnalites"
                 label="Fonctionnalités"
                 isActive={activeSection === "fonctionnalites"}
                 scrolled={scrolled}
                 redirectTo="/fonctionnalites"
                 onClick={() => handleNavClick("fonctionnalites")}
-              />
+              /> */}
               <NavItem
                 id="tarification"
                 label="Tarification"

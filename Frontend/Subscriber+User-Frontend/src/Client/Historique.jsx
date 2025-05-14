@@ -15,6 +15,8 @@ import {
 
 // Importer le logo
 import planifygoLogo from "/LogoPlanifygoPNG.png";
+import Navbar from "./Components/Navbar";
+import Footer from "./Components/Footer";
 
 export default function Historique() {
   const [email, setEmail] = useState("");
@@ -187,47 +189,7 @@ export default function Historique() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header / Navigation */}
-      <nav className="bg-white shadow-md">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between h-16">
-            <div className="flex-shrink-0 flex items-center overflow-hidden">
-              <a href="/home" className="flex items-center">
-                <img
-                  src={planifygoLogo}
-                  alt="PlanifyGo Logo"
-                  className="h-8"
-                  style={{
-                    objectFit: "contain",
-                    transform: "scale(2.5)",
-                    transformOrigin: "left center",
-                    marginRight: "2rem",
-                  }}
-                />
-              </a>
-            </div>
-            <div className="hidden sm:ml-6 sm:flex sm:space-x-8">
-              <a
-                href="/"
-                className="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium"
-              >
-                Page d'accueil
-              </a>
-              <a
-                href="/reservation"
-                className="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium"
-              >
-                Nouvelle réservation
-              </a>
-              <a
-                href="/reservation/historique"
-                className="border-indigo-500 text-gray-900 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium"
-              >
-                Mes Réservations
-              </a>
-            </div>
-          </div>
-        </div>
-      </nav>
+      <Navbar />
 
       {/* Main Content */}
       <div className="max-w-7xl mx-auto p-4 sm:px-6 lg:p-8">
@@ -1546,13 +1508,7 @@ export default function Historique() {
       </div>
 
       {/* Footer */}
-      <footer className="bg-gray-50 border-t border-gray-200 py-8 mt-12">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <p className="text-center text-gray-500 text-sm">
-            &copy; {new Date().getFullYear()} PlanifyGo. Tous droits réservés.
-          </p>
-        </div>
-      </footer>
+      <Footer />
     </div>
   );
 }

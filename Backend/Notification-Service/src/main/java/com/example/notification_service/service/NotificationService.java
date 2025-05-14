@@ -50,7 +50,16 @@ public class NotificationService {
         );
         confirmReminderTasks.put(evt.reservationId(), confirmFuture);
 
-        // 3) Schedule “12 hours before start” reminder
+    }
+
+    @RabbitListener(queues = "reservation.confirmed.notification.queue")
+    public void onConfirmed(ReservationConfirmedEvent evt) {
+        // Cancel the “5 min‑left” confirm reminder
+        log.info("removing the 5 min expiration reminder for reservationId: {}", evt.reservationId());
+        ScheduledFuture<?> f1 = confirmReminderTasks.remove(evt.reservationId());
+        if (f1 != null) f1.cancel(false);
+
+// 3) Schedule “12 hours before start” reminder
         Instant appointmentReminderAt = evt.startTime()
                 .minusHours(12)
                 .atZone(ZoneId.systemDefault())
@@ -63,15 +72,6 @@ public class NotificationService {
                 appointmentReminderAt
         );
         appointmentReminderTasks.put(evt.reservationId(), apptFuture);
-    }
-
-    @RabbitListener(queues = "reservation.confirmed.notification.queue")
-    public void onConfirmed(ReservationConfirmedEvent evt) {
-        // Cancel the “5 min‑left” confirm reminder
-        log.info("removing the 5 min expiration reminder for reservationId: {}", evt.reservationId());
-        ScheduledFuture<?> f1 = confirmReminderTasks.remove(evt.reservationId());
-        if (f1 != null) f1.cancel(false);
-
     }
 
     private void sendEmail(String to, String subject, String body) {

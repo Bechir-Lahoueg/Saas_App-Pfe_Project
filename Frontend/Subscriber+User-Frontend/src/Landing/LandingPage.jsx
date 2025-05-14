@@ -16,7 +16,7 @@ export default function LandingPage() {
       <Functionnalities />
       <Webflow />
       <Solutions />
-      <Reviews />
+      {/* <Reviews /> */}
       <Faqs />
       <Footer />
     </div>

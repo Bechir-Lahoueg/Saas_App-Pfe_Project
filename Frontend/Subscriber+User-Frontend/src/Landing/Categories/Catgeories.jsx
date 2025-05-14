@@ -359,17 +359,10 @@ export default function Categories() {
               href="/paiement"
               whileHover={{ scale: 1.03 }}
               whileTap={{ scale: 0.97 }}
-              onClick={() => window.location.href = '/paiment'}
+              onClick={() => window.location.href = '/paiement'}
               className="px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl font-medium hover:from-blue-700 hover:to-indigo-700 transition-all shadow-lg cursor-pointer"
             >
               Créer un compte professionnel
-            </motion.button>
-            <motion.button
-              whileHover={{ scale: 1.03 }}
-              whileTap={{ scale: 0.97 }}
-              className="px-6 py-3 bg-white/70 backdrop-blur-sm border border-gray-200 rounded-xl font-medium text-blue-600 hover:bg-blue-50 hover:border-blue-200 transition-all shadow-sm"
-            >
-              En savoir plus
             </motion.button>
           </div>
 

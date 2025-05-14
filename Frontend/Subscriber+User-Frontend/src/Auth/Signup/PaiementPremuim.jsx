@@ -54,10 +54,20 @@ const TenantRegistrationPage = () => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: name === "categoryId" ? Number(value) : value,
-    }));
+
+    // Remove spaces from subdomain as the user types
+    if (name === "subdomain") {
+      const noSpaces = value.replace(/\s/g, "");
+      setFormData((prev) => ({
+        ...prev,
+        [name]: noSpaces,
+      }));
+    } else {
+      setFormData((prev) => ({
+        ...prev,
+        [name]: name === "categoryId" ? Number(value) : value,
+      }));
+    }
   };
 
   const checkExistingCredentials = async () => {
@@ -71,9 +81,7 @@ const TenantRegistrationPage = () => {
       );
 
       if (emailResponse.data.exists) {
-        setError(
-          "Email existe déjant. Veuillez utiliser un autre email."
-        );
+        setError("Email existe déjant. Veuillez utiliser un autre email.");
         setLoading(false);
         return false;
       }
@@ -85,7 +93,7 @@ const TenantRegistrationPage = () => {
 
       if (subdomainResponse.data.exists) {
         setError(
-          "Subdomaine existe déjà. Veuillez utiliser un autre subdomaine."
+          "Sous-domaine existe déjà. Veuillez utiliser un autre Sous-domaine."
         );
         setLoading(false);
         return false;
@@ -115,26 +123,32 @@ const TenantRegistrationPage = () => {
       setError("Nom et prénom sont requis");
       return false;
     }
-    
+
     // Add phone validation (numbers only, exactly 6 digits)
     const phoneRegex = /^\d{8}$/;
     if (formData.phone && !phoneRegex.test(formData.phone)) {
       setError("Le numéro de téléphone doit contenir exactement 8 chiffres");
       return false;
     }
-    
+
+    // Add subdomain space validation
+    if (formData.subdomain.includes(" ")) {
+      setError("Le sous-domaine ne doit pas contenir d'espaces");
+      return false;
+    }
+
     if (!formData.businessName || !formData.subdomain) {
       setError("Nom de l'entreprise et sous-domaine sont requis");
       return false;
     }
-    
+
     // Add zipcode validation (numbers only)
     const zipcodeRegex = /^\d+$/;
     if (!formData.zipcode || !zipcodeRegex.test(formData.zipcode)) {
       setError("Le code postal doit contenir uniquement des chiffres");
       return false;
     }
-    
+
     if (!formData.city) {
       setError("Ville est requise");
       return false;
@@ -568,6 +582,8 @@ const TenantRegistrationPage = () => {
                 className="w-full pl-10 pr-4 py-3 border-2 border-gray-200 rounded-l-lg focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all duration-200"
                 required
                 placeholder="your-company"
+                pattern="[^\s]+"
+                title="Le sous-domaine ne doit pas contenir d'espaces"
               />
             </div>
             <span className="bg-gray-100 px-4 py-3 border-2 border-l-0 border-gray-200 rounded-r-lg flex items-center text-gray-600 font-medium">
