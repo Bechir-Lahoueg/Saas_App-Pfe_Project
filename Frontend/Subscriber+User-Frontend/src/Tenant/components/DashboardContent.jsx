@@ -916,31 +916,6 @@ const DashboardContent = ({ sidebarExpanded }) => {
             >
               Vue d'ensemble
             </button>
-            <button 
-              className={`px-4 py-2 rounded-t-lg transition-all ${getActiveTabClass('services')}`}
-              onClick={() => setActiveTab('services')}
-            >
-              Services
-            </button>
-            <button 
-              className={`px-4 py-2 rounded-t-lg transition-all ${getActiveTabClass('employees')}`}
-              onClick={() => setActiveTab('employees')}
-            >
-              Employés
-            </button>
-            <button 
-              className={`px-4 py-2 rounded-t-lg transition-all ${getActiveTabClass('reservations')}`}
-              onClick={() => setActiveTab('reservations')}
-            >
-              <div className="flex items-center gap-1.5">
-                Réservations
-                {stats.pendingCount > 0 && (
-                  <span className="bg-amber-400 text-amber-900 text-xs font-medium px-2 py-0.5 rounded-full">
-                    {stats.pendingCount}
-                  </span>
-                )}
-              </div>
-            </button>
           </div>
         </div>
       </div>

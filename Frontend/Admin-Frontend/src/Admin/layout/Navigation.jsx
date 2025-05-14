@@ -1,381 +1,739 @@
-// src/components/Navigation.jsx
-import React, { useState, useEffect } from 'react';
-import {
-  Search, Bell, Calendar, Menu, ChevronDown, Moon, Sun,
-  Users, Settings as SettingsIcon, ChevronRight,
-  LogOut, ChevronLeft, X, Home, BarChart3, Clock,
-  PieChart, FileText, Layers, Award, User
-} from 'lucide-react';
-import logoImage from '../../assets/LogoPlanifygoPNG.png';
-
-// Page components
-import DashboardContent from '../pages/DashboardContent';
-import Analytics         from '../pages/Analytics';
-import Invoice           from '../pages/Invoice';
-import HR                from '../pages/HR';
-import CalendarPage      from '../pages/Calendar';
-import Catégorie         from '../pages/Category';
-import Notifications     from '../pages/Notifications';
-import SettingsPage      from '../pages/Settings';
+import React, { useState, useEffect } from "react";
+import { Search, Bell, Calendar, Menu, ChevronDown, Moon, Sun, Filter, LayoutGrid, FileText, Users, MessageCircle, Settings as SettingsIcon, ChevronRight, LogOut, ChevronLeft, User, CreditCard, X, Building, ChevronsRight, Home, LineChart, BarChart3, Clock, Star, Shield } from 'lucide-react';
+import { UserCircle } from 'lucide-react'; // Import icon
+// Import logo
+import logoImage from "../../assets/LogoPlanifygoPNG.png"; // Adjust the path as needed
+// Import page components
+import DashboardContent from "../pages/DashboardContent";
+import Analytics from "../pages/Analytics";
+import Invoice from "../pages/Invoice";
+import CalendarPage from "../pages/Calendar";
+import Catégorie from "../pages/Category";
+import SettingsPage from "../pages/Settings";
 
 const Navigation = () => {
-  const [isDarkMode, setIsDarkMode]           = useState(false);
-  const [isSidebarCollapsed, setSidebarCollapsed] = useState(false);
-  const [isMobileMenuOpen, setIsMobileMenuOpen]   = useState(false);
-  const [activePage, setActivePage]           = useState(() => localStorage.getItem('activePage') || 'dashboard');
-  const [notificationsCount, setNotificationsCount] = useState(3);
-  const [sessionExpired, setSessionExpired]   = useState(false);
+  // States for various features
+  const [isDarkMode, setIsDarkMode] = useState(false);
+  const [isSidebarExpanded, setSidebarExpanded] = useState(true);
+  const [isMobileOpen, setIsMobileOpen] = useState(false);
+  // Initialiser activePage depuis localStorage ou avec valeur par défaut
+  const [activePage, setActivePage] = useState(() => {
+    const savedPage = localStorage.getItem('activePage');
+    return savedPage || "dashboard";
+  });
+  const [windowWidth, setWindowWidth] = useState(window.innerWidth);
+  const [hoveredMenu, setHoveredMenu] = useState(null);
+  const [adminData, setadminData] = useState(null);
 
-  // On mount: check token + schedule expiry
-  useEffect(() => {
-    const token = localStorage.getItem('accessToken');
-    if (!token) {
-      window.location.href = '/connexion';
-      return;
+// Fetch user data on component mount
+useEffect(() => {
+  // Check if user is logged in by looking for the access token
+  const accessToken = localStorage.getItem('accessToken');
+  const stringAdminData = localStorage.getItem('admin');
+  
+  if (!accessToken) {
+    // Redirect to login if no token found
+    window.location.href = '/connexion';
+    return;
+  }
+  
+  if (stringAdminData) {
+    try {
+      const parsedAdminData = JSON.parse(stringAdminData);
+      setadminData(parsedAdminData);
+    } catch (error) {
+      console.error('Error parsing user data:', error);
+      handleLogout(); // Logout if data is corrupted
     }
+  }
+}, []);
 
-    const expMs = Number(localStorage.getItem('accessTokenExp')) * 1000;
-    const delta = expMs - Date.now();
-    if (delta <= 0) {
-      triggerLogout();
-    } else {
-      const timer = setTimeout(triggerLogout, delta);
-      return () => clearTimeout(timer);
-    }
-  }, []);
-
-  // Responsive sidebar
-  useEffect(() => {
-    const onResize = () => setSidebarCollapsed(window.innerWidth < 1024);
-    window.addEventListener('resize', onResize);
-    onResize();
-    return () => window.removeEventListener('resize', onResize);
-  }, []);
-
-  const triggerLogout = () => {
-    setSessionExpired(true);
-    setTimeout(handleLogout, 3000);
-  };
-
+  // Handle logout function
   const handleLogout = () => {
-    localStorage.clear();
+    // Remove tokens and user data from localStorage
+    localStorage.removeItem('accessToken');
+    localStorage.removeItem('refreshToken');
+    localStorage.removeItem('admin');
+    localStorage.removeItem('activePage'); // Also clear active page
+    
+    // Redirect to login page
     window.location.href = '/connexion';
   };
 
+  // Monitor window width for responsive behavior
+  useEffect(() => {
+    const handleResize = () => {
+      setWindowWidth(window.innerWidth);
+      if (window.innerWidth < 768) {
+        setSidebarExpanded(false);
+      }
+    };
+
+    window.addEventListener("resize", handleResize);
+    handleResize();
+
+    return () => {
+      window.removeEventListener("resize", handleResize);
+    };
+  }, []);
+
+  // Theme management - initialize with light mode
+  useEffect(() => {
+    setIsDarkMode(false);
+    document.documentElement.classList.remove("dark");
+    localStorage.setItem("darkMode", "false");
+  }, []);
+
+// Mise à jour de la fonction handleLogoClick
+const handleLogoClick = () => {
+  const logo = document.getElementById('logo');
+  if (logo.classList.contains('scale-150')) {
+    logo.classList.replace('scale-150', 'scale-175');
+  } else if (logo.classList.contains('scale-175')) {
+    logo.classList.replace('scale-175', 'scale-200');
+  } else if (logo.classList.contains('scale-200')) {
+    logo.classList.replace('scale-200', 'scale-150');
+  }
+};
+
+  // Navigation - Mise à jour pour stocker la page dans localStorage
   const navigateTo = (pageId) => {
     setActivePage(pageId);
-    localStorage.setItem('activePage', pageId);
-    setIsMobileMenuOpen(false);
+    localStorage.setItem('activePage', pageId); // Sauvegarder dans localStorage
+    
+    if (windowWidth < 768) {
+      setIsMobileOpen(false);
+    }
   };
 
+  // Toggle dark/light mode
   const toggleDarkMode = () => {
-    const next = !isDarkMode;
-    setIsDarkMode(next);
-    document.documentElement.classList.toggle('dark', next);
-    localStorage.setItem('darkMode', next.toString());
+    const newDarkMode = !isDarkMode;
+    setIsDarkMode(newDarkMode);
+    localStorage.setItem("darkMode", newDarkMode.toString());
+
+    if (newDarkMode) {
+      document.documentElement.classList.add("dark");
+    } else {
+      document.documentElement.classList.remove("dark");
+    }
   };
 
-  const getPageTitle = () => ({
-    dashboard:   'Tableau de bord',
-    analytics:   'Analytique',
-    invoice:     'Factures',
-    hr:          'Équipe',
-    calendar:    'Calendrier',
-    Catégorie:   'Catégories',
-    notifications: 'Notifications',
-    settings:    'Paramètres'
-  }[activePage] || 'Tableau de bord');
+  // Get title based on active page
+  const getTitle = () => {
+    switch (activePage) {
+      case "dashboard":
+        return "Tableau de bord";
+      case "analytics":
+        return "Analytique";
+      case "invoice":
+        return "Factures";
+      case "calendar":
+        return "Calendrier";
+      case "Catégorie":
+        return "Catégorie";
+      case "settings":
+        return "Paramètres";
+      default:
+        return "Tableau de bord";
+    }
+  };
 
-  const getUserName = () => localStorage.getItem('name') || 'Utilisateur';
+// Get user's name - Updated to handle admin without tenant
+const getUserName = () => {
+  if (adminData) {
+    if (adminData.name) {
+      return adminData.name;
+    } else if (adminData.email) {
+      // Extraire le nom à partir de l'email si name n'est pas disponible
+      return adminData.email.split('@')[0];
+    }
+  }
+  return "Utilisateur";
+};
 
-  const mainMenuItems = [
-    { id: 'dashboard', icon: Home,      label: 'Tableau de bord' },
-    { id: 'analytics', icon: PieChart,  label: 'Analytique', badge: 'PRO' },
-    { id: 'invoice',   icon: FileText,  label: 'Factures',   counter: 2 },
-    { id: 'hr',        icon: Users,     label: 'Équipe' },
-    { id: 'calendar',  icon: Calendar,  label: 'Calendrier' },
-    { id: 'Catégorie', icon: Layers,    label: 'Catégories', counter: 5 }
+// Get user role - For admin without tenant
+const getUserRole = () => {
+  if (adminData) {
+    if (!adminData.tenant) {
+      return "Administrateur";
+    }
+    return "Utilisateur";
+  }
+  return "";
+};
+
+  // Menu items definition
+  const menuItems = [
+    { id: "dashboard", icon: Home, label: "Tableau de bord" },
+    { id: "analytics", icon: BarChart3, label: "Analytique", enterprise: true },
+    { id: "invoice", icon: CreditCard, label: "Factures", notification: 2 },
+    { id: "calendar", icon: Calendar, label: "Calendrier" },
+    { id: "Catégorie", icon: MessageCircle, label: "Catégorie", notification: 5 },
   ];
 
   const secondaryMenuItems = [
-    { id: 'notifications', icon: Bell,           label: 'Notifications', counter: notificationsCount },
-    { id: 'settings',      icon: SettingsIcon,  label: 'Paramètres' }
+    { id: "settings", icon: SettingsIcon, label: "Paramètres" },
   ];
 
-  const renderActivePage = () => {
+  // Conditional page rendering
+  const renderPage = () => {
     switch (activePage) {
-      case 'analytics':    return <Analytics />;
-      case 'invoice':      return <Invoice />;
-      case 'hr':           return <HR />;
-      case 'calendar':     return <CalendarPage />;
-      case 'Catégorie':    return <Catégorie />;
-      case 'notifications':return <Notifications />;
-      case 'settings':     return <SettingsPage />;
-      default:             return <DashboardContent sidebarExpanded={!isSidebarCollapsed} />;
+      case "dashboard":
+        return <DashboardContent sidebarExpanded={isSidebarExpanded} />;
+      case "analytics":
+        return <Analytics />;
+      case "invoice":
+        return <Invoice />;
+      case "calendar":
+        return <CalendarPage />;
+      case "Catégorie":
+        return <Catégorie />;
+      case "settings":
+        return <SettingsPage />;
+      default:
+        return <DashboardContent sidebarExpanded={isSidebarExpanded} />;
     }
   };
 
   return (
-    <div className={`${isDarkMode ? 'dark' : ''}`}>
-      {/* Session Expired Alert */}
-      {sessionExpired && (
-        <div className="fixed top-4 inset-x-0 flex justify-center z-50">
-          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded shadow-md w-11/12 max-w-md flex items-center">
-            <svg className="w-5 h-5 mr-2 text-red-700" fill="currentColor" viewBox="0 0 20 20">
-              <path fillRule="evenodd"
-                d="M10 18a8 8 0 100-16 8 8 0 000 16zm-1-9V7a1 1 0 112 0v2a1 1 0 01-2 0zm0 4a1 1 0 112 0 1 1 0 01-2 0z"
-                clipRule="evenodd" />
-            </svg>
-            <p className="font-semibold">Session expirée. Vous allez être déconnecté...</p>
-          </div>
-        </div>
+    <div
+      className={`flex h-screen ${
+        isDarkMode ? "bg-gradient-to-br from-slate-900 to-slate-800 text-white" : "bg-gradient-to-br from-gray-50 to-gray-100"
+      } transition-all duration-500`}
+    >
+      {/* Mobile overlay avec flou amélioré */}
+      {isMobileOpen && (
+        <div
+          className="fixed inset-0 bg-black/60 backdrop-blur-md z-40 md:hidden"
+          onClick={() => setIsMobileOpen(false)}
+        />
       )}
 
-      <div className="flex h-screen overflow-hidden bg-gray-50 dark:bg-slate-900 transition-colors duration-300">
-        {/* Mobile overlay */}
-        {isMobileMenuOpen && (
-          <div
-            className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm lg:hidden"
-            onClick={() => setIsMobileMenuOpen(false)}
-          />
-        )}
+      {/* Sidebar avec style moderne */}
+      <aside
+        className={`fixed inset-y-0 left-0 z-50 flex flex-col ${
+          isSidebarExpanded ? "w-72" : "w-24"
+        } ${
+          isDarkMode
+            ? "bg-gradient-to-b from-slate-800 via-slate-800 to-slate-900 border-r border-slate-700/50 text-white"
+            : "bg-white border-r border-gray-200/80 shadow-lg"
+        } transition-all duration-300 ease-out ${
+          isMobileOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
+        } rounded-r-xl`}
+      >
+        {/* Bouton d'expansion redessiné */}
+        <button
+          onClick={() => setSidebarExpanded(!isSidebarExpanded)}
+          className={`absolute -right-3.5 top-28 hidden md:flex h-8 w-8 items-center justify-center rounded-full 
+          ${
+            isDarkMode
+              ? "bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg shadow-blue-500/30"
+              : "bg-gradient-to-r from-blue-500 to-indigo-500 text-white shadow-lg shadow-blue-500/20"
+          } border-none cursor-pointer hover:scale-110 transition-all duration-200`}
+        >
+          {isSidebarExpanded ? (
+            <ChevronLeft size={16} />
+          ) : (
+            <ChevronRight size={16} />
+          )}
+        </button>
 
-        {/* Sidebar */}
-        <aside className={`
-          fixed lg:static inset-y-0 left-0 z-50
-          flex flex-col
-          w-72 lg:w-auto ${isSidebarCollapsed ? 'lg:w-20' : 'lg:w-72'}
-          bg-gradient-to-b from-violet-50 to-indigo-50 dark:from-indigo-950 dark:to-slate-900
-          border-r border-violet-100 dark:border-indigo-900/40
-          transform transition-all duration-300 ease-in-out
-          ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
-          shadow-xl lg:shadow-md
-        `}>
-          {/* Collapse Toggle */}
+        {/* Logo Section - Design modernisé */}
+        <div
+          className={`p-5 flex items-center justify-center ${
+            isDarkMode ? "border-b border-slate-700/50" : "border-b border-slate-200/50"
+          } relative overflow-visible`}
+        >
+          <div className="flex items-center justify-center w-full relative">
+            <img 
+              src={logoImage} 
+              alt="PlanifyGo Logo" 
+              className={`${isSidebarExpanded ? 'w-full max-h-28 object-contain' : 'w-full max-h-20 object-contain'} 
+              transition-all duration-300 cursor-pointer hover:opacity-90 hover:scale-[1.02] filter drop-shadow-md scale-150`} 
+              id="logo"
+              onClick={handleLogoClick}
+            />
+          </div>
           <button
-            onClick={() => setSidebarCollapsed(!isSidebarCollapsed)}
-            className="absolute -right-3 top-24 hidden lg:flex items-center justify-center h-7 w-7 rounded-full
-                       bg-white dark:bg-indigo-900 text-violet-600 dark:text-violet-300
-                       shadow-lg border border-violet-100 dark:border-indigo-800
-                       hover:shadow-violet-200 dark:hover:shadow-indigo-900/50
-                       transition-all duration-300 z-10">
-            {isSidebarCollapsed ? <ChevronRight size={15} /> : <ChevronLeft size={15} />}
+            className={`md:hidden absolute top-4 right-4 p-1.5 rounded-full ${
+              isDarkMode
+                ? "bg-slate-700 text-slate-300 hover:text-white"
+                : "bg-gray-100 text-gray-500 hover:text-gray-700"
+            } transition-all duration-200`}
+            onClick={() => setIsMobileOpen(false)}
+          >
+            <X size={16} />
           </button>
+        </div>
 
-          {/* Logo */}
-          <div className="relative flex items-center justify-center p-4 border-b border-violet-100/80 dark:border-indigo-900/40">
-            <div className={`${isSidebarCollapsed ? 'w-10' : 'w-full'} overflow-hidden transition-all duration-300`}>
-              <div className="flex items-center gap-3">
-                <div className="bg-white dark:bg-indigo-900/30 p-1.5 rounded-lg shadow-sm">
-                  <img src={logoImage} alt="PlanifyGo Logo" className="h-8 w-8 object-contain" />
-                </div>
-                {!isSidebarCollapsed && (
-                  <span className="font-bold text-xl bg-clip-text text-transparent
-                                   bg-gradient-to-r from-violet-800 to-indigo-600
-                                   dark:from-violet-300 dark:to-indigo-400">
-                    PlanifyGo
-                  </span>
-                )}
+        {/* Section profil utilisateur redessinée */}
+        <div
+          className={`px-4 py-5 ${
+            isDarkMode ? "border-b border-slate-700/50" : "border-b border-slate-200/50"
+          }`}
+        >
+          <div
+            className={`flex items-center ${!isSidebarExpanded && "justify-center"} p-3 rounded-xl 
+            ${
+              isDarkMode 
+                ? "bg-gradient-to-r from-slate-800 to-slate-700 hover:from-blue-900/20 hover:to-indigo-900/20" 
+                : "bg-gradient-to-r from-slate-100/80 to-gray-50 hover:from-blue-50 hover:to-indigo-50"
+            } transition-all duration-300 cursor-pointer group relative`}
+          >
+            <div className="relative">
+              <div className={`rounded-full p-0.5 ${
+                isDarkMode 
+                  ? "bg-gradient-to-br from-blue-500 to-indigo-600" 
+                  : "bg-gradient-to-br from-blue-400 to-indigo-500"
+                }`}
+              >
+                <UserCircle 
+                  className={`w-10 h-10 ${
+                    isDarkMode ? "text-slate-200" : "text-white"
+                  } rounded-full p-1 ${
+                    isDarkMode ? "bg-slate-800" : "bg-white"
+                  }`}
+                />
               </div>
-            </div>  
-            <button
-              className="lg:hidden absolute right-4 top-4 text-violet-600 dark:text-violet-300 hover:text-violet-800 dark:hover:text-violet-200"
-              onClick={() => setIsMobileMenuOpen(false)}>
-              <X size={20} />
-            </button>
+              <span className="absolute bottom-0 right-0 w-3 h-3 rounded-full bg-green-500 ring-2 ring-white dark:ring-slate-900 animate-pulse"></span>
+            </div>
+
+            {isSidebarExpanded && (
+              <div className="flex-1 min-w-0 ml-3">
+                <p
+                  className={`text-sm font-semibold ${
+                    isDarkMode
+                      ? "text-white group-hover:text-blue-300"
+                      : "text-slate-800 group-hover:text-blue-600"
+                  } truncate`}
+                >
+                  {getUserName()}
+                </p>
+                <p className="text-xs flex items-center mt-0.5">
+                  {/* Afficher le rôle d'administrateur si pas de tenant */}
+                  {adminData && !adminData.tenant ? (
+                    <span className={`${isDarkMode ? "text-orange-400" : "text-orange-500"} font-medium`}>{getUserRole()}</span>
+                  ) : (
+                    <div className="flex items-center">
+                      <span className="inline-block w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse mr-1.5"></span>
+                      <span className={isDarkMode ? "text-slate-300" : "text-slate-500"}>En ligne</span>
+                    </div>
+                  )}
+                </p>
+              </div>
+            )}
+            
+            {/* Tooltip amélioré pour la sidebar réduite */}
+            {!isSidebarExpanded && (
+              <div className="absolute left-20 z-50 origin-left scale-0 px-3 py-2 rounded-lg bg-slate-800 text-white text-sm shadow-xl transition-all duration-200 group-hover:scale-100 whitespace-nowrap">
+                <div className="font-medium">{getUserName()}</div>
+                <div className="text-xs flex items-center mt-1">
+                  {adminData && !adminData.tenant ? (
+                    <span className="text-orange-400">{getUserRole()}</span>
+                  ) : (
+                    <div className="flex items-center">
+                      <span className="inline-block w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse mr-1"></span>
+                      <span className="text-slate-300">En ligne</span>
+                    </div>
+                  )}
+                </div>
+                <div className="absolute left-0 top-1/2 transform -translate-x-2 -translate-y-1/2 border-4 border-transparent border-r-slate-800"></div>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Menu principal redessiné */}
+        <div className="py-4 flex-1 overflow-hidden hover:overflow-y-auto scrollbar-hide">
+          {isSidebarExpanded && (
+            <div className="px-7 mb-3">
+              <p className={`text-xs font-semibold ${isDarkMode ? "text-slate-400" : "text-slate-500"} uppercase tracking-wider`}>
+                Menu
+              </p>
+            </div>
+          )}
+
+          <div className="px-4 space-y-1.5">
+            {menuItems.map((item) => {
+              const Icon = item.icon;
+              const isActive = activePage === item.id;
+              const isHovered = hoveredMenu === item.id;
+
+              return (
+                <button
+                  key={item.id}
+                  className={`flex items-center w-full px-3 py-3 rounded-xl transition-all duration-300 group relative
+                  ${
+                    isActive
+                      ? isDarkMode
+                        ? "bg-gradient-to-r from-blue-900/30 to-indigo-900/30 text-blue-300"
+                        : "bg-gradient-to-r from-blue-50 to-indigo-50 text-blue-600"
+                      : isDarkMode
+                      ? "text-slate-300 hover:bg-slate-700/40"
+                      : "text-slate-600 hover:bg-slate-100/70"
+                  }`}
+                  onClick={() => navigateTo(item.id)}
+                  onMouseEnter={() => setHoveredMenu(item.id)}
+                  onMouseLeave={() => setHoveredMenu(null)}
+                >
+                  <div
+                    className={`flex items-center justify-center min-w-10 h-10 rounded-lg transition-all duration-300
+                    ${
+                      isActive
+                        ? isDarkMode
+                          ? "bg-gradient-to-br from-blue-800/40 to-indigo-800/40 text-blue-300"
+                          : "bg-gradient-to-br from-blue-100 to-indigo-100 text-blue-600"
+                        : isDarkMode
+                        ? `text-slate-400 ${
+                            isHovered ? "bg-slate-700/50 text-slate-200" : ""
+                          }`
+                        : `text-slate-500 ${
+                            isHovered ? "bg-slate-200/70 text-slate-700" : ""
+                          }`
+                    }`}
+                  >
+                    <Icon size={20} className={isActive ? "animate-pulse-slow" : ""} />
+                  </div>
+
+                  {isSidebarExpanded && (
+                    <>
+                      <span
+                        className={`ml-3 ${
+                          isActive ? "font-medium" : ""
+                        } transition-all duration-300`}
+                      >
+                        {item.label}
+                      </span>
+
+                      {item.notification && (
+                        <div
+                          className={`ml-auto ${isDarkMode ? "bg-gradient-to-r from-blue-600 to-indigo-600" : "bg-gradient-to-r from-blue-500 to-indigo-500"} 
+                          text-white text-xs font-medium rounded-full h-6 w-6 flex items-center justify-center shadow-md ${
+                            isActive || isHovered ? "scale-110" : ""
+                          } transition-all duration-300`}
+                        >
+                          {item.notification}
+                        </div>
+                      )}
+
+                      {item.enterprise && (
+                        <span
+                          className={`ml-auto text-xs py-0.5 px-2 rounded-lg ${
+                            isDarkMode
+                              ? "bg-slate-800/70 text-slate-400"
+                              : "bg-slate-100 text-slate-500"
+                          } ${
+                            isActive || isHovered ? "scale-110" : ""
+                          } transition-all duration-300`}
+                        >
+                          ENT
+                        </span>
+                      )}
+                    </>
+                  )}
+                  
+                  {/* Tooltip pour les éléments en mode réduit */}
+                  {!isSidebarExpanded && (
+                    <div className="absolute left-20 z-50 origin-left scale-0 px-3 py-2 rounded-lg bg-slate-800 text-white text-sm shadow-xl transition-all duration-200 group-hover:scale-100 whitespace-nowrap">
+                      {item.label}
+                      {item.notification && (
+                        <span className="ml-2 bg-blue-500 text-white text-xs rounded-full px-1.5 py-0.5">
+                          {item.notification}
+                        </span>
+                      )}
+                      <div className="absolute left-0 top-1/2 transform -translate-x-2 -translate-y-1/2 border-4 border-transparent border-r-slate-800"></div>
+                    </div>
+                  )}
+                </button>
+              );
+            })}
           </div>
 
-          {/* Profile */}
-          <div className="px-4 py-5 border-b border-violet-100/80 dark:border-indigo-900/40">
-            <div className={`flex items-center gap-3 ${isSidebarCollapsed ? 'justify-center' : ''}
-                               px-2.5 py-2.5 rounded-xl transition-all
-                               hover:bg-white/60 dark:hover:bg-indigo-900/20
-                               shadow-sm hover:shadow-md`}>
-              <div className="relative flex-shrink-0">
-                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-violet-100 to-indigo-100
-                                dark:from-violet-900 dark:to-indigo-900 flex items-center justify-center shadow-inner">
-                  <User className="w-5 h-5 text-violet-700 dark:text-violet-300" />
-                </div>
+          {isSidebarExpanded && (
+            <div className="px-7 mt-6 mb-3">
+              <p className={`text-xs font-semibold ${isDarkMode ? "text-slate-400" : "text-slate-500"} uppercase tracking-wider`}>
+                Préférences
+              </p>
+            </div>
+          )}
+
+          <div className="px-4 space-y-1.5">
+            {secondaryMenuItems.map((item) => {
+              const Icon = item.icon;
+              const isActive = activePage === item.id;
+              const isHovered = hoveredMenu === item.id;
+
+              return (
+                <button
+                  key={item.id}
+                  className={`flex items-center w-full px-3 py-3 rounded-xl transition-all duration-300 group relative
+                  ${
+                    isActive
+                      ? isDarkMode
+                        ? "bg-gradient-to-r from-blue-900/30 to-indigo-900/30 text-blue-300"
+                        : "bg-gradient-to-r from-blue-50 to-indigo-50 text-blue-600"
+                      : isDarkMode
+                      ? "text-slate-300 hover:bg-slate-700/40"
+                      : "text-slate-600 hover:bg-slate-100/70"
+                  }`}
+                  onClick={() => navigateTo(item.id)}
+                  onMouseEnter={() => setHoveredMenu(item.id)}
+                  onMouseLeave={() => setHoveredMenu(null)}
+                >
+                  <div
+                    className={`flex items-center justify-center min-w-10 h-10 rounded-lg transition-all duration-300
+                    ${
+                      isActive
+                        ? isDarkMode
+                          ? "bg-gradient-to-br from-blue-800/40 to-indigo-800/40 text-blue-300"
+                          : "bg-gradient-to-br from-blue-100 to-indigo-100 text-blue-600"
+                        : isDarkMode
+                        ? `text-slate-400 ${
+                            isHovered ? "bg-slate-700/50 text-slate-200" : ""
+                          }`
+                        : `text-slate-500 ${
+                            isHovered ? "bg-slate-200/70 text-slate-700" : ""
+                          }`
+                    }`}
+                  >
+                    <Icon size={20} />
+                  </div>
+
+                  {isSidebarExpanded && (
+                    <span
+                      className={`ml-3 ${
+                        isActive ? "font-medium" : ""
+                      } transition-all duration-300`}
+                    >
+                      {item.label}
+                    </span>
+                  )}
+                  
+                  {/* Tooltip pour les éléments en mode réduit */}
+                  {!isSidebarExpanded && (
+                    <div className="absolute left-20 z-50 origin-left scale-0 px-3 py-2 rounded-lg bg-slate-800 text-white text-sm shadow-xl transition-all duration-200 group-hover:scale-100 whitespace-nowrap">
+                      {item.label}
+                      <div className="absolute left-0 top-1/2 transform -translate-x-2 -translate-y-1/2 border-4 border-transparent border-r-slate-800"></div>
+                    </div>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Bouton de déconnexion redessiné */}
+        <div
+          className={`p-4 ${
+            isDarkMode ? "border-t border-slate-700/50" : "border-t border-slate-200/50"
+          }`}
+        >
+          <button
+            onClick={handleLogout}
+            className={`flex items-center w-full px-3 py-3 rounded-xl transition-all duration-300 relative group
+              ${
+                isDarkMode
+                  ? "text-slate-300 hover:bg-gradient-to-r from-red-900/20 to-orange-900/20 hover:text-red-400"
+                  : "text-slate-600 hover:bg-gradient-to-r from-red-50 to-orange-50 hover:text-red-600"
+              }`}
+            onMouseEnter={() => setHoveredMenu("logout")}
+            onMouseLeave={() => setHoveredMenu(null)}
+          >
+            <div
+              className={`flex items-center justify-center min-w-10 h-10 rounded-lg transition-all duration-300
+              ${
+                isDarkMode
+                  ? `text-slate-400 ${
+                      hoveredMenu === "logout"
+                        ? "bg-gradient-to-br from-red-900/30 to-orange-900/30 text-red-400"
+                        : ""
+                    }`
+                  : `text-slate-500 ${
+                      hoveredMenu === "logout" ? "bg-gradient-to-br from-red-100 to-orange-100 text-red-500" : ""
+                    }`
+              }`}
+            >
+              <LogOut size={20} />
+            </div>
+            {isSidebarExpanded && <span className="ml-3 font-medium">Déconnexion</span>}
+            
+            {/* Tooltip pour le bouton de déconnexion */}
+            {!isSidebarExpanded && (
+              <div className="absolute left-20 z-50 origin-left scale-0 px-3 py-2 rounded-lg bg-slate-800 text-white text-sm shadow-xl transition-all duration-200 group-hover:scale-100 whitespace-nowrap">
+                Déconnexion
+                <div className="absolute left-0 top-1/2 transform -translate-x-2 -translate-y-1/2 border-4 border-transparent border-r-slate-800"></div>
               </div>
-              {!isSidebarCollapsed && (
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-violet-900 dark:text-violet-100 truncate">
-                    {getUserName()}
-                  </p>
-                  <span className="text-xs text-violet-500 dark:text-violet-400">Administrateur</span>
+            )}
+          </button>
+        </div>
+      </aside>
+
+      {/* Main content area - Redesigned */}
+      <div
+        className={`flex-1 flex flex-col ${
+          isSidebarExpanded ? "md:ml-72" : "md:ml-24"
+        } transition-all duration-300`}
+      >
+        {/* Navbar améliorée */}
+        <header
+          className={`${
+            isDarkMode
+              ? "bg-gradient-to-r from-slate-800 to-slate-900 border-slate-700/50"
+              : "bg-white border-slate-200/70"
+          } 
+          h-16 px-4 md:px-6 flex items-center justify-between border-b sticky top-0 z-20 shadow-sm backdrop-blur-sm bg-opacity-90`}
+        >
+          <div className="flex items-center gap-4">
+            <button
+              className={`md:hidden p-2 rounded-lg ${
+                isDarkMode
+                  ? "bg-slate-700/50 text-slate-300 hover:bg-slate-700"
+                  : "bg-slate-100/80 text-slate-600 hover:bg-slate-200"
+              } transition-all duration-200`}
+              onClick={() => setIsMobileOpen(!isMobileOpen)}
+            >
+              <Menu size={20} />
+            </button>
+
+            <div className="flex items-center gap-3">
+              <h1
+                className={`text-lg font-semibold ${
+                  isDarkMode ? "text-white" : "text-slate-800"
+                } tracking-tight`}
+              >
+                {getTitle()}
+              </h1>
+              {activePage === "analytics" && (
+                <div
+                  className={`hidden sm:flex px-2 py-0.5 rounded-lg text-xs font-medium items-center
+                  ${isDarkMode 
+                    ? 'bg-slate-700/50 text-slate-300 border border-slate-600/50' 
+                    : 'bg-slate-100 text-slate-600 border border-slate-200/80'}`}
+                >
+                  <Star size={10} className={isDarkMode ? "text-amber-400 mr-1" : "text-amber-500 mr-1"} />
+                  Enterprise
+                </div>
+              )}
+              
+              {/* Badge Admin pour les utilisateurs sans tenant */}
+              {adminData && !adminData.tenant && (
+                <div
+                  className={`hidden sm:flex px-2 py-0.5 rounded-lg text-xs font-medium items-center
+                  ${isDarkMode 
+                    ? 'bg-orange-900/20 text-orange-400 border border-orange-800/30' 
+                    : 'bg-orange-50 text-orange-800 border border-orange-200/60'}`}
+                >
+                  <Shield size={10} className="mr-1" />
+                  Admin
                 </div>
               )}
             </div>
           </div>
 
-          {/* Navigation */}
-          <nav className="flex-1 px-3 py-5 overflow-y-auto">
-            {!isSidebarCollapsed && (
-              <h3 className="px-4 mb-3 text-xs font-semibold text-violet-600 dark:text-violet-300 uppercase tracking-wider">
-                Navigation
-              </h3>
-            )}
-            <div className="space-y-2">
-              {mainMenuItems.map(item => {
-                const isActive = activePage === item.id;
-                const Icon = item.icon;
-                return (
-                  <button
-                    key={item.id}
-                    onClick={() => navigateTo(item.id)}
-                    className={`
-                      w-full flex items-center ${isSidebarCollapsed ? 'justify-center' : 'justify-between'}
-                      px-3 py-2.5 rounded-xl text-sm transition-all duration-200
-                      ${isActive
-                        ? 'bg-white dark:bg-indigo-900/30 border border-violet-200 dark:border-indigo-700 shadow-md'
-                        : 'border-transparent hover:bg-white/60 dark:hover:bg-indigo-900/20 hover:shadow-sm'}
-                    `}>
-                    <div className="flex items-center gap-3.5 min-w-0">
-                      <div className={`
-                        flex-shrink-0 w-9 h-9 flex items-center justify-center rounded-lg
-                        ${isActive
-                          ? 'bg-gradient-to-br from-violet-100 to-indigo-100 dark:from-violet-800/50 dark:to-indigo-800/50 shadow-sm'
-                          : 'bg-white/60 dark:bg-indigo-900/30'}
-                        ${isActive ? 'text-violet-700 dark:text-violet-300' : 'text-violet-600 dark:text-violet-400'}
-                      `}>
-                        <Icon size={isSidebarCollapsed ? 19 : 17} />
-                      </div>
-                      {!isSidebarCollapsed && <span className="truncate font-medium">{item.label}</span>}
-                      {!isSidebarCollapsed && item.badge && (
-                        <span className="ml-2 px-2 py-0.5 text-xs font-medium rounded-md bg-fuchsia-100 dark:bg-fuchsia-900/30 text-fuchsia-700">
-                          {item.badge}
-                        </span>
-                      )}
-                      {!isSidebarCollapsed && item.counter && (
-                        <span className="ml-2 inline-flex items-center justify-center h-5 px-1.5 text-xs font-medium rounded-full bg-violet-100 dark:bg-violet-800/50 text-violet-800">
-                          {item.counter}
-                        </span>
-                      )}
-                    </div>
-                  </button>
-                );
-              })}
+          <div className="flex items-center gap-3 md:gap-5">
+            <div className="relative hidden md:block">
+              <input
+                type="text"
+                placeholder="Rechercher..."
+                className={`py-2 pl-10 pr-4 rounded-lg ${
+                  isDarkMode
+                    ? "bg-slate-700/50 border-slate-600/50 text-white placeholder-slate-400 focus:ring-blue-500/30"
+                    : "bg-slate-100/70 border-slate-200/50 text-slate-800 focus:ring-blue-500/30"
+                } 
+                  border focus:outline-none focus:ring-2 focus:border-transparent transition-all w-64 text-sm`}
+              />
+              <Search
+                className={`absolute left-3 top-2.5 ${
+                  isDarkMode ? "text-slate-400" : "text-slate-500"
+                }`}
+                size={18}
+              />
             </div>
 
-            {!isSidebarCollapsed && (
-              <h3 className="px-4 mt-8 mb-3 text-xs font-semibold text-violet-600 dark:text-violet-300 uppercase tracking-wider">
-                Paramètres
-              </h3>
-            )}
-            <div className="space-y-2">
-              {secondaryMenuItems.map(item => {
-                const isActive = activePage === item.id;
-                const Icon = item.icon;
-                return (
-                  <button
-                    key={item.id}
-                    onClick={() => navigateTo(item.id)}
-                    className={`
-                      w-full flex items-center ${isSidebarCollapsed ? 'justify-center' : 'justify-between'}
-                      px-3 py-2.5 rounded-xl text-sm transition-all duration-200
-                      ${isActive
-                        ? 'bg-white dark:bg-indigo-900/30 border border-violet-200 dark:border-indigo-700 shadow-md'
-                        : 'border-transparent hover:bg-white/60 dark:hover:bg-indigo-900/20 hover:shadow-sm'}
-                    `}>
-                    <div className="flex items-center gap-3.5 min-w-0">
-                      <div className={`
-                        flex-shrink-0 w-9 h-9 flex items-center justify-center rounded-lg
-                        ${isActive ? 'bg-gradient-to-br from-violet-100 to-indigo-100 dark:from-violet-800/50 dark:to-indigo-800/50 shadow-sm' : 'bg-white/60 dark:bg-indigo-900/30'}
-                        ${isActive ? 'text-violet-700 dark:text-violet-300' : 'text-violet-600 dark:text-violet-400'}
-                      `}>
-                        <Icon size={isSidebarCollapsed ? 19 : 17} />
-                      </div>
-                      {!isSidebarCollapsed && <span className="truncate font-medium">{item.label}</span>}
-                      {!isSidebarCollapsed && item.counter && (
-                        <span className="ml-2 inline-flex items-center justify-center h-5 px-1.5 text-xs font-medium rounded-full bg-amber-100 dark:bg-amber-900/30 text-amber-700">
-                          {item.counter}
-                        </span>
-                      )}
-                    </div>
-                  </button>
-                );
-              })}
+            <div
+              className={`hidden sm:flex items-center gap-2 rounded-lg py-2 px-3.5 
+              ${
+                isDarkMode
+                  ? "bg-slate-700/50 border-slate-600/50 hover:bg-slate-700"
+                  : "bg-slate-100/70 border-slate-200/50 hover:bg-slate-200/70"
+              } 
+              border cursor-pointer transition-all duration-200`}
+            >
+              <Clock size={16} className={isDarkMode ? "text-blue-400" : "text-blue-500"} />
+              <span
+                className={`text-sm ${
+                  isDarkMode ? "text-slate-300" : "text-slate-700"
+                }`}
+              >
+                Aujourd'hui
+              </span>
+              <ChevronDown size={14} className={isDarkMode ? "text-slate-400" : "text-slate-500"} />
             </div>
-          </nav>
 
-          {/* Logout */}
-          <div className="px-4 py-4 border-t border-violet-100/80 dark:border-indigo-900/40">
-            <button
-              onClick={handleLogout}
-              className={`
-                w-full flex items-center ${isSidebarCollapsed ? 'justify-center' : ''}
-                px-3 py-2.5 rounded-xl text-rose-700 dark:text-rose-300
-                bg-white/40 dark:bg-indigo-900/20 border-transparent hover:bg-white hover:shadow-md
-                transition-all duration-200
-              `}>
-              <LogOut size={isSidebarCollapsed ? 19 : 17} />
-              {!isSidebarCollapsed && <span className="ml-3 font-medium">Déconnexion</span>}
-            </button>
+            <div className="flex gap-1 md:gap-2">
+              <button
+                className={`p-2 rounded-lg ${
+                  isDarkMode
+                    ? "bg-slate-700/50 hover:bg-slate-700 text-slate-300 hover:text-amber-400"
+                    : "bg-slate-100/70 hover:bg-slate-200/70 text-slate-600 hover:text-amber-500"
+                } transition-all duration-200`}
+                onClick={toggleDarkMode}
+                aria-label={
+                  isDarkMode ? "Activer le mode jour" : "Activer le mode nuit"
+                }
+              >
+                {isDarkMode ? <Sun size={20} /> : <Moon size={20} />}
+              </button>
+
+              <button
+                className={`p-2 rounded-lg ${
+                  isDarkMode
+                    ? "bg-slate-700/50 hover:bg-slate-700 text-slate-300 hover:text-blue-400"
+                    : "bg-slate-100/70 hover:bg-slate-200/70 text-slate-600 hover:text-blue-600"
+                } relative transition-all duration-200`}
+              >
+                <Bell size={20} />
+                <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-red-500 ring-2 ring-white dark:ring-slate-700 animate-pulse"></span>
+              </button>
+            </div>
           </div>
-        </aside>
+        </header>
 
-        {/* Main Content */}
-        <div className="flex flex-col flex-1 overflow-hidden">
-          <header className="sticky top-0 z-30 flex items-center h-16 bg-white dark:bg-slate-800 shadow-sm">
-            <div className="flex items-center justify-between w-full px-4 sm:px-6">
-              {/* Left */}
-              <div className="flex items-center space-x-4">
-                <button className="lg:hidden p-2 rounded-lg text-violet-600 dark:text-violet-300 hover:bg-violet-50 dark:hover:bg-indigo-900/30"
-                        onClick={() => setIsMobileMenuOpen(true)}>
-                  <Menu size={22} />
-                </button>
-                <div className="flex flex-col">
-                  <h1 className="text-lg font-bold text-violet-900 dark:text-violet-100">
-                    {getPageTitle()}
-                  </h1>
-                  <div className="h-0.5 w-12 bg-gradient-to-r from-violet-500 to-indigo-500 rounded-full" />
-                </div>
-              </div>
-              {/* Right */}
-              <div className="flex items-center gap-4">
-                {/* Search */}
-                <div className="relative hidden md:block w-60">
-                  <input
-                    type="text"
-                    placeholder="Rechercher..."
-                    className="w-full h-9 py-2 pl-10 pr-4 rounded-xl bg-violet-50 dark:bg-indigo-900/20 border border-violet-100 dark:border-indigo-800/50 focus:outline-none focus:ring-2 focus:ring-violet-300/50"
-                  />
-                  <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                    <Search size={16} className="text-violet-500 dark:text-violet-400" />
-                  </div>
-                </div>
-
-                {/* Date picker */}
-                <button className="hidden sm:flex items-center gap-2 h-9 px-3 rounded-xl bg-violet-50 dark:bg-indigo-900/20 border border-violet-100 dark:border-indigo-800/50">
-                  <Clock size={15} className="text-violet-600 dark:text-violet-400" />
-                  <span className="text-sm">Aujourd'hui</span>
-                  <ChevronDown size={14} className="text-violet-500 dark:text-violet-400" />
-                </button>
-
-                {/* Notifications */}
-                <button className="relative p-2 rounded-lg text-violet-700 dark:text-violet-300 hover:bg-violet-50 dark:hover:bg-indigo-900/30">
-                  <Bell size={19} />
-                  {notificationsCount > 0 && (
-                    <span className="absolute top-0 right-0 flex items-center justify-center w-5 h-5 text-xs font-medium bg-rose-500 text-white rounded-full transform translate-x-1/4 -translate-y-1/4 border border-white">
-                      {notificationsCount}
-                    </span>
-                  )}
-                </button>
-
-                {/* Theme */}
-                <button onClick={toggleDarkMode}
-                        className="p-2 rounded-lg border-transparent hover:bg-violet-50 dark:hover:bg-indigo-900/30">
-                  {isDarkMode ? <Sun size={19} className="text-amber-400" /> : <Moon size={19} className="text-violet-600" />}
-                </button>
-              </div>
-            </div>
-          </header>
-
-          <main className="flex-1 overflow-auto bg-gray-50 dark:bg-slate-900 p-4 sm:p-6 transition-colors duration-300">
-            {renderActivePage()}
-          </main>
-        </div>
+        {/* Contenu principal amélioré */}
+        <main
+          className={`flex-1 p-6 ${
+            isDarkMode 
+              ? "bg-gradient-to-br from-slate-900 to-slate-800" 
+              : "bg-gradient-to-br from-gray-50 to-gray-100"
+          } transition-all duration-300`}
+        >
+          {renderPage()}
+        </main>
       </div>
+
+      {/* Styles globaux améliorés */}
+      <style jsx global>{`
+        /* Hide scrollbar while maintaining functionality */
+        .scrollbar-hide::-webkit-scrollbar {
+          display: none;
+        }
+
+        .scrollbar-hide {
+          -ms-overflow-style: none;
+          scrollbar-width: none;
+        }
+        
+        /* Animation lente pour les icônes actives */
+        @keyframes pulse-slow {
+          0%, 100% { opacity: 1; }
+          50% { opacity: 0.7; }
+        }
+        
+        .animate-pulse-slow {
+          animation: pulse-slow 2s ease-in-out infinite;
+        }
+      `}</style>
     </div>
   );
 };

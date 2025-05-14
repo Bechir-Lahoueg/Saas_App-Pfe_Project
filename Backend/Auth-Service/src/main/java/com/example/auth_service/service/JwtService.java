@@ -57,6 +57,8 @@ public class JwtService {
             Tenant t = (Tenant) userDetails;
             claims.put("id",        t.getId());
             claims.put("subdomain", t.getSubdomain());
+            claims.put("firstName", t.getFirstName());
+            claims.put("lastName",  t.getLastName());
         }
         else if(userDetails instanceof Admin) {
             Admin a = (Admin) userDetails;

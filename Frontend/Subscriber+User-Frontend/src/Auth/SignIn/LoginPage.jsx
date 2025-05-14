@@ -137,14 +137,52 @@ const LoginPage = () => {
           
           {/* Left side - Branding section */}
           <div className="md:w-5/12 bg-gradient-to-br from-blue-500 via-blue-600 to-indigo-700 p-8 md:p-12 flex flex-col justify-between text-white">
-            <div className="mb-auto">
-              <div className="bg-white/20 backdrop-blur-sm rounded-2xl p-4 inline-block shadow-lg">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+            <div className="mb-auto flex flex-col items-center">
+              {/* Animated Calendar SVG Logo */}
+              <div className="w-40 h-40 mb-8 animate-float-logo">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" className="drop-shadow-xl">
+                  <defs>
+                    <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="100%">
+                      <stop offset="0%" stopColor="rgba(255,255,255,0.9)" />
+                      <stop offset="100%" stopColor="rgba(255,255,255,0.6)" />
+                    </linearGradient>
+                    <filter id="glow">
+                      <feGaussianBlur stdDeviation="4" result="blur" />
+                      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+                    </filter>
+                    <filter id="shadow">
+                      <feDropShadow dx="0" dy="2" stdDeviation="3" floodOpacity="0.3" />
+                    </filter>
+                  </defs>
+                  
+                  {/* Base calendar shape */}
+                  <rect x="70" y="80" width="372" height="352" rx="20" fill="url(#grad1)" filter="url(#shadow)" className="animate-pulse-slow" />
+                  
+                  {/* Calendar header */}
+                  <rect x="70" y="80" width="372" height="70" rx="20" fill="#3b82f6" className="animate-glow" />
+                  <rect x="70" y="140" width="372" height="10" fill="#2563eb" />
+                  
+                  {/* Calendar grid lines */}
+                  <line x1="162" y1="150" x2="162" y2="432" stroke="rgba(219,234,254,0.6)" strokeWidth="3" />
+                  <line x1="254" y1="150" x2="254" y2="432" stroke="rgba(219,234,254,0.6)" strokeWidth="3" />
+                  <line x1="346" y1="150" x2="346" y2="432" stroke="rgba(219,234,254,0.6)" strokeWidth="3" />
+                  
+                  <line x1="70" y1="227" x2="442" y2="227" stroke="rgba(219,234,254,0.6)" strokeWidth="3" />
+                  <line x1="70" y1="304" x2="442" y2="304" stroke="rgba(219,234,254,0.6)" strokeWidth="3" />
+                  <line x1="70" y1="381" x2="442" y2="381" stroke="rgba(219,234,254,0.6)" strokeWidth="3" />
+                  
+                  {/* Calendar elements */}
+                  <circle cx="120" cy="190" r="20" fill="#3b82f6" className="animate-float-reverse" />
+                  <circle cx="300" cy="265" r="25" fill="#6366f1" className="animate-float-slow" />
+                  <circle cx="390" cy="345" r="22" fill="#4f46e5" className="animate-float" />
+                  
+                  {/* Check mark */}
+                  <path d="M310 265 L290 285 L275 270" stroke="white" strokeWidth="6" strokeLinecap="round" strokeLinejoin="round" fill="none" className="animate-draw" />
                 </svg>
               </div>
-              <h1 className="text-4xl font-bold mt-8 mb-2">Bienvenue</h1>
-              <p className="text-blue-100 text-lg">Connectez-vous à votre compte pour accéder à votre espace personnel.</p>
+              
+              <h1 className="text-4xl font-bold mb-2 text-center">PlanifyGo</h1>
+              <p className="text-blue-100 text-lg text-center">Simplifiez vos réservations et gérez votre emploi du temps efficacement.</p>
             </div>
             
             {/* Decorative elements */}
@@ -346,6 +384,28 @@ const LoginPage = () => {
           100% { transform: translateY(0px) rotate(0deg); }
         }
         
+        @keyframes float-logo {
+          0% { transform: translateY(0px) rotate(0deg) scale(1); }
+          50% { transform: translateY(-10px) rotate(2deg) scale(1.05); }
+          100% { transform: translateY(0px) rotate(0deg) scale(1); }
+        }
+        
+        @keyframes pulse-slow {
+          0%, 100% { opacity: 0.9; }
+          50% { opacity: 0.7; }
+        }
+        
+        @keyframes glow {
+          0%, 100% { filter: brightness(1); }
+          50% { filter: brightness(1.2) drop-shadow(0 0 5px rgba(255,255,255,0.7)); }
+        }
+        
+        @keyframes draw {
+          0% { stroke-dasharray: 60; stroke-dashoffset: 60; }
+          70% { stroke-dasharray: 60; stroke-dashoffset: 0; }
+          100% { stroke-dasharray: 60; stroke-dashoffset: 0; }
+        }
+        
         .animate-float {
           animation: float 8s ease-in-out infinite;
         }
@@ -360,6 +420,25 @@ const LoginPage = () => {
         
         .animate-float-reverse {
           animation: float-reverse 9s ease-in-out infinite;
+        }
+        
+        .animate-float-logo {
+          animation: float-logo 6s ease-in-out infinite;
+        }
+        
+        .animate-pulse-slow {
+          animation: pulse-slow 4s ease-in-out infinite;
+        }
+        
+        .animate-glow {
+          animation: glow 3s ease-in-out infinite;
+        }
+        
+        .animate-draw {
+          stroke-dasharray: 60;
+          stroke-dashoffset: 60;
+          animation: draw 3s ease-in-out forwards infinite;
+          animation-delay: 1s;
         }
         
         .animate-fade-in {

@@ -7,6 +7,7 @@ import {
   Moon,
   Sun,
   ChevronRight,
+  Gamepad2,
   LogOut,
   ChevronLeft,
   Clock,
@@ -27,10 +28,9 @@ import { UserCircle } from "lucide-react";
 // Page components
 import DashboardContent from "./components/DashboardContent";
 import Aide from "./components/Help";
-import Invoice from "./components/Invoice";
+import Games from "./components/PlanifyGoGames";
 import Employees from "./components/Employees";
 import CalendarPage from "./components/Calendar";
-import Notifications from "./components/Notifications";
 import SettingsPage from "./components/Settings";
 import Media from "./components/Media";
 import WorkingHours from "./components/WorkingHours";
@@ -60,20 +60,20 @@ const MAIN_MENU_ITEMS = [
   { id: "employees", label: "Employée", icon: <Users size={20} /> },
   { id: "media", label: "Media", icon: <Image size={20} /> },
   { id: "aide", label: "Aide", icon: <HelpCircle size={20} /> },
+  { id: "games", label: "PlanifyGo Games", icon: <Gamepad2 size={20} /> },
+
 ];
 
 const SECONDARY_MENU_ITEMS = [
-  { id: "invoice", label: "Facturation", icon: <CreditCard size={20} /> },
   { id: "settings", label: "Paramètres", icon: <Settings size={20} /> },
 ];
 
 const PAGE_TITLES = {
   dashboard: "Tableau de bord",
   aide: "Aide",
-  invoice: "Facturation",
+  games: "Games",
   calendar: "Calendrier",
   employees: "Employée",
-  notifications: "Notifications",
   settings: "Paramètres",
   media: "Media",
   workinghours: "Horaires",
@@ -329,13 +329,42 @@ const Dashboard = () => {
     [activePage]
   );
 
-  const getUserName = useMemo(() => {
-    if (userData?.username) {
-      return `${userData.username} ${userData.lastName || ""}`;
+const getUserName = useMemo(() => {
+  if (userData?.email) {
+    // Extraire le prénom et le nom depuis l'email
+    const emailPrefix = userData.email.split('@')[0]; // Prend la partie avant @
+    const nameParts = emailPrefix.split('.');
+    
+    if (nameParts.length >= 2) {
+      // Format probable: prenom.nom@example.com
+      const firstName = nameParts[0].charAt(0).toUpperCase() + nameParts[0].slice(1);
+      // S'il y a une année ou un numéro à la fin du nom (par ex: nom2019), on l'enlève
+      const lastName = nameParts[1].replace(/\d+$/, '').charAt(0).toUpperCase() + nameParts[1].replace(/\d+$/, '').slice(1);
+      return `${firstName} ${lastName}`;
+    } else {
+      // S'il n'y a pas de point dans l'email, on affiche juste le préfixe avec majuscule
+      return emailPrefix.charAt(0).toUpperCase() + emailPrefix.slice(1);
     }
-    const username = decodeURIComponent(getCookie("username") || "");
-    return username || "Utilisateur";
-  }, [userData]);
+  }
+  
+  // Fallback: essayer avec le cookie
+  const username = decodeURIComponent(getCookie("username") || "");
+  if (username && username.includes('@')) {
+    // Si c'est un email
+    const emailPrefix = username.split('@')[0];
+    const nameParts = emailPrefix.split('.');
+    
+    if (nameParts.length >= 2) {
+      const firstName = nameParts[0].charAt(0).toUpperCase() + nameParts[0].slice(1);
+      const lastName = nameParts[1].replace(/\d+$/, '').charAt(0).toUpperCase() + nameParts[1].replace(/\d+$/, '').slice(1);
+      return `${firstName} ${lastName}`;
+    } else {
+      return emailPrefix.charAt(0).toUpperCase() + emailPrefix.slice(1);
+    }
+  }
+  
+  return username || "Utilisateur";
+}, [userData]);
 
   const getBusinessName = useMemo(() => {
     if (userData?.subdomain) {
@@ -360,10 +389,9 @@ const Dashboard = () => {
         />
       ),
       aide: <Aide userData={userData} />,
-      invoice: <Invoice userData={userData} />,
+      games: <Games userData={userData} />,
       employees: <Employees userData={userData} />,
       calendar: <CalendarPage userData={userData} />,
-      notifications: <Notifications userData={userData} />,
       settings: <SettingsPage userData={userData} />,
       media: <Media userData={userData} />,
       workinghours: <WorkingHours userData={userData} />,
