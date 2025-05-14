@@ -51,11 +51,9 @@ const Footer = () => {
           <div>
             <h3 className="text-lg font-semibold mb-4">Produit</h3>
             <ul className="space-y-2">
-              <li><a href="#" className="text-gray-400 hover:text-blue-400">Fonctionnalités</a></li>
-              <li><a href="#" className="text-gray-400 hover:text-blue-400">Tarification</a></li>
-              <li><a href="#" className="text-gray-400 hover:text-blue-400">Intégrations</a></li>
-              <li><a href="#" className="text-gray-400 hover:text-blue-400">API</a></li>
-              <li><a href="#" className="text-gray-400 hover:text-blue-400">Widget de réservation</a></li>
+              <li><a href="/" className="text-gray-400 hover:text-blue-400">Acceuil</a></li>
+              <li><a href="/secteurs" className="text-gray-400 hover:text-blue-400">Secteurs</a></li>
+              <li><a href="/tarification" className="text-gray-400 hover:text-blue-400">Tarification</a></li>
             </ul>
           </div>
           
@@ -63,10 +61,10 @@ const Footer = () => {
             <h3 className="text-lg font-semibold mb-4">Ressources</h3>
             <ul className="space-y-2">
               <li><a href="#" className="text-gray-400 hover:text-blue-400">Centre d'aide</a></li>
-              <li><a href="#" className="text-gray-400 hover:text-blue-400">Tutoriels</a></li>
+              <li><a href="/demo" className="text-gray-400 hover:text-blue-400">Demo</a></li>
               <li><a href="#" className="text-gray-400 hover:text-blue-400">Blog</a></li>
               <li><a href="#" className="text-gray-400 hover:text-blue-400">Partenaires</a></li>
-              <li><a href="#" className="text-gray-400 hover:text-blue-400">Statut du système</a></li>
+              <li><a href="#" className="text-gray-400 hover:text-blue-400">Documentation API</a></li>
             </ul>
           </div>
           
@@ -83,25 +81,20 @@ const Footer = () => {
         </div>
       </div>
       
-      {/* Language Selector */}
-      <div className="border-t border-gray-800">
-        <div className="max-w-6xl mx-auto px-4 py-6 flex flex-col md:flex-row justify-between items-center">
-          <div className="mb-4 md:mb-0">
-            
-          </div>
+        <div className="border-t border-gray-800">
+          <div className="max-w-6xl mx-auto px-4 py-6 flex flex-col justify-center items-center">
+            <div className="mb-4 md:mb-0">
           
-          {/* Bottom Links */}
-          <div className="flex flex-wrap justify-center space-x-4 text-sm text-gray-400">
-            <a href="#" className="hover:text-blue-400 mb-2">Confidentialité</a>
-            <a href="#" className="hover:text-blue-400 mb-2">Conditions d'utilisation</a>
-            <a href="#" className="hover:text-blue-400 mb-2">Cookies</a>
-            <a href="#" className="hover:text-blue-400 mb-2">RGPD</a>
-            <span>&copy; {currentYear} PlanifyGo. Tous droits réservés.</span>
+            </div>
+            
+            {/* Bottom Links */}
+            <div className="text-center text-sm text-gray-400">
+          <span>&copy; {currentYear} PlanifyGo. Tous droits réservés.</span>
+            </div>
           </div>
         </div>
-      </div>
-      
-      {/* Trust Badges */}
+        
+        {/* Trust Badges */}
       <div className="bg-gray-950 py-4">
         <div className="max-w-6xl mx-auto px-4">
           <div className="flex flex-wrap justify-center items-center space-x-8">
@@ -112,12 +105,6 @@ const Footer = () => {
               Paiements sécurisés
             </div>
             
-            <div className="text-gray-500 flex items-center mb-2 md:mb-0">
-              <svg className="w-5 h-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
-                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-              </svg>
-              Conforme RGPD
-            </div>
             <div className="text-gray-500 flex items-center">
               <svg className="w-5 h-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
                 <path fillRule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />

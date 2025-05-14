@@ -249,12 +249,6 @@ const LandingPage = () => {
               </div>
               <h3 className="text-2xl font-bold mb-4 text-gray-800">Réservation en ligne 24/7</h3>
               <p className="text-gray-600 mb-6">Permettez à vos clients de réserver à tout moment, même en dehors des heures d'ouverture. Notre interface intuitive facilite le processus.</p>
-              <a href="#" className="inline-block text-blue-600 font-medium group-hover:text-indigo-600 transition-colors flex items-center">
-                En savoir plus
-                <svg className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
-                </svg>
-              </a>
             </div>
             
             {/* Feature Card 2 - Amélioré */}
@@ -266,12 +260,6 @@ const LandingPage = () => {
               </div>
               <h3 className="text-2xl font-bold mb-4 text-gray-800">Services personnalisés</h3>
               <p className="text-gray-600 mb-6">Définissez vos services, prix et durées avec une flexibilité totale. Adaptez votre offre à votre métier et à vos clients.</p>
-              <a href="#" className="inline-block text-blue-600 font-medium group-hover:text-indigo-600 transition-colors flex items-center">
-                En savoir plus
-                <svg className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
-                </svg>
-              </a>
             </div>
             
             {/* Feature Card 3 - Amélioré */}
@@ -282,13 +270,7 @@ const LandingPage = () => {
                 </svg>
               </div>
               <h3 className="text-2xl font-bold mb-4 text-gray-800">Rappels automatiques</h3>
-              <p className="text-gray-600 mb-6">Réduisez les absences avec des notifications automatiques par email et SMS. Gardez vos clients informés à tout moment.</p>
-              <a href="#" className="inline-block text-blue-600 font-medium group-hover:text-indigo-600 transition-colors flex items-center">
-                En savoir plus
-                <svg className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
-                </svg>
-              </a>
+              <p className="text-gray-600 mb-6">Réduisez les absences avec des notifications automatiques par email. Gardez vos clients informés à tout moment.</p>
             </div>
           </div>
         </div>

@@ -33,8 +33,8 @@ const FeaturePage = () => {
       },
       {
         icon: "integration",
-        title: "Intégrations multiples",
-        description: "Synchronisez facilement avec votre calendrier Google, Outlook ou iCal pour une gestion centralisée.",
+        title: "Annulation Automatique",
+        description: "Gérez facilement les réservations grace à l'annulation automatique des réservation non confirmés après 30 min.",
         animation: "M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z"
       },
       {
@@ -47,14 +47,14 @@ const FeaturePage = () => {
     business: [
       {
         icon: "team",
-        title: "Gestion d'équipe avancée",
-        description: "Assignez des rendez-vous à différents membres de votre équipe selon leurs disponibilités et compétences.",
+        title: "Gestion d'employés",
+        description: "Assignez des rendez-vous à différents membres de votre équipe selon leurs compétences.",
         animation: "M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
       },
       {
         icon: "analytics",
         title: "Analyses et statistiques",
-        description: "Suivez vos performances avec des rapports détaillés sur les réservations, taux d'occupation et revenus.",
+        description: "Suivez vos performances avec des rapports détaillés sur les réservations, taux d'occupation et revenus estimés.",
         animation: "M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
       },
       {
@@ -63,62 +63,62 @@ const FeaturePage = () => {
         description: "Configurez facilement des séries de rendez-vous pour vos clients réguliers.",
         animation: "M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
       },
-      {
-        icon: "resources",
-        title: "Gestion des ressources",
-        description: "Optimisez l'utilisation de vos salles, équipements et autres ressources pour éviter les chevauchements.",
-        animation: "M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
-      },
-      {
-        icon: "automation",
-        title: "Automatisations intelligentes",
-        description: "Créez des workflows personnalisés qui s'adaptent à votre processus de réservation unique.",
-        animation: "M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z"
-      },
-      {
-        icon: "multi",
-        title: "Multi-établissements",
-        description: "Gérez plusieurs lieux ou succursales depuis une interface unifiée avec paramètres spécifiques.",
-        animation: "M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
-      }
+      // {
+      //   icon: "resources",
+      //   title: "Gestion des ressources",
+      //   description: "Optimisez l'utilisation de vos salles, équipements et autres ressources pour éviter les chevauchements.",
+      //   animation: "M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
+      // },
+      // {
+      //   icon: "automation",
+      //   title: "Automatisations intelligentes",
+      //   description: "Créez des workflows personnalisés qui s'adaptent à votre processus de réservation unique.",
+      //   animation: "M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z"
+      // },
+      // {
+      //   icon: "multi",
+      //   title: "Multi-établissements",
+      //   description: "Gérez plusieurs lieux ou succursales depuis une interface unifiée avec paramètres spécifiques.",
+      //   animation: "M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
+      // }
     ],
     client: [
       {
         icon: "profile",
-        title: "Profils clients personnalisés",
-        description: "Vos clients peuvent créer un compte pour suivre leurs réservations et préférences.",
+        title: "Réservations sans compte",
+        description: "Vos clients peuvent suivre leurs réservations et préférences sans créer un compte.",
         animation: "M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
       },
       {
         icon: "selfservice",
         title: "Self-service complet",
-        description: "Les clients peuvent réserver, reprogrammer ou annuler leurs rendez-vous sans intervention manuelle.",
+        description: "Les clients peuvent réserver et confirmer leurs rendez-vous sans intervention manuelle.",
         animation: "M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"
       },
       {
         icon: "history",
         title: "Historique des réservations",
-        description: "Accès facile à l'historique complet des rendez-vous passés et futurs.",
+        description: "Accès facile à l'historique complet des rendez-vous passés et futurs en utilisant l'email uniquement.",
         animation: "M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
       },
-      {
-        icon: "ratings",
-        title: "Avis et évaluations",
-        description: "Recueillez les retours clients après chaque rendez-vous pour améliorer continuellement vos services.",
-        animation: "M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"
-      },
-      {
-        icon: "communication",
-        title: "Communication fluide",
-        description: "Messagerie intégrée permettant des échanges directs entre prestataires et clients.",
-        animation: "M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
-      },
-      {
-        icon: "loyalty",
-        title: "Programme de fidélité",
-        description: "Récompensez vos clients fidèles avec des points, réductions ou avantages exclusifs.",
-        animation: "M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-      }
+      // {
+      //   icon: "ratings",
+      //   title: "Avis et évaluations",
+      //   description: "Recueillez les retours clients après chaque rendez-vous pour améliorer continuellement vos services.",
+      //   animation: "M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"
+      // },
+      // {
+      //   icon: "communication",
+      //   title: "Communication fluide",
+      //   description: "Messagerie intégrée permettant des échanges directs entre prestataires et clients.",
+      //   animation: "M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
+      // },
+      // {
+      //   icon: "loyalty",
+      //   title: "Programme de fidélité",
+      //   description: "Récompensez vos clients fidèles avec des points, réductions ou avantages exclusifs.",
+      //   animation: "M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+      // }
     ]
   };
 
@@ -167,13 +167,7 @@ const FeaturePage = () => {
         </h3>
         <p className="text-gray-600 mb-4">{feature.description}</p>
         
-        {/* Lien décoratif */}
-        <div className="flex items-center text-blue-600 font-medium opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-          <span>En savoir plus</span>
-          <svg className="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
-          </svg>
-        </div>
+
       </div>
     );
   };
