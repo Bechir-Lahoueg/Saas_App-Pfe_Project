@@ -7,15 +7,13 @@ const PricingPage = () => {
 
   // Configuration des prix et taux de remise
   const prices = {
-    essential: { monthly: 50, annual: 16 },
-    professional: { monthly: 80, annual: 40 },
-    enterprise: { monthly: 110, annual: 75 },
+    essential: { monthly: 50 },
+    professional: { monthly: 80 },
+    enterprise: { monthly: 110 },
   };
 
   // Calculer les prix en fonction du cycle de facturation
-  const calculatePrice = (basePrice, cycle) => {
-    return cycle === "annual" ? basePrice * 12 : basePrice;
-  };
+
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-white to-blue-50 font-sans relative overflow-hidden">
@@ -72,9 +70,7 @@ const PricingPage = () => {
 
             <div className="flex items-baseline mb-1">
               <h2 className="text-5xl font-bold text-gray-900">
-                {billingCycle === "annual"
-                  ? calculatePrice(prices.essential.annual, billingCycle)
-                  : prices.essential.monthly}
+                {prices.essential.monthly}
               </h2>
               <span className="text-lg text-gray-600 ml-1">Dt</span>
             </div>
@@ -200,9 +196,7 @@ const PricingPage = () => {
 
             <div className="flex items-baseline mb-1">
               <h2 className="text-5xl font-bold text-gray-900">
-                {billingCycle === "annual"
-                  ? calculatePrice(prices.professional.annual, billingCycle)
-                  : prices.professional.monthly}
+                {prices.professional.monthly}
               </h2>
               <span className="text-lg text-gray-600 ml-1">Dt</span>
             </div>
@@ -316,9 +310,7 @@ const PricingPage = () => {
 
             <div className="flex items-baseline mb-1">
               <h2 className="text-5xl font-bold text-gray-800">
-                {billingCycle === "annual"
-                  ? calculatePrice(prices.enterprise.annual, billingCycle)
-                  : prices.enterprise.monthly}
+                {prices.enterprise.monthly}
               </h2>
               <span className="text-lg text-gray-800 ml-1">Dt</span>
             </div>
