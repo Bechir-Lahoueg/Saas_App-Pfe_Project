@@ -31,7 +31,7 @@ import {
   Users
 } from "lucide-react";
 import axios from "axios";
-import { useReactToPrint } from 'react-to-print';
+import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 
@@ -52,6 +52,7 @@ const Invoice = () => {
   const [showExportOptions, setShowExportOptions] = useState(false);
   const [showDateFilter, setShowDateFilter] = useState(false);
   const printRef = useRef();
+  const [successMessage, setSuccessMessage] = useState("");
 
   // Couleurs pour les graphiques
   const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042", "#8884d8"];
@@ -66,7 +67,9 @@ const Invoice = () => {
   useEffect(() => {
     axios.defaults.baseURL = 'http://localhost:8888';
     axios.defaults.headers.common['Content-Type'] = 'application/json';
-    // Ajouter d'autres configurations si nécessaire
+    
+    // Pour tester, assurez-vous que les données sont toujours disponibles
+    loadAllData();
   }, []);
 
   // Charger toutes les données statistiques
@@ -82,10 +85,30 @@ const Invoice = () => {
       ]);
     } catch (error) {
       console.error("Erreur lors du chargement des données:", error);
-      setError("Une erreur s'est produite lors du chargement des données. Veuillez réessayer.");
+      setError("Une erreur s'est produite lors du chargement des données. Des données fictives sont utilisées.");
+      
+      // Utiliser des données mockées même en cas d'erreur
+      setOverallStats(generateMockOverallStats());
+      setPeriodStats(generateMockPeriodStats());
+      setPaymentMethodStats(generateMockPaymentMethodStats());
+      setTenantStats(generateMockTenantStats());
     } finally {
       setLoading(false);
     }
+  };
+
+  // Générer des statistiques globales mockées
+  const generateMockOverallStats = () => {
+    return {
+      totalAmount: 12500000, // 12,500 DT en millimes
+      countByStatus: {
+        completed: 85,
+        pending: 12,
+        failed: 5,
+        refunded: 3
+      },
+      recentPayments: generateMockPayments(10)
+    };
   };
 
   // Récupérer les statistiques générales
@@ -95,17 +118,8 @@ const Invoice = () => {
       setOverallStats(response.data);
     } catch (error) {
       console.error("Erreur lors de la récupération des statistiques générales:", error);
-      // Utiliser des données mockées en cas d'erreur
-      setOverallStats({
-        totalAmount: 12500000, // 12,500 DT en millimes
-        countByStatus: {
-          completed: 85,
-          pending: 12,
-          failed: 5,
-          refunded: 3
-        },
-        recentPayments: generateMockPayments(10)
-      });
+      // Toujours utiliser des données mockées en cas d'erreur
+      setOverallStats(generateMockOverallStats());
       throw error;
     }
   };
@@ -127,7 +141,9 @@ const Invoice = () => {
         status: statuses[Math.floor(Math.random() * statuses.length)],
         paymentMethod: methods[Math.floor(Math.random() * methods.length)],
         customer: `Client ${i + 1}`,
-        service: `Service ${Math.floor(Math.random() * 3) + 1}`
+        service: `Service ${Math.floor(Math.random() * 3) + 1}`,
+        userId: `user-${i + 100}`,
+        tenantName: `Tenant ${i + 1}`
       };
     });
   };
@@ -257,7 +273,8 @@ const Invoice = () => {
     const methodProviders = {
       "wallet": ["E-wallet", "PlanifyPay", "PayPal"],
       "card": ["Visa", "Mastercard", "American Express"],
-      "e-DINAR": ["Poste Tunisienne", "STB"]
+      "e-DINAR": ["Poste Tunisienne", "STB"],
+      "bank": ["BIAT", "BNA", "STB"]
     };
     
     return Object.keys(methodCounts).map(name => ({
@@ -266,7 +283,8 @@ const Invoice = () => {
       providers: methodProviders[name] || [],
       displayName: name === "wallet" ? "Portefeuille électronique" :
                   name === "card" ? "Carte bancaire" :
-                  name === "e-DINAR" ? "e-DINAR" : name
+                  name === "e-DINAR" ? "e-DINAR" : 
+                  name === "bank" ? "Virement bancaire" : name
     }));
   };
 
@@ -275,7 +293,8 @@ const Invoice = () => {
     return [
       {name: "wallet", displayName: "Portefeuille électronique", count: 45, providers: ["E-wallet", "PlanifyPay", "PayPal"]},
       {name: "card", displayName: "Carte bancaire", count: 78, providers: ["Visa", "Mastercard", "American Express"]},
-      {name: "e-DINAR", displayName: "e-DINAR", count: 23, providers: ["Poste Tunisienne", "STB"]}
+      {name: "e-DINAR", displayName: "e-DINAR", count: 23, providers: ["Poste Tunisienne", "STB"]},
+      {name: "bank", displayName: "Virement bancaire", count: 15, providers: ["BIAT", "BNA", "STB"]}
     ];
   };
 
@@ -317,21 +336,18 @@ const Invoice = () => {
 
   // Générer des statistiques mockées pour les locataires
   const generateMockTenantStats = () => {
-    const monthNames = ['janv.', 'févr.', 'mars', 'avr.', 'mai', 'juin'];
+    const monthNames = ['janv.', 'févr.', 'mars', 'avr.', 'mai', 'juin', 'juil.', 'août', 'sept.', 'oct.', 'nov.', 'déc.'];
     return monthNames.map((month, i) => ({
       period: `${month} ${new Date().getFullYear().toString().slice(-2)}`,
       count: Math.floor(Math.random() * 20) + 5
     }));
   };
 
-  // Effet pour charger les données au montage du composant
-  useEffect(() => {
-    loadAllData();
-  }, []);
-
   // Effet pour recharger les statistiques périodiques lors du changement de période
   useEffect(() => {
-    fetchPeriodStats();
+    if (!loading) {
+      fetchPeriodStats();
+    }
   }, [selectedPeriod]);
 
   // Formatter le montant
@@ -352,25 +368,35 @@ const Invoice = () => {
   // Formatter la date
   const formatDate = (dateString) => {
     if (!dateString) return "N/A";
-    const date = new Date(dateString);
-    return new Intl.DateTimeFormat("fr-FR", {
-      day: "2-digit",
-      month: "2-digit",
-      year: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    }).format(date);
+    
+    try {
+      const date = new Date(dateString);
+      return new Intl.DateTimeFormat("fr-FR", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+      }).format(date);
+    } catch (e) {
+      return "Date invalide";
+    }
   };
 
   // Formatter la date pour les exports (sans heure)
   const formatDateShort = (dateString) => {
     if (!dateString) return "N/A";
-    const date = new Date(dateString);
-    return new Intl.DateTimeFormat("fr-FR", {
-      day: "2-digit",
-      month: "2-digit",
-      year: "numeric"
-    }).format(date);
+    
+    try {
+      const date = new Date(dateString);
+      return new Intl.DateTimeFormat("fr-FR", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric"
+      }).format(date);
+    } catch (e) {
+      return "Date invalide";
+    }
   };
 
   // Préparer les données pour le graphique de statut des paiements
@@ -380,11 +406,9 @@ const Invoice = () => {
   };
 
   // Gérer l'impression du rapport
-  const handlePrint = useReactToPrint({
-    content: () => printRef.current,
-    documentTitle: `Rapport-${exportType}-${new Date().toLocaleDateString('fr-FR')}`,
-    onAfterPrint: () => console.log('Impression terminée')
-  });
+  const handlePrint = () => {
+    window.print();
+  };
 
   // Générer le nom du fichier pour l'export
   const getExportFileName = () => {
@@ -392,8 +416,8 @@ const Invoice = () => {
     let periodStr = '';
     
     if (dateRange.startDate && dateRange.endDate) {
-      const start = new Date(dateRange.startDate).toLocaleDateString('fr-FR');
-      const end = new Date(dateRange.endDate).toLocaleDateString('fr-FR');
+      const start = formatDateShort(dateRange.startDate);
+      const end = formatDateShort(dateRange.endDate);
       periodStr = `_${start}_a_${end}`;
     }
     
@@ -415,14 +439,14 @@ const Invoice = () => {
         break;
         
       case 'payments':
-        if (!overallStats?.recentPayments) {
+        if (!overallStats?.recentPayments || overallStats.recentPayments.length === 0) {
           alert("Aucune donnée de paiement disponible.");
           return;
         }
         
-        csvContent = "ID,Date,Montant,Méthode,Statut\n";
+        csvContent = "ID,Date,Montant,Méthode,Statut,Client\n";
         csvContent += overallStats.recentPayments.map(payment => 
-          `"${payment.orderId || 'N/A'}","${formatDate(payment.createdAt)}","${formatAmount(payment.amount).replace(/\s/g, '')}","${payment.paymentMethod || 'N/A'}","${payment.status || 'N/A'}"`
+          `"${payment.orderId || payment._id || 'N/A'}","${formatDate(payment.createdAt)}","${formatAmount(payment.amount).replace(/\s/g, '')}","${payment.paymentMethod || 'N/A'}","${payment.status || 'N/A'}","${payment.tenantName || payment.customer || 'N/A'}"`
         ).join("\n");
         filename += "_paiements.csv";
         break;
@@ -450,136 +474,62 @@ const Invoice = () => {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+    
+    setSuccessMessage("Fichier CSV exporté avec succès!");
+    setTimeout(() => setSuccessMessage(""), 3000);
   };
 
   // Exporter les données en PDF
-  const exportToPDF = () => {
-    const doc = new jsPDF();
-    const filename = getExportFileName() + '.pdf';
-    
-    // Ajouter le titre
-    doc.setFontSize(18);
-    doc.text('PlanifyGo - Rapport Financier', 105, 15, { align: 'center' });
-    
-    // Ajouter la date d'export
-    doc.setFontSize(10);
-    doc.text(`Généré le: ${new Date().toLocaleDateString('fr-FR')}`, 105, 22, { align: 'center' });
-    
-    // Ajouter la période si spécifiée
-    if (dateRange.startDate && dateRange.endDate) {
-      doc.text(`Période: du ${formatDateShort(dateRange.startDate)} au ${formatDateShort(dateRange.endDate)}`, 105, 28, { align: 'center' });
+  const exportToPDF = async () => {
+    try {
+      if (!printRef.current) {
+        alert("Impossible de générer le PDF. Veuillez réessayer.");
+        return;
+      }
+      
+      setLoading(true);
+      
+      // Créer un nouveau document PDF
+      const doc = new jsPDF('p', 'pt', 'a4');
+      const filename = getExportFileName() + '.pdf';
+      
+      // Obtenir les dimensions de la page
+      const pdfWidth = doc.internal.pageSize.getWidth();
+      const pdfHeight = doc.internal.pageSize.getHeight();
+      
+      // Capture l'élément à l'aide de html2canvas
+      const canvas = await html2canvas(printRef.current, { 
+        scale: 2,
+        useCORS: true,
+        logging: true,
+        allowTaint: true,
+        backgroundColor: "#ffffff"
+      });
+      
+      // Convertir le canvas en image
+      const imgData = canvas.toDataURL('image/png');
+      
+      // Calculer les dimensions proportionnelles pour adapter l'image à la page PDF
+      const imgWidth = canvas.width;
+      const imgHeight = canvas.height;
+      const ratio = Math.min(pdfWidth / imgWidth, pdfHeight / imgHeight);
+      const imgX = (pdfWidth - imgWidth * ratio) / 2;
+      const imgY = 30;
+      
+      // Ajouter l'image au document PDF
+      doc.addImage(imgData, 'PNG', imgX, imgY, imgWidth * ratio, imgHeight * ratio);
+      
+      // Sauvegarder le PDF
+      doc.save(filename);
+      
+      setSuccessMessage("Fichier PDF exporté avec succès!");
+      setTimeout(() => setSuccessMessage(""), 3000);
+    } catch (error) {
+      console.error("Erreur lors de l'export PDF:", error);
+      alert("Une erreur s'est produite lors de l'export PDF. Veuillez réessayer.");
+    } finally {
+      setLoading(false);
     }
-    
-    doc.line(20, 30, 190, 30);
-    
-    switch(exportType) {
-      case 'financial':
-        // Résumé financier
-        if (overallStats) {
-          doc.setFontSize(14);
-          doc.text('Résumé Financier', 20, 40);
-          
-          doc.setFontSize(10);
-          doc.text(`Total des paiements: ${formatAmount(overallStats.totalAmount || 0)}`, 20, 50);
-          doc.text(`Paiements complétés: ${overallStats.countByStatus?.completed || 0}`, 20, 56);
-          doc.text(`Paiements en attente: ${overallStats.countByStatus?.pending || 0}`, 20, 62);
-          doc.text(`Paiements échoués: ${overallStats.countByStatus?.failed || 0}`, 20, 68);
-          
-          // Tableau des statistiques par période
-          doc.setFontSize(14);
-          doc.text('Statistiques par Période', 20, 80);
-          
-          const periodData = periodStats.map(stat => [
-            stat.period, 
-            formatAmount(stat.amount), 
-            stat.count.toString()
-          ]);
-          
-          doc.autoTable({
-            startY: 85,
-            head: [['Période', 'Montant Total', 'Nombre de Transactions']],
-            body: periodData,
-            theme: 'grid',
-            styles: { fontSize: 8, cellPadding: 2 },
-            headStyles: { fillColor: [63, 81, 181], textColor: 255 }
-          });
-        }
-        break;
-        
-      case 'payments':
-        if (overallStats?.recentPayments) {
-          doc.setFontSize(14);
-          doc.text('Détail des Paiements Récents', 20, 40);
-          
-          const paymentData = overallStats.recentPayments.map(payment => [
-            payment.orderId || 'N/A',
-            formatDate(payment.createdAt),
-            formatAmount(payment.amount),
-            payment.paymentMethod || 'N/A',
-            payment.status || 'N/A'
-          ]);
-          
-          doc.autoTable({
-            startY: 45,
-            head: [['ID', 'Date', 'Montant', 'Méthode', 'Statut']],
-            body: paymentData,
-            theme: 'grid',
-            styles: { fontSize: 8, cellPadding: 2 },
-            headStyles: { fillColor: [63, 81, 181], textColor: 255 }
-          });
-          
-          // Résumé des méthodes de paiement
-          const methodY = doc.autoTable.previous.finalY + 10;
-          doc.setFontSize(14);
-          doc.text('Répartition par Méthode de Paiement', 20, methodY);
-          
-          const methodData = paymentMethodStats.map(method => [
-            method.displayName,
-            method.count.toString(),
-            ((method.count / overallStats.recentPayments.length) * 100).toFixed(1) + '%'
-          ]);
-          
-          doc.autoTable({
-            startY: methodY + 5,
-            head: [['Méthode', 'Nombre', 'Pourcentage']],
-            body: methodData,
-            theme: 'grid',
-            styles: { fontSize: 8, cellPadding: 2 },
-            headStyles: { fillColor: [76, 175, 80], textColor: 255 }
-          });
-        }
-        break;
-        
-      case 'users':
-        doc.setFontSize(14);
-        doc.text('Évolution des Utilisateurs', 20, 40);
-        
-        const userData = tenantStats.map(stat => [
-          stat.period,
-          stat.count.toString()
-        ]);
-        
-        doc.autoTable({
-          startY: 45,
-          head: [['Période', 'Nombre d\'Utilisateurs']],
-          body: userData,
-          theme: 'grid',
-          styles: { fontSize: 8, cellPadding: 2 },
-          headStyles: { fillColor: [156, 39, 176], textColor: 255 }
-        });
-        break;
-    }
-    
-    // Footer
-    const pageCount = doc.internal.getNumberOfPages();
-    for(let i = 1; i <= pageCount; i++) {
-      doc.setPage(i);
-      doc.setFontSize(8);
-      doc.text(`Page ${i} sur ${pageCount} - PlanifyGo - Confidentiel`, 105, 290, { align: 'center' });
-    }
-    
-    // Sauvegarder le PDF
-    doc.save(filename);
   };
 
   return (
@@ -600,9 +550,22 @@ const Invoice = () => {
               <button
                 onClick={loadAllData}
                 className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-indigo-700 bg-white hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
+                disabled={loading}
               >
-                <RefreshCw className="h-4 w-4 mr-2" />
-                Actualiser
+                {loading ? (
+                  <span className="inline-flex items-center">
+                    <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-indigo-700" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    Chargement...
+                  </span>
+                ) : (
+                  <>
+                    <RefreshCw className="h-4 w-4 mr-2" />
+                    Actualiser
+                  </>
+                )}
               </button>
             </div>
           </div>
@@ -610,6 +573,16 @@ const Invoice = () => {
       </header>
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Message de succès */}
+        {successMessage && (
+          <div className="fixed top-4 right-4 bg-green-100 border-l-4 border-green-500 text-green-700 p-4 rounded shadow-lg z-50 animate-fade-in-out">
+            <div className="flex items-center">
+              <CheckCircle className="h-5 w-5 mr-2" />
+              <span>{successMessage}</span>
+            </div>
+          </div>
+        )}
+
         {/* États: chargement, erreur */}
         {loading && (
           <div className="flex flex-col justify-center items-center h-64 bg-white rounded-lg shadow-md">
@@ -622,23 +595,16 @@ const Invoice = () => {
         )}
 
         {error && !loading && (
-          <div className="bg-red-50 border-l-4 border-red-500 text-red-700 p-5 rounded-lg mb-6 flex items-start">
+          <div className="bg-yellow-50 border-l-4 border-yellow-500 text-yellow-700 p-5 rounded-lg mb-6 flex items-start">
             <AlertTriangle className="h-5 w-5 mr-3 mt-0.5 flex-shrink-0" />
             <div>
-              <p className="font-medium text-red-800">Une erreur s'est produite</p>
+              <p className="font-medium text-yellow-800">Attention</p>
               <p className="mt-1 text-sm">{error}</p>
-              <button
-                onClick={loadAllData}
-                className="mt-3 px-4 py-2 bg-red-100 text-red-800 rounded-md hover:bg-red-200 transition-colors text-sm font-medium flex items-center"
-              >
-                <RefreshCw className="h-4 w-4 mr-2" />
-                Réessayer le chargement
-              </button>
             </div>
           </div>
         )}
 
-        {!loading && !error && (
+        {!loading && (
           <div className="space-y-6">
             {/* Options d'export */}
             <div className="bg-white rounded-lg shadow-md p-6">
@@ -738,6 +704,43 @@ const Invoice = () => {
                 </button>
               </div>
               
+              {/* Sélection de la période pour les graphiques */}
+              <div className="mb-6">
+                <label className="block text-sm font-medium text-gray-700 mb-2">Période d'analyse</label>
+                <div className="flex flex-wrap gap-2">
+                  <button
+                    onClick={() => setSelectedPeriod('day')}
+                    className={`px-4 py-2 text-sm font-medium rounded-md ${
+                      selectedPeriod === 'day'
+                        ? 'bg-indigo-600 text-white'
+                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    }`}
+                  >
+                    Jour
+                  </button>
+                  <button
+                    onClick={() => setSelectedPeriod('week')}
+                    className={`px-4 py-2 text-sm font-medium rounded-md ${
+                      selectedPeriod === 'week'
+                        ? 'bg-indigo-600 text-white'
+                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    }`}
+                  >
+                    Semaine
+                  </button>
+                  <button
+                    onClick={() => setSelectedPeriod('month')}
+                    className={`px-4 py-2 text-sm font-medium rounded-md ${
+                      selectedPeriod === 'month'
+                        ? 'bg-indigo-600 text-white'
+                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    }`}
+                  >
+                    Mois
+                  </button>
+                </div>
+              </div>
+              
               {/* Actions d'export */}
               <div className="flex flex-wrap justify-center gap-4">
                 <button
@@ -751,6 +754,7 @@ const Invoice = () => {
                 <button
                   onClick={exportToCSV}
                   className="px-6 py-3 bg-green-600 text-white rounded-md hover:bg-green-700 flex items-center font-medium transition-colors"
+                  disabled={loading}
                 >
                   <Download className="h-5 w-5 mr-2" />
                   Exporter en CSV
@@ -759,6 +763,7 @@ const Invoice = () => {
                 <button
                   onClick={exportToPDF}
                   className="px-6 py-3 bg-amber-600 text-white rounded-md hover:bg-amber-700 flex items-center font-medium transition-colors"
+                  disabled={loading}
                 >
                   <FileText className="h-5 w-5 mr-2" />
                   Exporter en PDF
@@ -813,7 +818,7 @@ const Invoice = () => {
                     
                     {/* Graphique d'évolution */}
                     <div className="mb-8 print:mb-6">
-                      <h3 className="text-lg font-medium text-gray-900 mb-4">Évolution des paiements par {selectedPeriod}</h3>
+                      <h3 className="text-lg font-medium text-gray-900 mb-4">Évolution des paiements par {selectedPeriod === 'day' ? 'jour' : selectedPeriod === 'week' ? 'semaine' : 'mois'}</h3>
                       <div className="bg-gray-50 p-4 rounded-lg border border-gray-200 print:border h-64">
                         <ResponsiveContainer width="100%" height="100%">
                           <BarChart
@@ -840,6 +845,12 @@ const Invoice = () => {
                               dataKey="amount" 
                               name="Montant" 
                               fill="#4F46E5"
+                              radius={[4, 4, 0, 0]}
+                            />
+                            <Bar 
+                              dataKey="count" 
+                              name="Transactions" 
+                              fill="#10B981"
                               radius={[4, 4, 0, 0]}
                             />
                           </BarChart>
@@ -977,37 +988,45 @@ const Invoice = () => {
                             </tr>
                           </thead>
                           <tbody className="bg-white divide-y divide-gray-200">
-                            {overallStats?.recentPayments?.slice(0, 10).map((payment, index) => (
-                              <tr key={payment._id || index}>
-                                <td className="px-6 py-3 whitespace-nowrap text-sm font-medium text-gray-900">
-                                  {payment.orderId || "N/A"}
-                                </td>
-                                <td className="px-6 py-3 whitespace-nowrap text-sm text-gray-500">
-                                  {formatDate(payment.createdAt)}
-                                </td>
-                                <td className="px-6 py-3 whitespace-nowrap text-sm text-gray-500">
-                                  {formatAmount(payment.amount)}
-                                </td>
-                                <td className="px-6 py-3 whitespace-nowrap text-sm text-gray-500">
-                                  {payment.paymentMethod || "N/A"}
-                                </td>
-                                <td className="px-6 py-3 whitespace-nowrap">
-                                  <span
-                                    className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                                      payment.status === "completed"
-                                        ? "bg-green-100 text-green-800"
-                                        : payment.status === "pending"
-                                        ? "bg-yellow-100 text-yellow-800"
-                                        : payment.status === "failed"
-                                        ? "bg-red-100 text-red-800"
-                                        : "bg-gray-100 text-gray-800"
-                                    }`}
-                                  >
-                                    {payment.status || "N/A"}
-                                  </span>
+                            {overallStats?.recentPayments ? (
+                              overallStats.recentPayments.slice(0, 10).map((payment, index) => (
+                                <tr key={payment._id || index}>
+                                  <td className="px-6 py-3 whitespace-nowrap text-sm font-medium text-gray-900">
+                                    {payment.orderId || payment._id || "N/A"}
+                                  </td>
+                                  <td className="px-6 py-3 whitespace-nowrap text-sm text-gray-500">
+                                    {formatDate(payment.createdAt)}
+                                  </td>
+                                  <td className="px-6 py-3 whitespace-nowrap text-sm text-gray-500">
+                                    {formatAmount(payment.amount)}
+                                  </td>
+                                  <td className="px-6 py-3 whitespace-nowrap text-sm text-gray-500">
+                                    {payment.paymentMethod || "N/A"}
+                                  </td>
+                                  <td className="px-6 py-3 whitespace-nowrap">
+                                    <span
+                                      className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                                        payment.status === "completed"
+                                          ? "bg-green-100 text-green-800"
+                                          : payment.status === "pending"
+                                          ? "bg-yellow-100 text-yellow-800"
+                                          : payment.status === "failed"
+                                          ? "bg-red-100 text-red-800"
+                                          : "bg-gray-100 text-gray-800"
+                                      }`}
+                                    >
+                                      {payment.status || "N/A"}
+                                    </span>
+                                  </td>
+                                </tr>
+                              ))
+                            ) : (
+                              <tr>
+                                <td colSpan="5" className="px-6 py-4 text-center text-sm text-gray-500">
+                                  Aucune transaction disponible
                                 </td>
                               </tr>
-                            ))}
+                            )}
                           </tbody>
                         </table>
                       </div>

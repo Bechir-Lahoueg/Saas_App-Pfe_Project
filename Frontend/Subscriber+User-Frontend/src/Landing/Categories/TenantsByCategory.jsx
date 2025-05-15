@@ -28,6 +28,27 @@ export default function TenantsByCategory() {
     // Appliquer la police à tout le document
     document.body.style.fontFamily = "'Inter', sans-serif";
     
+    // Animation au défilement
+    const observerOptions = {
+      root: null,
+      rootMargin: '0px',
+      threshold: 0.1
+    };
+
+    const handleIntersect = (entries, observer) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('animate-in');
+          observer.unobserve(entry.target);
+        }
+      });
+    };
+
+    const observer = new IntersectionObserver(handleIntersect, observerOptions);
+    const animatedElements = document.querySelectorAll('.reveal');
+    
+    animatedElements.forEach(el => observer.observe(el));
+    
     const fetchTenants = async () => {
       try {
         const res = await axios.get(
@@ -47,6 +68,7 @@ export default function TenantsByCategory() {
     return () => {
       document.documentElement.style.scrollPaddingTop = '';
       document.body.style.fontFamily = '';
+      observer.disconnect();
       if (fontLink.parentNode) {
         document.head.removeChild(fontLink);
       }
@@ -91,15 +113,21 @@ export default function TenantsByCategory() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 text-gray-800 overflow-hidden">
-      {/* Motif de fond subtil */}
-      <div className="fixed inset-0 z-0 opacity-30">
-        <div className="absolute inset-0 bg-[radial-gradient(#3b82f6_1px,transparent_1px)] [background-size:20px_20px]"></div>
+    <div className="min-h-screen font-sans relative overflow-hidden bg-gradient-to-br from-slate-50 via-white to-blue-50">
+      {/* Fond abstrait moderne avec formes géométriques */}
+      <div className="absolute inset-0 overflow-hidden z-0">
+        <div className="absolute top-0 -left-10 w-96 h-96 bg-gradient-to-br from-blue-300 to-blue-500 rounded-full mix-blend-multiply filter blur-3xl opacity-50 animate-pulse"></div>
+        <div className="absolute top-1/4 right-0 w-96 h-96 bg-gradient-to-bl from-purple-300 to-blue-400 rounded-full mix-blend-multiply filter blur-3xl opacity-40 animate-pulse animation-delay-2000"></div>
+        <div className="absolute bottom-0 left-1/4 w-80 h-80 bg-gradient-to-tr from-indigo-200 to-blue-200 rounded-full mix-blend-multiply filter blur-3xl opacity-50 animate-pulse animation-delay-4000"></div>
+        
+        {/* Motif de grille moderne */}
+        <div className="absolute inset-0">
+          <div className="h-full w-full bg-[radial-gradient(#e0e7ff_1px,transparent_1px)] opacity-30" style={{ backgroundSize: '25px 25px' }}></div>
+        </div>
+        
+        {/* Effet de particules légères */}
+        <div className="sparkles absolute inset-0 opacity-40"></div>
       </div>
-      
-      {/* Formes décoratives */}
-      <div className="fixed top-20 right-10 w-72 h-72 bg-gradient-to-br from-blue-200/20 to-indigo-300/20 rounded-full blur-3xl z-0"></div>
-      <div className="fixed bottom-20 left-10 w-60 h-60 bg-gradient-to-tr from-purple-200/20 to-blue-300/20 rounded-full blur-3xl z-0"></div>
       
       <div className="sticky top-0 z-50 backdrop-blur-md bg-white/80 border-b border-gray-100 shadow-sm">
         <Navbar />
@@ -109,21 +137,27 @@ export default function TenantsByCategory() {
       <div style={{ height: `${navbarHeight}px` }}></div>
 
       {/* Hero Section avec effet de motif */}
-      <section className="relative pt-20 pb-20 bg-white z-10">
-        <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px]"></div>
-        
+      <section className="relative pt-20 pb-20 z-10">
         <div className="container mx-auto px-4 relative z-10">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.7, ease: "easeOut" }}
-            className="text-center"
+            className="text-center reveal"
           >
-            <h1 className="text-4xl md:text-5xl font-extrabold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600">
-              {categoryName.replace(/-/g, " ")}
+            <div className="inline-flex items-center px-4 py-2 rounded-full bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-100 text-blue-700 font-medium text-sm mb-8">
+              <span className="flex h-2 w-2 rounded-full bg-blue-600 mr-2"></span>
+              <span>Trouvez les meilleurs professionnels</span>
+            </div>
+            
+            <h1 className="text-4xl md:text-5xl font-extrabold mb-4">
+              <span className="block text-gray-900">Services de</span>
+              <span className="block bg-gradient-to-r from-blue-600 via-indigo-500 to-purple-500 text-transparent bg-clip-text">
+                {categoryName.replace(/-/g, " ")}
+              </span>
             </h1>
             <p className="text-gray-600 text-lg max-w-2xl mx-auto font-light">
-              Trouvez les meilleurs prestataires adaptés à vos besoins
+              Des prestataires professionnels à votre service pour répondre à tous vos besoins
             </p>
           </motion.div>
 
@@ -132,7 +166,7 @@ export default function TenantsByCategory() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3, duration: 0.6 }}
-            className="mt-10 max-w-2xl mx-auto"
+            className="mt-10 max-w-2xl mx-auto reveal"
           >
             <div className="relative flex">
               <input
@@ -243,10 +277,10 @@ export default function TenantsByCategory() {
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="mb-8"
+                className="mb-8 reveal"
               >
                 <h2 className="text-2xl font-bold text-gray-800">
-                  <span className="text-blue-600 font-extrabold">{filteredTenants.length}</span>{" "}
+                  <span className="bg-gradient-to-r from-blue-600 to-indigo-600 text-transparent bg-clip-text font-extrabold">{filteredTenants.length}</span>{" "}
                   prestataires disponibles
                 </h2>
                 <div className="w-20 h-1 bg-gradient-to-r from-blue-600 to-indigo-500 rounded-full mt-3"></div>
@@ -262,8 +296,8 @@ export default function TenantsByCategory() {
                   <motion.div
                     key={t.id}
                     variants={itemVariants}
-                    whileHover={{ y: -6, transition: { duration: 0.2 } }}
-                    className="bg-white/80 backdrop-blur-sm rounded-xl overflow-hidden border border-gray-100 shadow-sm hover:shadow-xl transition-all duration-300"
+                    whileHover={{ y: -8, transition: { duration: 0.2 } }}
+                    className="bg-white/80 backdrop-blur-sm rounded-xl overflow-hidden border border-gray-100 shadow-sm hover:shadow-xl transition-all duration-300 reveal"
                   >
                     <div className="p-6">
                       <div className="flex items-start mb-4">
@@ -275,23 +309,7 @@ export default function TenantsByCategory() {
                             {t.businessName}
                           </h3>
                           <div className="flex items-center mt-1">
-                            <div className="flex">
-                              {[...Array(5)].map((_, i) => (
-                                <svg
-                                  key={i}
-                                  className={`w-4 h-4 ${
-                                    i < 4 ? "text-yellow-400" : "text-gray-200"
-                                  }`}
-                                  fill="currentColor"
-                                  viewBox="0 0 20 20"
-                                >
-                                  <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
-                                </svg>
-                              ))}
-                            </div>
-                            <span className="text-xs text-gray-500 ml-2 font-medium">
-                              24 avis
-                            </span>
+                           
                           </div>
                         </div>
                       </div>
@@ -364,13 +382,7 @@ export default function TenantsByCategory() {
                           <span className="w-1.5 h-1.5 bg-blue-500 rounded-full mr-1.5"></span>
                           Disponible aujourd'hui
                         </motion.span>
-                        <motion.span 
-                          whileHover={pulseAnimation}
-                          className="text-green-600 bg-green-50 px-3 py-1.5 rounded-full flex items-center"
-                        >
-                          <span className="w-1.5 h-1.5 bg-green-500 rounded-full mr-1.5"></span>
-                          Répond en {"<24h"}
-                        </motion.span>
+
                       </div>
 
                       <motion.a
@@ -381,7 +393,7 @@ export default function TenantsByCategory() {
                       >
                         Réserver maintenant
                         <svg
-                          className="ml-2 w-4 h-4"
+                          className="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform"
                           fill="none"
                           stroke="currentColor"
                           viewBox="0 0 24 24"
@@ -405,7 +417,7 @@ export default function TenantsByCategory() {
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ delay: 0.6 }}
-                  className="mt-12 text-center"
+                  className="mt-12 text-center reveal"
                 >
                   <motion.button 
                     whileHover={{ scale: 1.03, y: -2 }}
@@ -432,7 +444,7 @@ export default function TenantsByCategory() {
           whileInView={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8 }}
           viewport={{ once: true }}
-          className="max-w-4xl mx-auto text-center px-4 relative"
+          className="max-w-4xl mx-auto text-center px-4 relative reveal"
         >
           <span className="text-xs uppercase tracking-wider text-blue-600 font-semibold bg-blue-50 py-1 px-3 rounded-full mb-6 inline-block">Pour les professionnels</span>
           
@@ -444,15 +456,18 @@ export default function TenantsByCategory() {
             exceptionnelle pour développer votre activité.
           </p>
           <div className="flex flex-col sm:flex-row justify-center gap-4">
-          <motion.button
+            <motion.button
               component="a"
               href="/paiement"
               whileHover={{ scale: 1.03 }}
               whileTap={{ scale: 0.97 }}
               onClick={() => window.location.href = '/paiement'}
-              className="px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl font-medium hover:from-blue-700 hover:to-indigo-700 transition-all shadow-lg cursor-pointer"
+              className="px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl font-medium hover:from-blue-700 hover:to-indigo-700 transition-all shadow-lg cursor-pointer group"
             >
               Créer un compte professionnel
+              <svg className="inline-block ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+              </svg>
             </motion.button>
           </div>
 
@@ -527,14 +542,14 @@ export default function TenantsByCategory() {
             whileInView={{ opacity: 1 }}
             transition={{ duration: 0.8 }}
             viewport={{ once: true }}
-            className="max-w-4xl mx-auto text-center"
+            className="max-w-4xl mx-auto text-center reveal"
           >
             <h2 className="text-2xl md:text-3xl font-bold mb-6 text-gray-800">Des services adaptés à vos besoins</h2>
             
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
               <motion.div 
                 whileHover={{ y: -5, transition: { duration: 0.2 } }}
-                className="bg-white p-6 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-xl transition-all border border-gray-100"
+                className="bg-white p-6 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-xl transition-all border border-gray-100 reveal"
               >
                 <div className="mb-5 h-14 w-14 rounded-xl bg-blue-50 flex items-center justify-center mx-auto">
                   <svg className="w-7 h-7 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -547,7 +562,7 @@ export default function TenantsByCategory() {
               
               <motion.div 
                 whileHover={{ y: -5, transition: { duration: 0.2 } }}
-                className="bg-white p-6 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-xl transition-all border border-gray-100"
+                className="bg-white p-6 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-xl transition-all border border-gray-100 reveal"
               >
                 <div className="mb-5 h-14 w-14 rounded-xl bg-blue-50 flex items-center justify-center mx-auto">
                   <svg className="w-7 h-7 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -560,7 +575,7 @@ export default function TenantsByCategory() {
               
               <motion.div 
                 whileHover={{ y: -5, transition: { duration: 0.2 } }}
-                className="bg-white p-6 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-xl transition-all border border-gray-100"
+                className="bg-white p-6 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-xl transition-all border border-gray-100 reveal"
               >
                 <div className="mb-5 h-14 w-14 rounded-xl bg-blue-50 flex items-center justify-center mx-auto">
                   <svg className="w-7 h-7 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -571,17 +586,54 @@ export default function TenantsByCategory() {
                 <p className="text-gray-600">Des services professionnels et une satisfaction garantie</p>
               </motion.div>
             </div>
-            
-            <div className="pt-6 pb-8 relative">
-              <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-16 h-16 bg-gradient-to-br from-blue-100/50 to-indigo-100/50 blur-xl"></div>
-              <div className="relative h-2 mx-auto bg-gray-100 w-2/3 md:w-1/3 rounded-full overflow-hidden mb-8 shadow-inner">
-                <div className="absolute top-0 left-0 h-2 bg-gradient-to-r from-blue-500 to-indigo-600 w-3/4 rounded-full"></div>
-              </div>
-              <p className="text-gray-500 italic font-medium">Plus de 10 000 utilisateurs nous font confiance</p>
-            </div>
           </motion.div>
         </div>
       </section>
+
+      {/* CSS pour les animations */}
+      <style jsx="true">{`
+        @keyframes blob {
+          0% { transform: scale(1); }
+          33% { transform: scale(1.1); }
+          66% { transform: scale(0.9); }
+          100% { transform: scale(1); }
+        }
+        
+        .animate-blob {
+          animation: blob 7s infinite;
+        }
+        
+        .animation-delay-2000 {
+          animation-delay: 2s;
+        }
+        
+        .animation-delay-3000 {
+          animation-delay: 3s;
+        }
+        
+        .animation-delay-4000 {
+          animation-delay: 4s;
+        }
+        
+        .reveal {
+          opacity: 0;
+          transform: translateY(30px);
+          transition: all 0.8s ease-out;
+        }
+        
+        .animate-in {
+          opacity: 1;
+          transform: translateY(0);
+        }
+        
+        .sparkles {
+          background-image: 
+            radial-gradient(circle at 25% 25%, rgba(255, 255, 255, 0.2) 1px, transparent 1px),
+            radial-gradient(circle at 75% 75%, rgba(255, 255, 255, 0.2) 1px, transparent 1px),
+            radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.2) 1px, transparent 1px);
+          background-size: 40px 40px, 40px 40px, 60px 60px;
+        }
+      `}</style>
 
       <Footer />
     </div>

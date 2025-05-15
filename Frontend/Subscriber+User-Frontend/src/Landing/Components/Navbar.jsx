@@ -97,9 +97,9 @@ const Navbar = () => {
       { label: "Tous les secteurs", link: "/toutes-industries" },
     ],
     ressources: [
-      { label: "Centre d'aide", link: "#support" },
+      { label: "Centre d'aide", link: "/support" },
       { label: "Documentation API", link: "#api" },
-      { label: "Blog technique", link: "#blog" },
+      { label: "Blog technique", link: "/support" },
       { label: "Webinaires", link: "#webinaires" },
     ],
   };

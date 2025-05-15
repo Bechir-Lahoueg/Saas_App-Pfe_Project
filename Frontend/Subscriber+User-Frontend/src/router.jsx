@@ -1,6 +1,7 @@
 import React, { Suspense, lazy } from "react";
 import { Route, Routes } from "react-router-dom";
 import LoadingSpinner from "./Utils/LoadingSpinner.jsx";
+import Support from "./Utils/Support.jsx";
 
 const LandingPage = lazy(() => import("./Landing/LandingPage"));
 const PricingPage = lazy(() => import("./Landing/Components/PricingPage"));
@@ -34,7 +35,7 @@ const AppRouter = () => {
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/secteurs" element={<Catgeories />} />
         <Route path="/reservation/historique" element={<Historique />} /> {/* Nouvelle route pour l'historique */}
-
+        <Route path="/support" element={<Support />} />
         <Route path="/secteurs/:categoryName" element={<CategoriesTenants />} />
         <Route path="/reservation/:confirmId" element={<ConfirmReservation />} />
       </Routes>

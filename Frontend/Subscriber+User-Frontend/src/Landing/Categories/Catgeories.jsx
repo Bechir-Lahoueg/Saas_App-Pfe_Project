@@ -26,6 +26,27 @@ export default function Categories() {
     // Appliquer la police à tout le document
     document.body.style.fontFamily = "'Inter', sans-serif";
 
+    // Animation au défilement
+    const observerOptions = {
+      root: null,
+      rootMargin: '0px',
+      threshold: 0.1
+    };
+
+    const handleIntersect = (entries, observer) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('animate-in');
+          observer.unobserve(entry.target);
+        }
+      });
+    };
+
+    const observer = new IntersectionObserver(handleIntersect, observerOptions);
+    const animatedElements = document.querySelectorAll('.reveal');
+    
+    animatedElements.forEach(el => observer.observe(el));
+
     // Fetch categories when component mounts
     const fetchCategories = async () => {
       try {
@@ -46,6 +67,7 @@ export default function Categories() {
     return () => {
       document.documentElement.style.scrollPaddingTop = '';
       document.body.style.fontFamily = '';
+      observer.disconnect();
       if (fontLink.parentNode) {
         document.head.removeChild(fontLink);
       }
@@ -82,36 +104,43 @@ export default function Categories() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 text-gray-800 overflow-hidden">
-      {/* Motif de fond subtil */}
-      <div className="fixed inset-0 z-0 opacity-30">
-        <div className="absolute inset-0 bg-[radial-gradient(#3b82f6_1px,transparent_1px)] [background-size:20px_20px]"></div>
+    <div className="min-h-screen font-sans relative overflow-hidden bg-gradient-to-br from-slate-50 via-white to-blue-50">
+      {/* Fond abstrait moderne avec formes géométriques */}
+      <div className="absolute inset-0 overflow-hidden z-0">
+        <div className="absolute top-0 -left-10 w-96 h-96 bg-gradient-to-br from-blue-300 to-blue-500 rounded-full mix-blend-multiply filter blur-3xl opacity-50 animate-pulse"></div>
+        <div className="absolute top-1/4 right-0 w-96 h-96 bg-gradient-to-bl from-purple-300 to-blue-400 rounded-full mix-blend-multiply filter blur-3xl opacity-40 animate-pulse animation-delay-2000"></div>
+        <div className="absolute bottom-0 left-1/4 w-80 h-80 bg-gradient-to-tr from-indigo-200 to-blue-200 rounded-full mix-blend-multiply filter blur-3xl opacity-50 animate-pulse animation-delay-4000"></div>
+        <div className="absolute bottom-1/4 right-1/3 w-72 h-72 bg-gradient-to-tl from-cyan-100 to-blue-100 rounded-full mix-blend-multiply filter blur-3xl opacity-40 animate-pulse animation-delay-3000"></div>
+        
+        {/* Motif de grille moderne */}
+        <div className="absolute inset-0">
+          <div className="h-full w-full bg-[radial-gradient(#e0e7ff_1px,transparent_1px)] opacity-30" style={{ backgroundSize: '25px 25px' }}></div>
+        </div>
+        
+        {/* Effet de particules légères */}
+        <div className="sparkles absolute inset-0 opacity-40"></div>
       </div>
-      
-      {/* Formes décoratives */}
-      <div className="fixed top-20 right-10 w-72 h-72 bg-gradient-to-br from-blue-200/20 to-indigo-300/20 rounded-full blur-3xl z-0"></div>
-      <div className="fixed bottom-20 left-10 w-60 h-60 bg-gradient-to-tr from-purple-200/20 to-blue-300/20 rounded-full blur-3xl z-0"></div>
-      
+
       <div className="sticky top-0 z-50 backdrop-blur-md bg-white/80 border-b border-gray-100 shadow-sm">
         <Navbar />
       </div>
 
-      {/* Espacement pour la navbar */}
-      <div style={{ height: `${navbarHeight}px` }}></div>
-
-      {/* Hero Section avec effet de motif */}
-      <section className="relative pt-24 pb-20 bg-white z-10">
-        <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px]"></div>
-        
+      {/* Hero Section avec effet moderne */}
+      <section className="relative pt-32 pb-20 z-10">
         <div className="container mx-auto px-6 relative z-10">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.7, ease: "easeOut" }}
-            className="text-center"
+            className="text-center reveal"
           >
-            <h1 className="text-4xl md:text-5xl font-extrabold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600">
-              Secteurs d'activité
+            <div className="inline-flex items-center px-4 py-2 rounded-full bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-100 text-blue-700 font-medium text-sm mb-8 reveal">
+              <span className="flex h-2 w-2 rounded-full bg-blue-600 mr-2"></span>
+              <span>Découvrez nos secteurs d'activité</span>
+            </div>
+            <h1 className="text-4xl md:text-5xl font-extrabold mb-6">
+              <span className="block text-gray-900">Secteurs</span>
+              <span className="block bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600">d'activité</span>
             </h1>
             <p className="text-gray-600 text-lg max-w-2xl mx-auto font-light">
               Découvrez notre sélection de professionnels qualifiés à travers notre interface moderne et intuitive
@@ -123,7 +152,7 @@ export default function Categories() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3, duration: 0.6 }}
-            className="mt-12 max-w-2xl mx-auto"
+            className="mt-12 max-w-2xl mx-auto reveal"
           >
             <div className="relative flex">
               <input
@@ -234,20 +263,23 @@ export default function Categories() {
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="mb-8"
+                className="mb-8 reveal"
               >
+                <div className="inline-flex items-center px-6 py-2 rounded-full bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-100 text-blue-700 font-medium text-sm mb-6">
+                  <span className="flex h-2 w-2 rounded-full bg-blue-600 mr-2"></span>
+                  <span>Secteurs disponibles</span>
+                </div>
                 <h2 className="text-2xl font-bold text-gray-800">
                   <span className="text-blue-600 font-extrabold">{filteredCategories.length}</span>{" "}
-                  secteurs disponibles
+                  secteurs à votre service
                 </h2>
-                <div className="w-20 h-1 bg-gradient-to-r from-blue-600 to-indigo-500 rounded-full mt-3"></div>
               </motion.div>
 
               <motion.div
                 variants={containerVariants}
                 initial="hidden"
                 animate="visible"
-                className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5"
+                className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5 reveal"
               >
                 {filteredCategories.map((category) => (
                   <motion.div
@@ -255,11 +287,11 @@ export default function Categories() {
                     variants={itemVariants}
                     whileHover={{ y: -6, scale: 1.02, transition: { duration: 0.2 } }}
                     whileTap={{ scale: 0.98 }}
-                    className="group bg-white/80 backdrop-blur-sm rounded-lg overflow-hidden border border-gray-100 shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col cursor-pointer relative"
+                    className="group bg-white/80 backdrop-blur-sm rounded-xl overflow-hidden border border-gray-100 shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col cursor-pointer relative"
                     onClick={() => window.location.href = `/secteurs/${category.categoryName}`}
                   >
-                    {/* Overlay de hover pour effet interactif */}
-                    <div className="absolute inset-0 bg-blue-600/0 group-hover:bg-blue-600/5 transition-colors duration-300 z-10 pointer-events-none"></div>
+                    {/* Effet glimmer amélioré */}
+                    <div className="absolute -inset-0.5 bg-gradient-to-r from-blue-600 to-indigo-500 rounded-xl blur opacity-0 group-hover:opacity-20 transition duration-1000 group-hover:duration-200"></div>
                     
                     {/* Image Section avec overlay amélioré */}
                     <div className="relative h-44 overflow-hidden">
@@ -273,10 +305,6 @@ export default function Categories() {
                           e.target.src = "https://images.unsplash.com/photo-1573164713988-8665fc963095?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80";
                         }}
                       />
-                      
-                      {/* Motif overlay et effet de brillance */}
-                      <div className="absolute inset-0 bg-circuit-pattern opacity-30 mix-blend-overlay"></div>
-                      <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 to-indigo-500/10 mix-blend-overlay opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                       
                       {/* Badge catégorie */}
                       <div className="absolute top-3 right-3 z-20">
@@ -333,8 +361,7 @@ export default function Categories() {
 
       {/* Call to Action */}
       <section className="py-28 relative z-10">
-        <div className="absolute inset-0 bg-gradient-to-br from-slate-50 to-slate-100"></div>
-        <div className="absolute left-0 right-0 h-px bg-gradient-to-r from-transparent via-gray-200 to-transparent"></div>
+        <div className="absolute inset-0 bg-white/50 backdrop-blur-sm"></div>
         <div className="absolute inset-0 bg-[radial-gradient(#3b82f610_1px,transparent_1px)] [background-size:20px_20px]"></div>
         
         <motion.div
@@ -342,27 +369,31 @@ export default function Categories() {
           whileInView={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8 }}
           viewport={{ once: true }}
-          className="max-w-4xl mx-auto text-center px-6 relative"
+          className="max-w-4xl mx-auto text-center px-6 relative reveal"
         >
           <span className="text-xs uppercase tracking-wider text-blue-600 font-semibold bg-blue-50 py-1 px-3 rounded-full mb-6 inline-block">Pour les professionnels</span>
           
-          <h2 className="text-3xl md:text-4xl font-extrabold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600">
-            Vous êtes un prestataire ?
+          <h2 className="text-3xl md:text-4xl font-extrabold mb-4">
+            <span className="block text-gray-900">Vous êtes un</span>
+            <span className="bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600">prestataire ?</span>
           </h2>
           <p className="text-gray-600 text-lg mb-8 max-w-2xl mx-auto font-normal">
             Rejoignez notre plateforme et bénéficiez d'une visibilité
             exceptionnelle pour développer votre activité.
           </p>
           <div className="flex flex-col sm:flex-row justify-center gap-4">
-          <motion.button
-              component="a"
-              href="/paiement"
+            <motion.button
               whileHover={{ scale: 1.03 }}
               whileTap={{ scale: 0.97 }}
               onClick={() => window.location.href = '/paiement'}
-              className="px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl font-medium hover:from-blue-700 hover:to-indigo-700 transition-all shadow-lg cursor-pointer"
+              className="px-6 py-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl font-medium hover:from-blue-700 hover:to-indigo-700 transition-all shadow-lg"
             >
-              Créer un compte professionnel
+              <span className="flex items-center justify-center">
+                Créer un compte professionnel
+                <svg className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                </svg>
+              </span>
             </motion.button>
           </div>
 
@@ -428,8 +459,8 @@ export default function Categories() {
       </section>
 
       {/* Section avantages */}
-      <section className="py-28 bg-white relative z-10">
-        <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808008_1px,transparent_1px),linear-gradient(to_bottom,#80808008_1px,transparent_1px)] bg-[size:30px_30px]"></div>
+      <section className="py-28 relative z-10 bg-white/80 backdrop-blur-sm rounded-t-3xl">
+        <div className="absolute inset-0 bg-[radial-gradient(#e0e7ff_1px,transparent_1px)] opacity-30" style={{ backgroundSize: '25px 25px' }}></div>
         
         <div className="container mx-auto px-6 relative z-10">
           <motion.div 
@@ -437,17 +468,24 @@ export default function Categories() {
             whileInView={{ opacity: 1 }}
             transition={{ duration: 0.8 }}
             viewport={{ once: true }}
-            className="max-w-4xl mx-auto text-center"
+            className="max-w-4xl mx-auto text-center reveal"
           >
-            <h2 className="text-2xl md:text-3xl font-bold mb-6 text-gray-800">Une plateforme d'un autre niveau</h2>
+            <div className="inline-flex items-center px-6 py-2 rounded-full bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-100 text-blue-700 font-medium text-sm mb-8">
+              <span className="flex h-2 w-2 rounded-full bg-blue-600 mr-2"></span>
+              <span>Avantages exclusifs</span>
+            </div>
+            
+            <h2 className="text-3xl md:text-5xl font-bold mb-6 bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+              Une plateforme d'un autre niveau
+            </h2>
             
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
               <motion.div 
                 whileHover={{ y: -5, transition: { duration: 0.2 } }}
-                className="bg-white p-6 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-xl transition-all border border-gray-100"
+                className="bg-gradient-to-br from-white to-blue-50 rounded-2xl p-8 shadow-lg border border-blue-50 hover:shadow-xl transition-all duration-300 group reveal"
               >
-                <div className="mb-5 h-14 w-14 rounded-xl bg-blue-50 flex items-center justify-center mx-auto">
-                  <svg className="w-7 h-7 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div className="mb-5 h-14 w-14 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center mx-auto transform group-hover:rotate-6 transition-transform">
+                  <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                   </svg>
                 </div>
@@ -457,10 +495,10 @@ export default function Categories() {
               
               <motion.div 
                 whileHover={{ y: -5, transition: { duration: 0.2 } }}
-                className="bg-white p-6 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-xl transition-all border border-gray-100"
+                className="bg-gradient-to-br from-white to-blue-50 rounded-2xl p-8 shadow-lg border border-blue-50 hover:shadow-xl transition-all duration-300 group reveal"
               >
-                <div className="mb-5 h-14 w-14 rounded-xl bg-blue-50 flex items-center justify-center mx-auto">
-                  <svg className="w-7 h-7 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div className="mb-5 h-14 w-14 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center mx-auto transform group-hover:rotate-6 transition-transform">
+                  <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
                   </svg>
                 </div>
@@ -470,10 +508,10 @@ export default function Categories() {
               
               <motion.div 
                 whileHover={{ y: -5, transition: { duration: 0.2 } }}
-                className="bg-white p-6 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-xl transition-all border border-gray-100"
+                className="bg-gradient-to-br from-white to-blue-50 rounded-2xl p-8 shadow-lg border border-blue-50 hover:shadow-xl transition-all duration-300 group reveal"
               >
-                <div className="mb-5 h-14 w-14 rounded-xl bg-blue-50 flex items-center justify-center mx-auto">
-                  <svg className="w-7 h-7 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div className="mb-5 h-14 w-14 rounded-xl bg-gradient-to-br from-blue-600 to-cyan-500 flex items-center justify-center mx-auto transform group-hover:rotate-6 transition-transform">
+                  <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path>
                   </svg>
                 </div>
@@ -482,21 +520,57 @@ export default function Categories() {
               </motion.div>
             </div>
             
-            <div className="pt-6 pb-8 relative">
-              <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-16 h-16 bg-gradient-to-br from-blue-100/50 to-indigo-100/50 blur-xl"></div>
-              <div className="relative h-2 mx-auto bg-gray-100 w-2/3 md:w-1/3 rounded-full overflow-hidden mb-8 shadow-inner">
-                <div className="absolute top-0 left-0 h-2 bg-gradient-to-r from-blue-500 to-indigo-600 w-3/4 rounded-full"></div>
-              </div>
-              <p className="text-gray-500 italic font-medium">Plus de 10 000 utilisateurs nous font confiance</p>
-            </div>
+
           </motion.div>
         </div>
       </section>
 
       <Footer />
 
-      {/* CSS nécessaire pour les animations et patterns */}
+      {/* CSS nécessaire pour les animations et effets */}
       <style jsx>{`
+        @keyframes blob {
+          0% { transform: scale(1); }
+          33% { transform: scale(1.1); }
+          66% { transform: scale(0.9); }
+          100% { transform: scale(1); }
+        }
+        
+        .animate-pulse {
+          animation: blob 7s infinite;
+        }
+        
+        .animation-delay-2000 {
+          animation-delay: 2s;
+        }
+        
+        .animation-delay-3000 {
+          animation-delay: 3s;
+        }
+        
+        .animation-delay-4000 {
+          animation-delay: 4s;
+        }
+        
+        .reveal {
+          opacity: 0;
+          transform: translateY(30px);
+          transition: all 0.8s ease-out;
+        }
+        
+        .animate-in {
+          opacity: 1;
+          transform: translateY(0);
+        }
+        
+        .sparkles {
+          background-image: 
+            radial-gradient(circle at 25% 25%, rgba(255, 255, 255, 0.2) 1px, transparent 1px),
+            radial-gradient(circle at 75% 75%, rgba(255, 255, 255, 0.2) 1px, transparent 1px),
+            radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.2) 1px, transparent 1px);
+          background-size: 40px 40px, 40px 40px, 60px 60px;
+        }
+        
         .bg-circuit-pattern {
           background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'%3E%3Cg fill-rule='evenodd'%3E%3Cg fill='%239C92AC' fill-opacity='0.15'%3E%3Cpath opacity='.5' d='M96 95h4v1h-4v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15V0h1v15h9V0h1v15h9V0h1v15h9V0h1v15h9V0h1v15h9V0h1v15h9V0h1v15h9V0h1v15h4v1h-4v9h4v1h-4v9h4v1h-4v9h4v1h-4v9h4v1h-4v9h4v1h-4v9h4v1h-4v9h4v1h-4v9zm-1 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-9-10h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm9-10v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-9-10h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm9-10v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-9-10h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm9-10v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-9-10h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9z'/%3E%3Cpath d='M6 5V0H5v5H0v1h5v94h1V6h94V5H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
         }
