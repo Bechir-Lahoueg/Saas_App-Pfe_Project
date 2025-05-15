@@ -451,7 +451,7 @@ const TenantProfilePage = () => {
                 vos paramètres.
               </p>
               <a
-                href="#"
+                href="/support"
                 className="text-xs font-medium text-white bg-blue-600 hover:bg-blue-700 py-2 px-3 rounded inline-block transition-colors"
               >
                 Contacter le support
