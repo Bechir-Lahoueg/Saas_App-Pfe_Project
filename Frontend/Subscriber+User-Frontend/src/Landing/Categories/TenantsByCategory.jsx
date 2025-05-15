@@ -113,7 +113,7 @@ export default function TenantsByCategory() {
   };
 
   return (
-    <div className="min-h-screen font-sans relative overflow-hidden bg-gradient-to-br from-slate-50 via-white to-blue-50">
+    <div className="overflow-hidden bg-gradient-to-br from-slate-50 via-white to-blue-50">
       {/* Fond abstrait moderne avec formes géométriques */}
       <div className="absolute inset-0 overflow-hidden z-0">
         <div className="absolute top-0 -left-10 w-96 h-96 bg-gradient-to-br from-blue-300 to-blue-500 rounded-full mix-blend-multiply filter blur-3xl opacity-50 animate-pulse"></div>
@@ -374,16 +374,7 @@ export default function TenantsByCategory() {
                         </p>
                       </div>
 
-                      <div className="flex justify-between items-center mb-5 text-xs font-semibold">
-                        <motion.span 
-                          whileHover={pulseAnimation}
-                          className="text-blue-600 bg-blue-50 px-3 py-1.5 rounded-full flex items-center"
-                        >
-                          <span className="w-1.5 h-1.5 bg-blue-500 rounded-full mr-1.5"></span>
-                          Disponible aujourd'hui
-                        </motion.span>
-
-                      </div>
+                    
 
                       <motion.a
                         href={`http://${t.subdomain}.127.0.0.1.nip.io:5173/reservation`}
@@ -589,6 +580,7 @@ export default function TenantsByCategory() {
           </motion.div>
         </div>
       </section>
+      <Footer />
 
       {/* CSS pour les animations */}
       <style jsx="true">{`
@@ -635,7 +627,6 @@ export default function TenantsByCategory() {
         }
       `}</style>
 
-      <Footer />
     </div>
   );
 }
