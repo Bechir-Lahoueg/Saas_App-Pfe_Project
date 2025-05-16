@@ -8,18 +8,12 @@ import {
   Info,
   ChevronDown,
   ChevronRight,
-  Map,
-  Phone,
-  Mail,
   Star,
-  Heart,
-  Clock4,
   Play,
   Plus,
   CheckSquare,
   User,
 } from "lucide-react";
-import planifygoLogo from "../assets/LogoPlanifygoPNG.png";
 import Navbar from "./Components/Navbar";
 import Footer from "./Components/Footer";
 const JS_DAY_TO_BACKEND = [
@@ -947,85 +941,6 @@ export default function Reservation() {
     );
   };
 
-  // Dans le composant DateSelection, modifier le rendu des créneaux horaires
-  const renderTimeGroup = (slots, title, icon) => {
-    if (slots.length === 0) return null;
-
-    return (
-      <div className="mb-6 last:mb-0">
-        <div className="flex items-center mb-3">
-          <div className="h-8 w-8 rounded-full bg-indigo-100/80 flex items-center justify-center shadow-sm mr-2">
-            {icon}
-          </div>
-          <h5 className="text-base font-medium text-gray-700">{title}</h5>
-        </div>
-        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2">
-          {slots.map((time) => {
-            // Récupérer les services disponibles à ce créneau
-            const servicesForSlot = availability.services.filter((service) =>
-              isSlotAvailableForService(selectedDate, time, service)
-            );
-
-            // Si aucun service n'est disponible, le créneau ne devrait pas être réservable
-            const isReservable = servicesForSlot.length > 0;
-
-            // Trouver le service avec la durée la plus courte/longue pour l'affichage
-            const minDuration = isReservable
-              ? Math.min(...servicesForSlot.map((s) => s.duration))
-              : 0;
-            const maxDuration = isReservable
-              ? Math.max(...servicesForSlot.map((s) => s.duration))
-              : 0;
-
-            return (
-              <div key={time} className="relative">
-                <button
-                  onClick={() => {
-                    if (isReservable) {
-                      setSelectedTime(time);
-                    }
-                  }}
-                  disabled={!isReservable}
-                  className={`
-                    relative py-3 w-full rounded-xl text-center transition-all duration-200
-                    ${
-                      selectedTime === time
-                        ? "bg-gradient-to-br from-indigo-500 to-indigo-700 text-white shadow-lg shadow-indigo-500/30 transform scale-105 -translate-y-0.5"
-                        : !isReservable
-                        ? "bg-gray-100 text-gray-400 cursor-not-allowed opacity-70"
-                        : "bg-white hover:bg-indigo-50 text-gray-800 hover:shadow border border-gray-200 hover:border-indigo-300 hover:-translate-y-0.5"
-                    }
-                  `}
-                >
-                  <div className="font-medium">{time}</div>
-
-                  {/* Indicateur de durées disponibles */}
-                  {isReservable && (
-                    <div className="text-xs mt-1 opacity-80">
-                      {minDuration === maxDuration
-                        ? `${minDuration} min`
-                        : `${minDuration}-${maxDuration} min`}
-                    </div>
-                  )}
-
-                  {/* Indicateur de statut */}
-                  {!isReservable ? (
-                    <span className="absolute -top-1 -right-1 h-4 w-4 bg-red-500 rounded-full flex items-center justify-center">
-                      <X className="h-2.5 w-2.5 text-white" />
-                    </span>
-                  ) : (
-                    <span className="absolute -top-1 -right-1 h-4 w-4 bg-green-500 rounded-full flex items-center justify-center">
-                      <Check className="h-2.5 w-2.5 text-white" />
-                    </span>
-                  )}
-                </button>
-              </div>
-            );
-          })}
-        </div>
-      </div>
-    );
-  };
   const getServiceAvailability = (date, timeSlot) => {
     if (!availability?.services || !timeSlot) return [];
 
@@ -1053,7 +968,40 @@ export default function Reservation() {
       };
     });
   };
+  // Ajouter cette fonction pour vérifier si un créneau horaire est déjà passé
+  const isTimeSlotPassed = (date, timeSlot) => {
+    // Si la date est dans le passé (jour précédent ou antérieur), tout le créneau est passé
+    const today = new Date();
 
+    // Comparer uniquement les dates (sans les heures)
+    const todayDateOnly = new Date(
+      today.getFullYear(),
+      today.getMonth(),
+      today.getDate()
+    );
+    const dateOnly = new Date(
+      date.getFullYear(),
+      date.getMonth(),
+      date.getDate()
+    );
+
+    // Si la date est avant aujourd'hui, c'est forcément passé
+    if (dateOnly < todayDateOnly) return true;
+
+    // Si la date est après aujourd'hui, ce n'est pas encore passé
+    if (dateOnly > todayDateOnly) return false;
+
+    // Si c'est aujourd'hui, on compare l'heure
+    const [timeHour, timeMinute] = timeSlot.split(":").map(Number);
+    const currentHour = today.getHours();
+    const currentMinute = today.getMinutes();
+
+    // Comparer les heures et minutes
+    if (timeHour < currentHour) return true;
+    if (timeHour === currentHour && timeMinute < currentMinute) return true;
+
+    return false;
+  };
   // Ajouter ce composant dans DateSelection pour afficher les services disponibles
   const ServiceAvailabilitySection = () => {
     if (!selectedTime) return null;
@@ -1659,20 +1607,71 @@ export default function Reservation() {
   const isSlotAvailableForService = (dateObj, timeSlot, service) => {
     if (!service) return false;
 
+    // 1. Vérifier les disponibilités des dates et des réservations existantes
     const dateKey = formatLocalDateKey(dateObj);
     const reservationsForDate = existingReservations[dateKey] || [];
 
-    // Convertir le créneau en objet Date pour les calculs de chevauchement
+    // 2. Vérifier si le jour est un jour de travail
+    const dayOfWeek = JS_DAY_TO_BACKEND[dateObj.getDay()];
+    const workingDay = availability.workingDays?.find(
+      (wd) => wd.dayOfWeek === dayOfWeek && wd.active
+    );
+
+    if (
+      !workingDay ||
+      !workingDay.timeSlots ||
+      workingDay.timeSlots.length === 0
+    ) {
+      return false; // Ce jour n'est pas un jour de travail
+    }
+
+    // 3. Vérifier si ce créneau est déjà passé aujourd'hui
+    if (isTimeSlotPassed(dateObj, timeSlot)) {
+      return false; // Ce créneau est déjà passé
+    }
+
+    // 4. Vérifier si le service peut être complété avant l'heure de fermeture
     const [hours, minutes] = timeSlot.split(":").map(Number);
     const startDateTime = new Date(dateObj);
     startDateTime.setHours(hours, minutes, 0, 0);
 
-    // Calculer l'heure de fin basée sur la durée du service
+    // Calculer l'heure de fin du service
     const endDateTime = new Date(
       startDateTime.getTime() + service.duration * 60000
     );
 
-    // Vérifier si ce créneau chevauche des réservations existantes
+    // Vérifier que le service se termine avant l'heure de fermeture
+    let isWithinWorkingHours = false;
+
+    // Vérifier également que l'heure de début est dans une plage horaire de travail
+    let isStartTimeWithinWorkingHours = false;
+
+    for (const slot of workingDay.timeSlots) {
+      const [startHour, startMin] = slot.startTime.split(":").map(Number);
+      const [endHour, endMin] = slot.endTime.split(":").map(Number);
+
+      const slotStartTime = new Date(dateObj);
+      slotStartTime.setHours(startHour, startMin, 0, 0);
+
+      const slotEndTime = new Date(dateObj);
+      slotEndTime.setHours(endHour, endMin, 0, 0);
+
+      // Vérifier si l'heure de début est dans cette plage horaire
+      if (startDateTime >= slotStartTime && startDateTime < slotEndTime) {
+        isStartTimeWithinWorkingHours = true;
+      }
+
+      // Vérifier si l'heure de fin est avant la fermeture
+      if (endDateTime <= slotEndTime && startDateTime >= slotStartTime) {
+        isWithinWorkingHours = true;
+      }
+    }
+
+    if (!isStartTimeWithinWorkingHours || !isWithinWorkingHours) {
+      return false; // Le service ne peut pas être effectué dans les heures d'ouverture
+    }
+
+    // 5. Vérifier les réservations qui se chevauchent
     const overlappingReservations = reservationsForDate.filter((res) => {
       // Ne vérifier que les réservations pour ce service spécifique
       if (res.serviceId !== service.id) return false;
@@ -1695,7 +1694,7 @@ export default function Reservation() {
       return startDateTime < resEndDateTime && endDateTime > resStartDateTime;
     });
 
-    // Pour les services avec réservations simultanées
+    // 6. Pour les services avec réservations simultanées
     if (service.allowSimultaneous && service.capacity) {
       // Compter combien de réservations se chevauchent exactement à cette heure
       const exactTimeSlotCount = overlappingReservations.filter(
@@ -1821,14 +1820,14 @@ export default function Reservation() {
 
   const EmployeeSelection = () => {
     if (!availability || !selectedService) return null;
-  
+
     // Only show employees who are available at the selected time
     const availableEmployees = getAvailableEmployeesForTimeSlot(
       selectedDate,
       selectedTime,
       selectedService.id
     );
-  
+
     if (availableEmployees.length === 0) {
       return (
         <div className="mb-8 bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
@@ -1836,7 +1835,7 @@ export default function Reservation() {
             <Users className="h-5 w-5 mr-2.5 text-indigo-600" />
             Choisir un spécialiste
           </h3>
-  
+
           <div className="bg-red-50 p-4 rounded-xl text-red-700 flex items-start">
             <Info className="h-5 w-5 mr-3 flex-shrink-0 mt-0.5" />
             <div>
@@ -1852,14 +1851,14 @@ export default function Reservation() {
         </div>
       );
     }
-  
+
     return (
       <div className="mb-8 bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
         <h3 className="text-xl font-semibold text-gray-800 mb-6 flex items-center">
           <Users className="h-5 w-5 mr-2.5 text-indigo-600" />
           Choisir un spécialiste
         </h3>
-  
+
         <div className="grid gap-4">
           {availableEmployees.map((employee) => (
             <div
@@ -1887,13 +1886,13 @@ export default function Reservation() {
                     </div>
                   )}
                 </div>
-  
+
                 <div className="ml-4 flex-1">
                   <div className="flex items-center justify-between">
                     <h4 className="font-medium text-gray-900">
                       {employee.firstName} {employee.lastName}
                     </h4>
-  
+
                     <div
                       className={`w-8 h-8 rounded-full border-2 flex items-center justify-center transition-all duration-300
                         ${
@@ -1909,11 +1908,11 @@ export default function Reservation() {
                       )}
                     </div>
                   </div>
-  
+
                   {employee.title && (
                     <p className="text-gray-600 text-sm">{employee.title}</p>
                   )}
-  
+
                   <div className="flex flex-wrap gap-2 mt-2">
                     {employee.specialties?.map((specialty, idx) => (
                       <span
@@ -1923,7 +1922,7 @@ export default function Reservation() {
                         {specialty}
                       </span>
                     ))}
-  
+
                     {employee.rating && (
                       <span className="text-xs bg-amber-100 text-amber-700 px-2 py-1 rounded-full flex items-center">
                         <Star className="h-3 w-3 mr-1 fill-amber-500 stroke-0" />
@@ -1940,7 +1939,7 @@ export default function Reservation() {
     );
   };
 
-<Navbar/>
+  <Navbar />;
 
   // Ajouter ces fonctions auxiliaires avant le composant ProviderInfoCard
 
@@ -4340,31 +4339,46 @@ export default function Reservation() {
         reservedTimes.add(reservation.formattedStart);
       });
 
-      // Enhanced time slot group rendering
       const renderTimeGroup = (slots, title, icon) => {
         if (slots.length === 0) return null;
 
         return (
-          <div className="mb-6 last:mb-0">
-            <div className="flex items-center mb-3">
-              <div className="h-8 w-8 rounded-full bg-indigo-100/80 flex items-center justify-center shadow-sm mr-2">
+          <div className="mb-8 last:mb-4 transition-all duration-300 hover:transform hover:scale-[1.01]">
+            {/* En-tête du groupe d'horaires avec effet de bordure dégradée */}
+            <div className="flex items-center mb-4 relative">
+              <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-indigo-100 to-blue-100 flex items-center justify-center shadow-sm mr-3 border border-indigo-200/40">
                 {icon}
               </div>
-              <h5 className="text-base font-medium text-gray-700">{title}</h5>
+              <h5 className="text-lg font-semibold text-gray-800">{title}</h5>
+              <div className="ml-3 h-0.5 flex-grow bg-gradient-to-r from-indigo-200 via-blue-100 to-transparent rounded-full"></div>
             </div>
-            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2">
+
+            {/* Grille de créneaux horaires améliorée */}
+            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-3">
               {slots.map((time) => {
-                // Vérifier si au moins un service est disponible à ce créneau
-                const isAnyServiceAvailable = isAnyServiceAvailableForTimeSlot(
-                  selectedDate,
-                  time
+                // Vérifier si ce créneau est déjà passé aujourd'hui
+                const isSlotPassed = isTimeSlotPassed(selectedDate, time);
+
+                // Récupérer les services disponibles à ce créneau
+                const servicesForSlot = availability.services.filter(
+                  (service) =>
+                    isSlotAvailableForService(selectedDate, time, service)
                 );
 
-                // Si aucun service n'est disponible, le créneau ne devrait pas être réservable
-                const isReservable = isAnyServiceAvailable;
+                // Si le créneau est passé ou aucun service n'est disponible, il n'est pas réservable
+                const isReservable =
+                  !isSlotPassed && servicesForSlot.length > 0;
+
+                // Trouver le service avec la durée la plus courte/longue pour l'affichage
+                const minDuration = isReservable
+                  ? Math.min(...servicesForSlot.map((s) => s.duration))
+                  : 0;
+                const maxDuration = isReservable
+                  ? Math.max(...servicesForSlot.map((s) => s.duration))
+                  : 0;
 
                 return (
-                  <div key={time} className="relative">
+                  <div key={time} className="relative group">
                     <button
                       onClick={() => {
                         if (isReservable) {
@@ -4373,30 +4387,75 @@ export default function Reservation() {
                       }}
                       disabled={!isReservable}
                       className={`
-                        relative py-3 w-full rounded-xl text-center font-medium transition-all duration-200
-                        ${
-                          selectedTime === time
-                            ? "bg-gradient-to-br from-indigo-500 to-indigo-700 text-white shadow-lg shadow-indigo-500/30 transform scale-105 -translate-y-0.5"
-                            : !isReservable
-                            ? "bg-gray-100 text-gray-400 cursor-not-allowed opacity-70"
-                            : "bg-white hover:bg-indigo-50 text-gray-800 hover:shadow border border-gray-200 hover:border-indigo-300 hover:-translate-y-0.5"
-                        }
-                      `}
+                  relative w-full rounded-xl overflow-hidden text-center transition-all duration-300
+                  ${
+                    selectedTime === time
+                      ? "bg-gradient-to-br from-indigo-500 to-indigo-700 text-white shadow-lg shadow-indigo-500/30 transform scale-105"
+                      : !isReservable
+                      ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                      : "bg-white hover:bg-indigo-50 text-gray-800 hover:shadow border border-gray-200 hover:border-indigo-300"
+                  }
+                  group-hover:shadow-md
+                `}
                     >
-                      {time}
-                      {/* Indicateur de statut */}
+                      {/* Conteneur de contenu pour un meilleur espacement */}
+                      <div className="py-3.5 px-2">
+                        <div className="font-semibold text-base mb-1">
+                          {time}
+                        </div>
+
+                        {/* Indicateur de durées disponibles avec nouvelle présentation */}
+                        {isReservable && (
+                          <div
+                            className={`text-xs px-2 py-1 rounded-full mx-auto w-max ${
+                              selectedTime === time
+                                ? "bg-white/20 text-white"
+                                : "bg-indigo-50 text-indigo-700"
+                            }`}
+                          >
+                            {servicesForSlot.length === 1 ? (
+                              <span className="truncate max-w-[80px] inline-block">
+                                {servicesForSlot[0].name}
+                              </span>
+                            ) : (
+                              `${servicesForSlot.length} services`
+                            )}
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Animations et effets */}
+                      <div
+                        className={`absolute inset-0 opacity-0 ${
+                          selectedTime === time
+                            ? "opacity-10"
+                            : "group-hover:opacity-5"
+                        } bg-gradient-to-br from-blue-400 via-indigo-400 to-purple-400 transition-opacity duration-300`}
+                      ></div>
+
+                      {/* Indicateur de statut - Redesigned */}
                       {!isReservable ? (
-                        <span className="absolute -top-1 -right-1 h-4 w-4 bg-red-500 rounded-full flex items-center justify-center">
-                          <X className="h-2.5 w-2.5 text-white" />
+                        <span className="absolute -top-1 -right-1 h-5 w-5 bg-red-500 rounded-full flex items-center justify-center shadow-md shadow-red-500/20 ring-2 ring-white">
+                          <X className="h-3 w-3 text-white" />
                         </span>
                       ) : (
-                        <span className="absolute -top-1 -right-1 h-4 w-4 bg-green-500 rounded-full flex items-center justify-center">
-                          <Check className="h-2.5 w-2.5 text-white" />
+                        <span className="absolute -top-1 -right-1 h-5 w-5 bg-green-500 rounded-full flex items-center justify-center shadow-md shadow-green-500/20 ring-2 ring-white">
+                          <Check className="h-3 w-3 text-white" />
                         </span>
                       )}
-                    </button>
 
-                    {/* Autres éléments du bouton... */}
+                      {/* Indicateur pour les heures passées */}
+                      {isSlotPassed && (
+                        <div className="absolute inset-0 bg-gray-200/70 backdrop-blur-[1px] rounded-xl flex items-center justify-center">
+                          <div className="flex items-center justify-center px-3 py-1 bg-gray-700/70 backdrop-blur-sm rounded-lg shadow-sm">
+                            <Clock className="h-3.5 w-3.5 text-gray-200 mr-1" />
+                            <span className="text-xs text-gray-100 font-medium">
+                              Passé
+                            </span>
+                          </div>
+                        </div>
+                      )}
+                    </button>
                   </div>
                 );
               })}
@@ -4588,32 +4647,55 @@ export default function Reservation() {
 
         {/* Time slots section */}
         <div className="mt-8">
-          <div className="flex items-center justify-between mb-4">
-            <h4 className="text-lg font-semibold text-gray-800 flex items-center">
-              <Clock className="h-5 w-5 mr-2.5 text-indigo-600" />
-              Horaires disponibles
-            </h4>
+          {/* En-tête amélioré avec fond dégradé et effet "glow" */}
+          <div className="bg-gradient-to-r from-indigo-100 via-blue-50 to-indigo-50 rounded-xl p-4 mb-6 border border-indigo-200/40 shadow-sm relative overflow-hidden">
+            <div className="absolute -top-24 -left-24 w-48 h-48 bg-indigo-300/20 rounded-full blur-3xl"></div>
+            <div className="absolute -bottom-8 -right-8 w-32 h-32 bg-blue-300/20 rounded-full blur-2xl"></div>
 
-            {/* Show reservations count with badge */}
-            {getReservationsForDate(selectedDate).length > 0 && (
-              <span className="text-xs bg-red-50 text-red-700 px-3 py-1.5 rounded-full font-medium flex items-center">
-                <span className="w-2 h-2 bg-red-500 rounded-full mr-1.5"></span>
-                {getReservationsForDate(selectedDate).length} réservation(s)
-              </span>
-            )}
+            <div className="flex items-center justify-between relative z-10">
+              <div className="flex items-center">
+                <div className="bg-gradient-to-br from-indigo-600 to-blue-600 p-2.5 rounded-xl shadow-md shadow-indigo-500/10 mr-4">
+                  <Clock className="h-5 w-5 text-white" />
+                </div>
+                <div>
+                  <h4 className="text-xl font-bold bg-gradient-to-r from-indigo-700 to-indigo-900 text-transparent bg-clip-text">
+                    Horaires disponibles
+                  </h4>
+                  <p className="text-sm text-indigo-600 mt-0.5">
+                    Sélectionnez un créneau pour votre rendez-vous
+                  </p>
+                </div>
+              </div>
+
+              {/* Badge amélioré pour les réservations */}
+              {getReservationsForDate(selectedDate).length > 0 && (
+                <span className="px-3.5 py-1.5 rounded-full bg-gradient-to-r from-rose-100 to-red-100 text-xs font-medium text-rose-800 border border-rose-200/50 shadow-sm flex items-center">
+                  <span className="w-2 h-2 bg-rose-500 rounded-full mr-1.5 animate-pulse"></span>
+                  {getReservationsForDate(selectedDate).length} réservation(s)
+                </span>
+              )}
+            </div>
           </div>
 
           {loadingReservations ? (
-            <div className="flex flex-col items-center justify-center py-16 bg-gray-50 rounded-xl">
-              <div className="w-10 h-10 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin mb-3"></div>
-              <p className="text-gray-500 text-sm">
+            <div className="flex flex-col items-center justify-center py-20 bg-gradient-to-br from-gray-50 to-slate-50 rounded-xl border border-gray-200">
+              <div className="relative w-16 h-16">
+                <div className="absolute top-0 left-0 w-full h-full border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin"></div>
+                <div className="absolute top-0 left-0 w-full h-full flex items-center justify-center">
+                  <Clock className="h-6 w-6 text-indigo-600 animate-pulse" />
+                </div>
+              </div>
+              <p className="text-gray-500 text-sm mt-4 font-medium">
                 Chargement des disponibilités...
               </p>
             </div>
           ) : (
-            <div className="bg-gray-50 rounded-xl p-5">{renderTimeSlots()}</div>
+            <div className="bg-gradient-to-br from-white to-gray-50 rounded-2xl p-5 shadow-lg border border-gray-200/70 transition-all duration-300 hover:shadow-xl">
+              {renderTimeSlots()}
+            </div>
           )}
         </div>
+
         {selectedTime && <ServiceDurationTimeline />}
         {selectedTime && <ServiceAvailabilitySection />}
         {/* Ajoutez cet indicateur sous votre calendrier principal */}
@@ -4676,106 +4758,6 @@ export default function Reservation() {
     );
   };
 
-  // Remplacez la vue des créneaux horaires par cette version améliorée
-  const TimelineView = () => {
-    const workingHours = { start: 8, end: 20 }; // Définir en fonction de vos heures d'ouverture
-    const hours = Array.from(
-      { length: workingHours.end - workingHours.start },
-      (_, i) => workingHours.start + i
-    );
-
-    const reservations = getReservationsForDate(selectedDate);
-
-    // Créer une structure pour suivre les réservations par créneau
-    const timelineSlots = {};
-    timeSlots.forEach((slot) => {
-      const hour = parseInt(slot.split(":")[0]);
-      const minute = parseInt(slot.split(":")[1]);
-      const key = `${hour}:${minute}`;
-      timelineSlots[key] = {
-        time: slot,
-        reserved: false,
-        reservation: null,
-      };
-    });
-
-    // Marquer les créneaux réservés
-    reservations.forEach((res) => {
-      const [h, m] = res.formattedStart.split(":").map(Number);
-      const key = `${h}:${m}`;
-      if (timelineSlots[key]) {
-        timelineSlots[key].reserved = true;
-        timelineSlots[key].reservation = res;
-      }
-    });
-
-    return (
-      <div className="mt-6 relative">
-        {/* Timeline header */}
-        <div className="flex mb-1">
-          <div className="w-20 flex-shrink-0"></div>
-          <div className="flex-1 flex">
-            {hours.map((hour) => (
-              <div
-                key={hour}
-                className="flex-1 text-center text-xs font-medium text-gray-500"
-              >
-                {hour}:00
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Timeline grid */}
-        <div className="relative bg-gradient-to-r from-gray-50 to-gray-100 rounded-xl overflow-hidden border border-gray-200">
-          {/* Time markers */}
-          <div className="flex h-full">
-            <div className="w-20 flex-shrink-0"></div>
-            <div className="flex-1 flex relative">
-              {hours.map((hour) => (
-                <div
-                  key={hour}
-                  className="flex-1 border-l border-gray-200 h-full"
-                ></div>
-              ))}
-            </div>
-          </div>
-
-          {/* Current time indicator */}
-          {isToday(selectedDate) && (
-            <div
-              className="absolute top-0 bottom-0 w-0.5 bg-red-500 z-20"
-              style={{
-                left: `${calculateCurrentTimePosition(workingHours)}%`,
-                boxShadow: "0 0 8px rgba(239, 68, 68, 0.5)",
-              }}
-            >
-              <div className="h-3 w-3 rounded-full bg-red-500 -ml-1.5 -mt-1.5 animate-pulse"></div>
-            </div>
-          )}
-
-          {/* Availability blocks */}
-          <div className="absolute inset-0 pointer-events-none">
-            {renderAvailabilityBlocks(workingHours)}
-          </div>
-
-          {/* Reservation blocks */}
-          <div className="absolute inset-0 pointer-events-none">
-            {reservations.map((res, idx) =>
-              renderReservationBlock(res, idx, workingHours)
-            )}
-          </div>
-
-          {/* Time slots */}
-          <div className="absolute inset-0">
-            {Object.values(timelineSlots).map((slot, idx) =>
-              renderTimeSlotMarker(slot, idx, workingHours)
-            )}
-          </div>
-        </div>
-      </div>
-    );
-  };
 
   if (loading) {
     return (
