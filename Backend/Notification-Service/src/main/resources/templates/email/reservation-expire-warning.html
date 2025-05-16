@@ -2,10 +2,10 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>Nouvelle Réservation</title>
+    <title>Votre réservation va expirer</title>
     <style>
         body {
-            background: #f4f6fb;
+            background: #fff6f6;
             font-family: 'Segoe UI', Arial, sans-serif;
             margin: 0;
             padding: 0;
@@ -14,19 +14,19 @@
             max-width: 520px;
             margin: 40px auto;
             background: #fff;
-            border-radius: 14px;
-            box-shadow: 0 4px 24px rgba(44,62,80,0.10);
+            border-radius: 12px;
+            box-shadow: 0 4px 24px rgba(231,76,60,0.10);
             overflow: hidden;
         }
         .header {
-            background: linear-gradient(90deg, #4A90E2 60%, #50e3c2 100%);
+            background: linear-gradient(90deg, #e74c3c 60%, #f9d423 100%);
             color: #fff;
             padding: 32px 24px 16px 24px;
             text-align: center;
         }
-        .header h1 {
+        .header h2 {
             margin: 0;
-            font-size: 2.1em;
+            font-size: 2em;
             font-weight: 700;
             letter-spacing: 1px;
         }
@@ -38,27 +38,26 @@
             padding: 28px 24px 24px 24px;
             color: #333;
         }
-        .details {
-            background: #f0f7ff;
+        .warning {
+            background: #fff3cd;
+            border-left: 6px solid #e74c3c;
             border-radius: 8px;
-            padding: 18px 16px;
+            padding: 16px 16px;
             margin: 18px 0;
             font-size: 1.08em;
         }
-        .confirmation-code {
-            background: #eafaf1;
-            color: #27ae60;
+        .code {
+            background: #f8d7da;
+            color: #c0392b;
             font-weight: bold;
             font-size: 1.2em;
-            padding: 12px 18px;
-            border-radius: 8px;
-            text-align: center;
-            margin: 18px 0;
-            letter-spacing: 2px;
-            border: 1px dashed #27ae60;
+            padding: 10px 16px;
+            border-radius: 6px;
+            display: inline-block;
+            margin: 12px 0;
         }
         .footer {
-            background: #f4f6fb;
+            background: #fff6f6;
             color: #888;
             text-align: center;
             font-size: 13px;
@@ -73,22 +72,16 @@
 <body>
 <div class="container">
     <div class="header">
-        <div class="icon">📅</div>
-        <h1>Nouvelle Réservation</h1>
+        <div class="icon">⚠️</div>
+        <h2>Votre réservation va expirer</h2>
     </div>
     <div class="content">
-        <p>Bonjour,</p>
-        <p>Nous avons bien reçu votre demande de réservation.</p>
-        <div class="details">
-            <strong>Numéro de réservation :</strong> <span th:text="${reservationId}"></span><br>
-            <strong>Date et heure :</strong> <span th:text="${startTime}"></span>
+        <div class="warning">
+            <p>Il ne vous reste que <b>5 minutes</b> pour confirmer votre réservation (n° <span th:text="${reservationId}"></span>).</p>
         </div>
-        <div class="confirmation-code">
-            Code de confirmation : <span th:text="${confirmationCode}"></span>
-        </div>
-        <p>Veuillez confirmer votre réservation en utilisant ce code.</p>
-        <p style="margin-bottom:0;">Cordialement,</p>
-        <p style="margin-top:2px;">L'équipe de réservation</p>
+        <p>Utilisez ce code de confirmation :</p>
+        <div class="code"><span th:text="${confirmationCode}"></span></div>
+        <p>Après ce délai, la réservation sera annulée automatiquement.</p>
     </div>
     <div class="footer">
         Ceci est un email automatique, merci de ne pas y répondre.<br>

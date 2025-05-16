@@ -80,4 +80,25 @@ public class ThymeleafConfig {
             return "<p>Erreur: Template non trouvé</p>";
         }
     }
+    @Bean
+    public String upcomingReservationReminderTemplate() {
+        try {
+            ClassPathResource resource = new ClassPathResource("templates/email/upcoming-reservation-reminder.html");
+            return new String(Files.readAllBytes(resource.getFile().toPath()), StandardCharsets.UTF_8);
+        } catch (IOException e) {
+            log.error("Impossible de charger le template upcoming-reservation-reminder.html", e);
+            return "<p>Erreur: Template non trouvé</p>";
+        }
+    }
+
+    @Bean
+    public String reservationExpireWarningTemplate() {
+        try {
+            ClassPathResource resource = new ClassPathResource("templates/email/reservation-expire-warning.html");
+            return new String(Files.readAllBytes(resource.getFile().toPath()), StandardCharsets.UTF_8);
+        } catch (IOException e) {
+            log.error("Impossible de charger le template reservation-expire-warning.html", e);
+            return "<p>Erreur: Template non trouvé</p>";
+        }
+    }
 }

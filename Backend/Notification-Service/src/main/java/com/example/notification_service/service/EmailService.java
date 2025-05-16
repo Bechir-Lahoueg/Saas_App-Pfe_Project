@@ -20,16 +20,23 @@ public class EmailService {
     private final TemplateEngine templateEngine;
     private final String reservationCreatedTemplate;
     private final String reservationConfirmedTemplate;
+    private final String upcomingReservationReminderTemplate;
+    private final String reservationExpireWarningTemplate;
 
     public EmailService(
             JavaMailSender mailSender,
             @Qualifier("emailTemplateEngine") TemplateEngine templateEngine,
             @Qualifier("reservationCreatedTemplate") String reservationCreatedTemplate,
-            @Qualifier("reservationConfirmedTemplate") String reservationConfirmedTemplate) {
+            @Qualifier("reservationConfirmedTemplate") String reservationConfirmedTemplate,
+            @Qualifier("upcomingReservationReminderTemplate") String upcomingReservationReminderTemplate,
+            @Qualifier("reservationExpireWarningTemplate") String reservationExpireWarningTemplate
+    ) {
         this.mailSender = mailSender;
         this.templateEngine = templateEngine;
         this.reservationCreatedTemplate = reservationCreatedTemplate;
         this.reservationConfirmedTemplate = reservationConfirmedTemplate;
+        this.upcomingReservationReminderTemplate = upcomingReservationReminderTemplate;
+        this.reservationExpireWarningTemplate = reservationExpireWarningTemplate;
     }
 
     public void sendTemplateEmail(String to, String subject, String templateName, Map<String, Object> variables) {
@@ -37,27 +44,26 @@ public class EmailService {
             MimeMessage mimeMessage = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true, "UTF-8");
 
-            // Préparer le contexte avec les variables
             Context context = new Context();
             variables.forEach(context::setVariable);
 
-            // Traiter le template en fonction du nom
             String htmlContent;
             if ("reservation-created".equals(templateName)) {
                 htmlContent = templateEngine.process(reservationCreatedTemplate, context);
             } else if ("reservation-confirmed".equals(templateName)) {
                 htmlContent = templateEngine.process(reservationConfirmedTemplate, context);
+            } else if ("upcoming-reservation-reminder".equals(templateName)) {
+                htmlContent = templateEngine.process(upcomingReservationReminderTemplate, context);
+            } else if ("reservation-expire-warning".equals(templateName)) {
+                htmlContent = templateEngine.process(reservationExpireWarningTemplate, context);
             } else {
-                // Fallback pour un template inconnu
                 htmlContent = "<p>Template non trouvé: " + templateName + "</p>";
             }
 
-            // Configurer le message
             helper.setTo(to);
             helper.setSubject(subject);
-            helper.setText(htmlContent, true);  // true indique que c'est du HTML
+            helper.setText(htmlContent, true);
 
-            // Envoyer l'email
             mailSender.send(mimeMessage);
             log.info("Email envoyé avec succès à {}", to);
         } catch (MessagingException e) {

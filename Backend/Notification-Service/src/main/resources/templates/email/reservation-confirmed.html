@@ -5,55 +5,78 @@
     <title>Confirmation de Réservation</title>
     <style>
         body {
-            font-family: 'Arial', sans-serif;
-            line-height: 1.6;
-            color: #333;
-            max-width: 600px;
-            margin: 0 auto;
+            background: #f4f6fb;
+            font-family: 'Segoe UI', Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            max-width: 520px;
+            margin: 40px auto;
+            background: #fff;
+            border-radius: 14px;
+            box-shadow: 0 4px 24px rgba(39, 174, 96, 0.10);
+            overflow: hidden;
         }
         .header {
-            background-color: #28a745;
-            color: white;
-            padding: 20px;
+            background: linear-gradient(90deg, #28a745 60%, #50e3c2 100%);
+            color: #fff;
+            padding: 32px 24px 16px 24px;
             text-align: center;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 2.1em;
+            font-weight: 700;
+            letter-spacing: 1px;
+        }
+        .icon {
+            font-size: 48px;
+            margin-bottom: 8px;
         }
         .content {
-            padding: 20px;
-            border: 1px solid #ddd;
+            padding: 28px 24px 24px 24px;
+            color: #333;
         }
-        .confirmation-code {
-            background-color: #f8f8f8;
-            padding: 10px;
-            font-size: 18px;
-            font-weight: bold;
-            text-align: center;
-            margin: 20px 0;
+        .details {
+            background: #eafaf1;
+            border-radius: 8px;
+            padding: 18px 16px;
+            margin: 18px 0;
+            font-size: 1.08em;
         }
         .footer {
+            background: #f4f6fb;
+            color: #888;
             text-align: center;
-            margin-top: 20px;
-            font-size: 12px;
-            color: #777;
+            font-size: 13px;
+            padding: 16px 0 10px 0;
+        }
+        @media (max-width: 600px) {
+            .container { margin: 0; border-radius: 0; }
+            .header, .content { padding: 18px 8px; }
         }
     </style>
 </head>
 <body>
-<div class="header">
-    <h1>Confirmation de Réservation</h1>
-</div>
-<div class="content">
-    <p>Bonjour,</p>
-    <p>Votre réservation a été confirmée avec succès!</p>
-    <p>Détails de la réservation:</p>
-    <ul>
-        <li>Numéro de réservation: <span th:text="${reservationId}"></span></li>
-        <li>Date et heure: <span th:text="${startTime}"></span></li>
-    </ul>
-    <p>Merci de votre confiance.</p>
-</div>
-<div class="footer">
-    <p>Ceci est un email automatique, merci de ne pas y répondre.</p>
-    <p>© 2024 Votre Entreprise</p>
+<div class="container">
+    <div class="header">
+        <div class="icon">✅</div>
+        <h1>Confirmation de Réservation</h1>
+    </div>
+    <div class="content">
+        <p>Bonjour,</p>
+        <p>Votre réservation a été <b>confirmée avec succès !</b></p>
+        <div class="details">
+            <strong>Numéro de réservation :</strong> <span th:text="${reservationId}"></span><br>
+            <strong>Date et heure :</strong> <span th:text="${startTime}"></span>
+        </div>
+        <p>Merci de votre confiance.</p>
+    </div>
+    <div class="footer">
+        Ceci est un email automatique, merci de ne pas y répondre.<br>
+        © 2025 PlanifyGo
+    </div>
 </div>
 </body>
 </html>

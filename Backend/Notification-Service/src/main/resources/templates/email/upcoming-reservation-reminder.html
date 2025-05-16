@@ -2,7 +2,7 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>Nouvelle Réservation</title>
+    <title>Rappel de Réservation Prochaine</title>
     <style>
         body {
             background: #f4f6fb;
@@ -14,8 +14,8 @@
             max-width: 520px;
             margin: 40px auto;
             background: #fff;
-            border-radius: 14px;
-            box-shadow: 0 4px 24px rgba(44,62,80,0.10);
+            border-radius: 12px;
+            box-shadow: 0 4px 24px rgba(44,62,80,0.08);
             overflow: hidden;
         }
         .header {
@@ -24,9 +24,9 @@
             padding: 32px 24px 16px 24px;
             text-align: center;
         }
-        .header h1 {
+        .header h2 {
             margin: 0;
-            font-size: 2.1em;
+            font-size: 2em;
             font-weight: 700;
             letter-spacing: 1px;
         }
@@ -45,18 +45,6 @@
             margin: 18px 0;
             font-size: 1.08em;
         }
-        .confirmation-code {
-            background: #eafaf1;
-            color: #27ae60;
-            font-weight: bold;
-            font-size: 1.2em;
-            padding: 12px 18px;
-            border-radius: 8px;
-            text-align: center;
-            margin: 18px 0;
-            letter-spacing: 2px;
-            border: 1px dashed #27ae60;
-        }
         .footer {
             background: #f4f6fb;
             color: #888;
@@ -73,22 +61,16 @@
 <body>
 <div class="container">
     <div class="header">
-        <div class="icon">📅</div>
-        <h1>Nouvelle Réservation</h1>
+        <div class="icon">⏰</div>
+        <h2>Votre réservation approche</h2>
     </div>
     <div class="content">
         <p>Bonjour,</p>
-        <p>Nous avons bien reçu votre demande de réservation.</p>
+        <p>Petit rappel : votre réservation est prévue le <b><span th:text="${startTime}"></span></b>.</p>
         <div class="details">
-            <strong>Numéro de réservation :</strong> <span th:text="${reservationId}"></span><br>
-            <strong>Date et heure :</strong> <span th:text="${startTime}"></span>
+            <strong>Numéro de réservation :</strong> <span th:text="${reservationId}"></span>
         </div>
-        <div class="confirmation-code">
-            Code de confirmation : <span th:text="${confirmationCode}"></span>
-        </div>
-        <p>Veuillez confirmer votre réservation en utilisant ce code.</p>
-        <p style="margin-bottom:0;">Cordialement,</p>
-        <p style="margin-top:2px;">L'équipe de réservation</p>
+        <p>Nous avons hâte de vous accueillir.<br>Merci de votre confiance !</p>
     </div>
     <div class="footer">
         Ceci est un email automatique, merci de ne pas y répondre.<br>
