@@ -2,7 +2,6 @@ package com.example.register_service.service;
 
 import com.example.register_service.entities.Tenant;
 import com.example.register_service.dto.TenantRegistrationRequest;
-import com.example.register_service.events.TenantCreatedEvent;
 import com.example.register_service.repository.TenantRepository;
 import com.example.register_service.util.DatabaseCreator;
 import jakarta.transaction.Transactional;

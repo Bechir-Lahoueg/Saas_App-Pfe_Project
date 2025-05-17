@@ -183,16 +183,201 @@ const ConfirmationComponent = ({
 
   // Liste des pays populaires avec leurs codes et drapeaux
   const countries = [
-    { code: "+216", name: "Tunisie", flag: "🇹🇳" },
-    { code: "+33", name: "France", flag: "🇫🇷" },
-    { code: "+1", name: "États-Unis", flag: "🇺🇸" },
-    { code: "+44", name: "Royaume-Uni", flag: "🇬🇧" },
-    { code: "+212", name: "Maroc", flag: "🇲🇦" },
+    { code: "+93", name: "Afghanistan", flag: "🇦🇫" },
+    { code: "+355", name: "Albanie", flag: "🇦🇱" },
     { code: "+213", name: "Algérie", flag: "🇩🇿" },
+    { code: "+376", name: "Andorre", flag: "🇦🇩" },
+    { code: "+244", name: "Angola", flag: "🇦🇴" },
+    { code: "+1", name: "Antigua-et-Barbuda", flag: "🇦🇬" },
+    { code: "+54", name: "Argentine", flag: "🇦🇷" },
+    { code: "+374", name: "Arménie", flag: "🇦🇲" },
+    { code: "+61", name: "Australie", flag: "🇦🇺" },
+    { code: "+43", name: "Autriche", flag: "🇦🇹" },
+    { code: "+994", name: "Azerbaïdjan", flag: "🇦🇿" },
+    { code: "+1", name: "Bahamas", flag: "🇧🇸" },
+    { code: "+973", name: "Bahreïn", flag: "🇧🇭" },
+    { code: "+880", name: "Bangladesh", flag: "🇧🇩" },
+    { code: "+1", name: "Barbade", flag: "🇧🇧" },
+    { code: "+375", name: "Biélorussie", flag: "🇧🇾" },
     { code: "+32", name: "Belgique", flag: "🇧🇪" },
-    { code: "+41", name: "Suisse", flag: "🇨🇭" },
-    { code: "+39", name: "Italie", flag: "🇮🇹" },
+    { code: "+501", name: "Belize", flag: "🇧🇿" },
+    { code: "+229", name: "Bénin", flag: "🇧🇯" },
+    { code: "+975", name: "Bhoutan", flag: "🇧🇹" },
+    { code: "+591", name: "Bolivie", flag: "🇧🇴" },
+    { code: "+387", name: "Bosnie-Herzégovine", flag: "🇧🇦" },
+    { code: "+267", name: "Botswana", flag: "🇧🇼" },
+    { code: "+55", name: "Brésil", flag: "🇧🇷" },
+    { code: "+673", name: "Brunei", flag: "🇧🇳" },
+    { code: "+359", name: "Bulgarie", flag: "🇧🇬" },
+    { code: "+226", name: "Burkina Faso", flag: "🇧🇫" },
+    { code: "+257", name: "Burundi", flag: "🇧🇮" },
+    { code: "+855", name: "Cambodge", flag: "🇰🇭" },
+    { code: "+237", name: "Cameroun", flag: "🇨🇲" },
+    { code: "+1", name: "Canada", flag: "🇨🇦" },
+    { code: "+238", name: "Cap-Vert", flag: "🇨🇻" },
+    { code: "+236", name: "République centrafricaine", flag: "🇨🇫" },
+    { code: "+235", name: "Tchad", flag: "🇹🇩" },
+    { code: "+56", name: "Chili", flag: "🇨🇱" },
+    { code: "+86", name: "Chine", flag: "🇨🇳" },
+    { code: "+57", name: "Colombie", flag: "🇨🇴" },
+    { code: "+269", name: "Comores", flag: "🇰🇲" },
+    { code: "+242", name: "République du Congo", flag: "🇨🇬" },
+    { code: "+243", name: "République démocratique du Congo", flag: "🇨🇩" },
+    { code: "+506", name: "Costa Rica", flag: "🇨🇷" },
+    { code: "+225", name: "Côte d'Ivoire", flag: "🇨🇮" },
+    { code: "+385", name: "Croatie", flag: "🇭🇷" },
+    { code: "+53", name: "Cuba", flag: "🇨🇺" },
+    { code: "+357", name: "Chypre", flag: "🇨🇾" },
+    { code: "+420", name: "République tchèque", flag: "🇨🇿" },
+    { code: "+45", name: "Danemark", flag: "🇩🇰" },
+    { code: "+253", name: "Djibouti", flag: "🇩🇯" },
+    { code: "+1", name: "Dominique", flag: "🇩🇲" },
+    { code: "+1", name: "République dominicaine", flag: "🇩🇴" },
+    { code: "+670", name: "Timor oriental", flag: "🇹🇱" },
+    { code: "+593", name: "Équateur", flag: "🇪🇨" },
+    { code: "+20", name: "Égypte", flag: "🇪🇬" },
+    { code: "+503", name: "Salvador", flag: "🇸🇻" },
+    { code: "+240", name: "Guinée équatoriale", flag: "🇬🇶" },
+    { code: "+291", name: "Érythrée", flag: "🇪🇷" },
+    { code: "+372", name: "Estonie", flag: "🇪🇪" },
+    { code: "+251", name: "Éthiopie", flag: "🇪🇹" },
+    { code: "+679", name: "Fidji", flag: "🇫🇯" },
+    { code: "+358", name: "Finlande", flag: "🇫🇮" },
+    { code: "+33", name: "France", flag: "🇫🇷" },
+    { code: "+241", name: "Gabon", flag: "🇬🇦" },
+    { code: "+220", name: "Gambie", flag: "🇬🇲" },
+    { code: "+995", name: "Géorgie", flag: "🇬🇪" },
     { code: "+49", name: "Allemagne", flag: "🇩🇪" },
+    { code: "+233", name: "Ghana", flag: "🇬🇭" },
+    { code: "+30", name: "Grèce", flag: "🇬🇷" },
+    { code: "+1", name: "Grenade", flag: "🇬🇩" },
+    { code: "+502", name: "Guatemala", flag: "🇬🇹" },
+    { code: "+224", name: "Guinée", flag: "🇬🇳" },
+    { code: "+245", name: "Guinée-Bissau", flag: "🇬🇼" },
+    { code: "+592", name: "Guyana", flag: "🇬🇾" },
+    { code: "+509", name: "Haïti", flag: "🇭🇹" },
+    { code: "+504", name: "Honduras", flag: "🇭🇳" },
+    { code: "+36", name: "Hongrie", flag: "🇭🇺" },
+    { code: "+354", name: "Islande", flag: "🇮🇸" },
+    { code: "+91", name: "Inde", flag: "🇮🇳" },
+    { code: "+62", name: "Indonésie", flag: "🇮🇩" },
+    { code: "+98", name: "Iran", flag: "🇮🇷" },
+    { code: "+964", name: "Irak", flag: "🇮🇶" },
+    { code: "+353", name: "Irlande", flag: "🇮🇪" },
+    { code: "+972", name: "Israël", flag: "🇮🇱" },
+    { code: "+39", name: "Italie", flag: "🇮🇹" },
+    { code: "+1", name: "Jamaïque", flag: "🇯🇲" },
+    { code: "+81", name: "Japon", flag: "🇯🇵" },
+    { code: "+962", name: "Jordanie", flag: "🇯🇴" },
+    { code: "+7", name: "Kazakhstan", flag: "🇰🇿" },
+    { code: "+254", name: "Kenya", flag: "🇰🇪" },
+    { code: "+686", name: "Kiribati", flag: "🇰🇮" },
+    { code: "+850", name: "Corée du Nord", flag: "🇰🇵" },
+    { code: "+82", name: "Corée du Sud", flag: "🇰🇷" },
+    { code: "+965", name: "Koweït", flag: "🇰🇼" },
+    { code: "+996", name: "Kirghizistan", flag: "🇰🇬" },
+    { code: "+856", name: "Laos", flag: "🇱🇦" },
+    { code: "+371", name: "Lettonie", flag: "🇱🇻" },
+    { code: "+961", name: "Liban", flag: "🇱🇧" },
+    { code: "+266", name: "Lesotho", flag: "🇱🇸" },
+    { code: "+231", name: "Liberia", flag: "🇱🇷" },
+    { code: "+218", name: "Libye", flag: "🇱🇾" },
+    { code: "+423", name: "Liechtenstein", flag: "🇱🇮" },
+    { code: "+370", name: "Lituanie", flag: "🇱🇹" },
+    { code: "+352", name: "Luxembourg", flag: "🇱🇺" },
+    { code: "+389", name: "Macédoine du Nord", flag: "🇲🇰" },
+    { code: "+261", name: "Madagascar", flag: "🇲🇬" },
+    { code: "+265", name: "Malawi", flag: "🇲🇼" },
+    { code: "+60", name: "Malaisie", flag: "🇲🇾" },
+    { code: "+960", name: "Maldives", flag: "🇲🇻" },
+    { code: "+223", name: "Mali", flag: "🇲🇱" },
+    { code: "+356", name: "Malte", flag: "🇲🇹" },
+    { code: "+692", name: "Îles Marshall", flag: "🇲🇭" },
+    { code: "+222", name: "Mauritanie", flag: "🇲🇷" },
+    { code: "+230", name: "Maurice", flag: "🇲🇺" },
+    { code: "+52", name: "Mexique", flag: "🇲🇽" },
+    { code: "+691", name: "Micronésie", flag: "🇫🇲" },
+    { code: "+373", name: "Moldavie", flag: "🇲🇩" },
+    { code: "+377", name: "Monaco", flag: "🇲🇨" },
+    { code: "+976", name: "Mongolie", flag: "🇲🇳" },
+    { code: "+382", name: "Monténégro", flag: "🇲🇪" },
+    { code: "+212", name: "Maroc", flag: "🇲🇦" },
+    { code: "+258", name: "Mozambique", flag: "🇲🇿" },
+    { code: "+95", name: "Myanmar", flag: "🇲🇲" },
+    { code: "+264", name: "Namibie", flag: "🇳🇦" },
+    { code: "+674", name: "Nauru", flag: "🇳🇷" },
+    { code: "+977", name: "Népal", flag: "🇳🇵" },
+    { code: "+31", name: "Pays-Bas", flag: "🇳🇱" },
+    { code: "+64", name: "Nouvelle-Zélande", flag: "🇳🇿" },
+    { code: "+505", name: "Nicaragua", flag: "🇳🇮" },
+    { code: "+227", name: "Niger", flag: "🇳🇪" },
+    { code: "+234", name: "Nigeria", flag: "🇳🇬" },
+    { code: "+47", name: "Norvège", flag: "🇳🇴" },
+    { code: "+968", name: "Oman", flag: "🇴🇲" },
+    { code: "+92", name: "Pakistan", flag: "🇵🇰" },
+    { code: "+680", name: "Palaos", flag: "🇵🇼" },
+    { code: "+507", name: "Panama", flag: "🇵🇦" },
+    { code: "+675", name: "Papouasie-Nouvelle-Guinée", flag: "🇵🇬" },
+    { code: "+595", name: "Paraguay", flag: "🇵🇾" },
+    { code: "+51", name: "Pérou", flag: "🇵🇪" },
+    { code: "+63", name: "Philippines", flag: "🇵🇭" },
+    { code: "+48", name: "Pologne", flag: "🇵🇱" },
+    { code: "+351", name: "Portugal", flag: "🇵🇹" },
+    { code: "+974", name: "Qatar", flag: "🇶🇦" },
+    { code: "+40", name: "Roumanie", flag: "🇷🇴" },
+    { code: "+7", name: "Russie", flag: "🇷🇺" },
+    { code: "+250", name: "Rwanda", flag: "🇷🇼" },
+    { code: "+1", name: "Saint-Kitts-et-Nevis", flag: "🇰🇳" },
+    { code: "+1", name: "Sainte-Lucie", flag: "🇱🇨" },
+    { code: "+1", name: "Saint-Vincent-et-les-Grenadines", flag: "🇻🇨" },
+    { code: "+685", name: "Samoa", flag: "🇼🇸" },
+    { code: "+378", name: "Saint-Marin", flag: "🇸🇲" },
+    { code: "+239", name: "Sao Tomé-et-Principe", flag: "🇸🇹" },
+    { code: "+966", name: "Arabie saoudite", flag: "🇸🇦" },
+    { code: "+221", name: "Sénégal", flag: "🇸🇳" },
+    { code: "+381", name: "Serbie", flag: "🇷🇸" },
+    { code: "+248", name: "Seychelles", flag: "🇸🇨" },
+    { code: "+232", name: "Sierra Leone", flag: "🇸🇱" },
+    { code: "+65", name: "Singapour", flag: "🇸🇬" },
+    { code: "+421", name: "Slovaquie", flag: "🇸🇰" },
+    { code: "+386", name: "Slovénie", flag: "🇸🇮" },
+    { code: "+677", name: "Îles Salomon", flag: "🇸🇧" },
+    { code: "+252", name: "Somalie", flag: "🇸🇴" },
+    { code: "+27", name: "Afrique du Sud", flag: "🇿🇦" },
+    { code: "+211", name: "Soudan du Sud", flag: "🇸🇸" },
+    { code: "+34", name: "Espagne", flag: "🇪🇸" },
+    { code: "+94", name: "Sri Lanka", flag: "🇱🇰" },
+    { code: "+249", name: "Soudan", flag: "🇸🇩" },
+    { code: "+597", name: "Suriname", flag: "🇸🇷" },
+    { code: "+268", name: "Eswatini", flag: "🇸🇿" },
+    { code: "+46", name: "Suède", flag: "🇸🇪" },
+    { code: "+41", name: "Suisse", flag: "🇨🇭" },
+    { code: "+963", name: "Syrie", flag: "🇸🇾" },
+    { code: "+886", name: "Taïwan", flag: "🇹🇼" },
+    { code: "+992", name: "Tadjikistan", flag: "🇹🇯" },
+    { code: "+255", name: "Tanzanie", flag: "🇹🇿" },
+    { code: "+66", name: "Thaïlande", flag: "🇹🇭" },
+    { code: "+228", name: "Togo", flag: "🇹🇬" },
+    { code: "+676", name: "Tonga", flag: "🇹🇴" },
+    { code: "+1", name: "Trinité-et-Tobago", flag: "🇹🇹" },
+    { code: "+216", name: "Tunisie", flag: "🇹🇳" },
+    { code: "+90", name: "Turquie", flag: "🇹🇷" },
+    { code: "+993", name: "Turkménistan", flag: "🇹🇲" },
+    { code: "+688", name: "Tuvalu", flag: "🇹🇻" },
+    { code: "+256", name: "Ouganda", flag: "🇺🇬" },
+    { code: "+380", name: "Ukraine", flag: "🇺🇦" },
+    { code: "+971", name: "Émirats arabes unis", flag: "🇦🇪" },
+    { code: "+44", name: "Royaume-Uni", flag: "🇬🇧" },
+    { code: "+1", name: "États-Unis", flag: "🇺🇸" },
+    { code: "+598", name: "Uruguay", flag: "🇺🇾" },
+    { code: "+998", name: "Ouzbékistan", flag: "🇺🇿" },
+    { code: "+678", name: "Vanuatu", flag: "🇻🇺" },
+    { code: "+39", name: "Vatican", flag: "🇻🇦" },
+    { code: "+58", name: "Venezuela", flag: "🇻🇪" },
+    { code: "+84", name: "Viêt Nam", flag: "🇻🇳" },
+    { code: "+967", name: "Yémen", flag: "🇾🇪" },
+    { code: "+260", name: "Zambie", flag: "🇿🇲" },
+    { code: "+263", name: "Zimbabwe", flag: "🇿🇼" },
   ];
 
   // Fonction pour obtenir le drapeau et le code du pays
@@ -352,6 +537,14 @@ const ConfirmationComponent = ({
                 {selectedService?.name}
               </span>
             </div>
+            <div className="flex items-start">
+              <Users className="h-5 w-5 text-indigo-500 mr-2 mt-0.5" />
+              <span>
+                <span className="font-medium text-gray-700">Capacité:</span>{" "}
+                {selectedService.maxAttendees || 1} participant
+                {selectedService.maxAttendees > 1 ? "s" : ""} maximum
+              </span>
+            </div>
             {selectedEmployee && (
               <div className="flex items-start">
                 <svg
@@ -383,6 +576,7 @@ const ConfirmationComponent = ({
       <form>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
           {/* Prénom */}
+          {/* Prénom */}
           <div>
             <label
               htmlFor="firstName"
@@ -390,19 +584,23 @@ const ConfirmationComponent = ({
             >
               Prénom <span className="text-red-500">*</span>
             </label>
-            <input
-              type="text"
-              id="firstName"
-              name="firstName"
-              value={clientInfo.firstName}
-              onChange={handleChange}
-              className={`w-full p-3 border rounded-lg focus:ring focus:ring-indigo-200 transition-all ${
-                errors.firstName
-                  ? "border-red-300 bg-red-50"
-                  : "border-gray-300 focus:border-indigo-500"
-              }`}
-              placeholder="Votre prénom"
-            />
+            <div className="relative">
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-indigo-400">
+                <User className="h-5 w-5" />
+              </span>
+              <input
+                type="text"
+                id="firstName"
+                name="firstName"
+                value={clientInfo.firstName}
+                onChange={handleChange}
+                className={`w-full pl-11 pr-4 py-3 rounded-xl border-2 border-indigo-100 bg-white focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 text-gray-800 text-base transition-all placeholder-gray-400 shadow-sm ${
+                  errors.firstName ? "border-red-300 bg-red-50" : ""
+                }`}
+                placeholder="Votre prénom"
+                autoComplete="given-name"
+              />
+            </div>
             {errors.firstName && (
               <p className="mt-1 text-sm text-red-600 flex items-center">
                 <svg
@@ -431,19 +629,23 @@ const ConfirmationComponent = ({
             >
               Nom <span className="text-red-500">*</span>
             </label>
-            <input
-              type="text"
-              id="lastName"
-              name="lastName"
-              value={clientInfo.lastName}
-              onChange={handleChange}
-              className={`w-full p-3 border rounded-lg focus:ring focus:ring-indigo-200 transition-all ${
-                errors.lastName
-                  ? "border-red-300 bg-red-50"
-                  : "border-gray-300 focus:border-indigo-500"
-              }`}
-              placeholder="Votre nom"
-            />
+            <div className="relative">
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-indigo-400">
+                <User className="h-5 w-5" />
+              </span>
+              <input
+                type="text"
+                id="lastName"
+                name="lastName"
+                value={clientInfo.lastName}
+                onChange={handleChange}
+                className={`w-full pl-11 pr-4 py-3 rounded-xl border-2 border-indigo-100 bg-white focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 text-gray-800 text-base transition-all placeholder-gray-400 shadow-sm ${
+                  errors.lastName ? "border-red-300 bg-red-50" : ""
+                }`}
+                placeholder="Votre nom"
+                autoComplete="family-name"
+              />
+            </div>
             {errors.lastName && (
               <p className="mt-1 text-sm text-red-600 flex items-center">
                 <svg
@@ -464,7 +666,64 @@ const ConfirmationComponent = ({
             )}
           </div>
 
-          {/* Numéro de téléphone avec sélecteur de pays */}
+          {/* Email */}
+          <div>
+            <label
+              htmlFor="email"
+              className="block text-sm font-medium text-gray-700 mb-1"
+            >
+              Email <span className="text-red-500">*</span>
+            </label>
+            <div className="relative">
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-indigo-400">
+                <svg
+                  className="h-5 w-5"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    d="M16 12H8m8 0a4 4 0 11-8 0 4 4 0 018 0z"
+                  />
+                </svg>
+              </span>
+              <input
+                type="email"
+                id="email"
+                name="email"
+                value={clientInfo.email}
+                onChange={handleChange}
+                className={`w-full pl-11 pr-4 py-3 rounded-xl border-2 border-indigo-100 bg-white focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 text-gray-800 text-base transition-all placeholder-gray-400 shadow-sm ${
+                  errors.email ? "border-red-300 bg-red-50" : ""
+                }`}
+                placeholder="votre-email@exemple.com"
+                autoComplete="email"
+              />
+            </div>
+            {errors.email && (
+              <p className="mt-1 text-sm text-red-600 flex items-center">
+                <svg
+                  className="h-4 w-4 mr-1"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
+                </svg>
+                {errors.email}
+              </p>
+            )}
+          </div>
+
+          {/* Téléphone */}
           <div>
             <label
               htmlFor="phoneNumber"
@@ -476,12 +735,16 @@ const ConfirmationComponent = ({
               <div className="relative">
                 <button
                   type="button"
-                  className="flex items-center justify-between w-28 h-full p-3 bg-gray-100 border border-gray-300 rounded-l-lg hover:bg-gray-200 focus:outline-none"
+                  className="flex items-center justify-between w-36 h-full p-3 bg-gray-100 border border-gray-300 rounded-l-xl hover:bg-gray-200 focus:outline-none"
                   onClick={() => setShowCountryDropdown(!showCountryDropdown)}
                 >
-                  <div className="flex items-center">
-                    <span className="text-sm">{getCurrentCountry()}</span>
-                  </div>
+                  <span className="flex items-center">
+                    <span className="text-xl mr-2">
+                      {countries.find((c) => c.code === countryCode)?.flag ||
+                        "🏳️"}
+                    </span>
+                    <span className="text-sm font-medium">{countryCode}</span>
+                  </span>
                   <svg
                     className="h-4 w-4 ml-2"
                     fill="none"
@@ -496,18 +759,17 @@ const ConfirmationComponent = ({
                     />
                   </svg>
                 </button>
-
                 {showCountryDropdown && (
-                  <div className="absolute top-full left-0 mt-1 w-48 bg-white border border-gray-300 rounded-lg shadow-lg z-50 max-h-60 overflow-y-auto">
+                  <div className="absolute top-full left-0 mt-1 w-64 bg-white border border-gray-300 rounded-lg shadow-lg z-50 max-h-72 overflow-y-auto">
                     {countries.map((country) => (
                       <button
                         key={country.code}
                         type="button"
-                        className="flex items-center w-full px-4 py-2 text-left hover:bg-gray-100"
+                        className="flex items-center w-full px-4 py-2 text-left hover:bg-indigo-50 transition"
                         onClick={() => selectCountry(country.code)}
                       >
-                        <span className="mr-2">{country.flag}</span>
-                        <span className="mr-2">{country.code}</span>
+                        <span className="text-xl mr-2">{country.flag}</span>
+                        <span className="mr-2 font-medium">{country.code}</span>
                         <span className="text-sm text-gray-600">
                           {country.name}
                         </span>
@@ -516,19 +778,17 @@ const ConfirmationComponent = ({
                   </div>
                 )}
               </div>
-
               <input
                 type="tel"
                 id="phoneNumber"
                 name="phoneNumber"
                 value={clientInfo.phoneNumber}
                 onChange={handleChange}
-                className={`flex-grow p-3 border-t border-r border-b rounded-r-lg focus:ring focus:ring-indigo-200 transition-all ${
-                  errors.phoneNumber
-                    ? "border-red-300 bg-red-50"
-                    : "border-gray-300 focus:border-indigo-500"
+                className={`flex-grow pl-4 pr-4 py-3 border-t-2 border-b-2 border-r-2 border-indigo-100 rounded-r-xl focus:ring-2 focus:ring-indigo-100 transition-all text-base text-gray-800 bg-white shadow-sm ${
+                  errors.phoneNumber ? "border-red-300 bg-red-50" : ""
                 }`}
                 placeholder="Numéro de téléphone"
+                autoComplete="tel"
               />
             </div>
             {errors.phoneNumber && (
@@ -554,47 +814,6 @@ const ConfirmationComponent = ({
             </p>
           </div>
 
-          {/* Email */}
-          <div>
-            <label
-              htmlFor="email"
-              className="block text-sm font-medium text-gray-700 mb-1"
-            >
-              Email <span className="text-red-500">*</span>
-            </label>
-            <input
-              type="email"
-              id="email"
-              name="email"
-              value={clientInfo.email}
-              onChange={handleChange}
-              className={`w-full p-3 border rounded-lg focus:ring focus:ring-indigo-200 transition-all ${
-                errors.email
-                  ? "border-red-300 bg-red-50"
-                  : "border-gray-300 focus:border-indigo-500"
-              }`}
-              placeholder="votre-email@exemple.com"
-            />
-            {errors.email && (
-              <p className="mt-1 text-sm text-red-600 flex items-center">
-                <svg
-                  className="h-4 w-4 mr-1"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                  />
-                </svg>
-                {errors.email}
-              </p>
-            )}
-          </div>
-
           {/* Nombre de participants */}
           <div>
             <label
@@ -602,21 +821,93 @@ const ConfirmationComponent = ({
               className="block text-sm font-medium text-gray-700 mb-1"
             >
               Nombre de participants <span className="text-red-500">*</span>
+              {selectedService && (
+                <span className="text-xs text-indigo-600 ml-1">
+                  (Maximum: {selectedService.maxAttendees || 1})
+                </span>
+              )}
             </label>
-            <input
-              type="number"
-              id="numberOfAttendees"
-              name="numberOfAttendees"
-              min="1"
-              value={clientInfo.numberOfAttendees || "1"}
-              onChange={handleChange}
-              className={`w-full p-3 border rounded-lg focus:ring focus:ring-indigo-200 transition-all ${
-                errors.numberOfAttendees
-                  ? "border-red-300 bg-red-50"
-                  : "border-gray-300 focus:border-indigo-500"
-              }`}
-              placeholder="1"
-            />
+            <div className="relative flex items-center mt-2 bg-white/70 backdrop-blur-md rounded-2xl shadow-lg px-4 py-3 w-max mx-auto border border-indigo-100">
+              <button
+                type="button"
+                onClick={() => {
+                  const min = 1;
+                  const value = Math.max(
+                    min,
+                    (parseInt(clientInfo.numberOfAttendees) || 1) - 1
+                  );
+                  handleChange({
+                    target: {
+                      name: "numberOfAttendees",
+                      value: value.toString(),
+                    },
+                  });
+                }}
+                className="w-11 h-11 rounded-full bg-gradient-to-br from-indigo-50 to-indigo-100 border border-indigo-200 text-indigo-600 text-2xl font-bold flex items-center justify-center shadow-md hover:bg-indigo-200 focus:ring-2 focus:ring-indigo-300 transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed"
+                disabled={parseInt(clientInfo.numberOfAttendees) <= 1}
+                aria-label="Diminuer"
+              >
+                –
+              </button>
+              <input
+                type="number"
+                id="numberOfAttendees"
+                name="numberOfAttendees"
+                min="1"
+                max={selectedService?.maxAttendees || 1}
+                value={clientInfo.numberOfAttendees || "1"}
+                onChange={(e) => {
+                  const value = parseInt(e.target.value);
+                  const maxAttendees = selectedService?.maxAttendees || 1;
+                  const limitedValue = Math.min(
+                    Math.max(1, value || 1),
+                    maxAttendees
+                  );
+                  handleChange({
+                    target: {
+                      name: "numberOfAttendees",
+                      value: limitedValue.toString(),
+                    },
+                  });
+                }}
+                className="w-20 mx-4 text-center p-3 border-0 bg-transparent text-2xl font-bold outline-none focus:ring-2 focus:ring-indigo-300 transition-all duration-200"
+                placeholder="1"
+                style={{ fontVariantNumeric: "tabular-nums" }}
+              />
+              <button
+                type="button"
+                onClick={() => {
+                  const max = selectedService?.maxAttendees || 1;
+                  const value = Math.min(
+                    max,
+                    (parseInt(clientInfo.numberOfAttendees) || 1) + 1
+                  );
+                  handleChange({
+                    target: {
+                      name: "numberOfAttendees",
+                      value: value.toString(),
+                    },
+                  });
+                }}
+                className="w-11 h-11 rounded-full bg-gradient-to-br from-indigo-50 to-indigo-100 border border-indigo-200 text-indigo-600 text-2xl font-bold flex items-center justify-center shadow-md hover:bg-indigo-200 focus:ring-2 focus:ring-indigo-300 transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed"
+                disabled={
+                  parseInt(clientInfo.numberOfAttendees) >=
+                  (selectedService?.maxAttendees || 1)
+                }
+                aria-label="Augmenter"
+              >
+                +
+              </button>
+              <span className="ml-4 text-indigo-500 text-sm font-semibold select-none bg-indigo-50 px-3 py-1 rounded-full shadow-inner border border-indigo-100">
+                / {selectedService?.maxAttendees || 1}
+              </span>
+              {parseInt(clientInfo.numberOfAttendees) >=
+                (selectedService?.maxAttendees || 1) && (
+                <span className="ml-3 text-xs text-amber-600 font-medium animate-pulse bg-amber-50 px-2 py-1 rounded-full shadow">
+                  Limite atteinte
+                </span>
+              )}
+            </div>
             {errors.numberOfAttendees && (
               <p className="mt-1 text-sm text-red-600 flex items-center">
                 <svg
@@ -635,6 +926,9 @@ const ConfirmationComponent = ({
                 {errors.numberOfAttendees}
               </p>
             )}
+            <p className="text-xs text-gray-500 mt-1 text-center">
+              Nombre de personnes qui participeront à ce rendez-vous
+            </p>
           </div>
         </div>
 
@@ -1335,6 +1629,19 @@ export default function Reservation() {
 
     if (availableServices.length === 0) return null;
 
+    // Calculer le temps total en minutes de la fenêtre de visualisation
+    const totalMinutesInView = (viewEnd - viewStart) / (1000 * 60);
+
+    // Fonction pour calculer le pourcentage de largeur basé sur la durée du service
+    const calculateWidthPercentage = (duration) => {
+      return (duration / totalMinutesInView) * 100;
+    };
+
+    // Fonction pour calculer le pourcentage de position à partir de l'heure de début
+    const calculatePositionPercentage = (startTime) => {
+      return ((startTime - viewStart) / (viewEnd - viewStart)) * 100;
+    };
+
     return (
       <div className="mt-8">
         <h4 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
@@ -1342,50 +1649,66 @@ export default function Reservation() {
           Visualisation des durées de service
         </h4>
 
-        <div className="bg-white rounded-xl p-4 border border-gray-200 shadow-sm">
-          <div className="relative overflow-x-auto">
-            {/* Timeline header - heures */}
-            <div className="flex border-b border-gray-200 pb-2 mb-3">
-              <div className="w-24 flex-shrink-0 font-medium text-gray-500 text-sm">
-                Service
-              </div>
-              <div className="flex-1 relative">
-                {Array.from({ length: 5 }, (_, i) => {
-                  const hourTime = new Date(viewStart);
-                  hourTime.setHours(viewStart.getHours() + i);
-                  return (
-                    <div
-                      key={i}
-                      className="absolute text-xs text-gray-500 font-medium"
-                      style={{ left: `${i * 25}%` }}
-                    >
+        <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
+          <div className="relative">
+            {/* Timeline header - heures avec graduations précises */}
+            <div className="mb-8 relative">
+              <div className="absolute left-0 right-0 bottom-0 h-0.5 bg-gray-200"></div>
+
+              {/* Graduations principales (heures) */}
+              {Array.from({ length: 5 }, (_, i) => {
+                const hourTime = new Date(viewStart);
+                hourTime.setHours(viewStart.getHours() + i);
+                return (
+                  <div
+                    key={i}
+                    className="absolute bottom-0"
+                    style={{ left: `${i * 25}%` }}
+                  >
+                    <div className="h-3 w-0.5 bg-gray-400 mb-1"></div>
+                    <div className="text-xs text-gray-600 font-medium whitespace-nowrap -ml-6 w-12 text-center">
                       {hourTime.getHours()}:00
                     </div>
-                  );
-                })}
-
-                {/* Ligne représentant l'heure sélectionnée */}
-                <div
-                  className="absolute top-0 bottom-0 w-0.5 bg-indigo-500 z-10 h-full"
-                  style={{
-                    left: `${
-                      ((selectedDateTime - viewStart) / (4 * 60 * 60 * 1000)) *
-                      100
-                    }%`,
-                    top: "20px",
-                  }}
-                >
-                  <div className="w-2 h-2 rounded-full bg-indigo-600 -ml-1 absolute -top-1"></div>
-                  <div className="absolute -top-6 -translate-x-1/2 bg-indigo-100 text-indigo-800 text-xs px-2 py-0.5 rounded whitespace-nowrap">
-                    {selectedTime}
                   </div>
+                );
+              })}
+
+              {/* Graduations secondaires (30 minutes) */}
+              {Array.from({ length: 8 }, (_, i) => {
+                if (i % 2 === 0) return null; // Skip hours (already covered above)
+                const halfHourTime = new Date(viewStart);
+                halfHourTime.setMinutes(viewStart.getMinutes() + i * 30);
+                return (
+                  <div
+                    key={`half-${i}`}
+                    className="absolute bottom-0"
+                    style={{ left: `${i * 12.5}%` }}
+                  >
+                    <div className="h-2 w-0.5 bg-gray-300 mb-1"></div>
+                    <div className="text-xs text-gray-500 -ml-6 w-12 text-center">
+                      {halfHourTime.getHours()}:30
+                    </div>
+                  </div>
+                );
+              })}
+
+              {/* Ligne représentant l'heure sélectionnée */}
+              <div
+                className="absolute left-0 h-10 w-0.5 bg-indigo-500 z-10 bottom-0"
+                style={{
+                  left: `${calculatePositionPercentage(selectedDateTime)}%`,
+                }}
+              >
+                <div className="w-3 h-3 rounded-full bg-indigo-600 -ml-1.5 absolute -top-1.5 shadow-md"></div>
+                <div className="absolute -top-8 -translate-x-1/2 bg-indigo-600 text-white text-xs px-2 py-1 rounded-md shadow-md whitespace-nowrap">
+                  {selectedTime}
                 </div>
               </div>
             </div>
 
             {/* Services avec visualisation de leur durée */}
-            <div className="space-y-3">
-              {availableServices.map((service) => {
+            <div className="space-y-5 mt-2">
+              {availableServices.map((service, index) => {
                 // Calculer l'heure de fin basée sur la durée du service
                 const serviceEndTime = new Date(selectedDateTime);
                 serviceEndTime.setMinutes(
@@ -1394,32 +1717,78 @@ export default function Reservation() {
 
                 // Calculer la position et la largeur du bloc de service
                 const startPosition =
-                  ((selectedDateTime - viewStart) / (4 * 60 * 60 * 1000)) * 100;
-                const duration = service.duration;
-                const blockWidth = (duration / (4 * 60)) * 100;
+                  calculatePositionPercentage(selectedDateTime);
+                const blockWidth = calculateWidthPercentage(service.duration);
+
+                // Déterminer la couleur en fonction de la durée
+                let blockColor = "";
+                let borderColor = "";
+                let textColor = "";
+
+                if (service.duration <= 30) {
+                  blockColor = "bg-green-100";
+                  borderColor = "border-green-300";
+                  textColor = "text-green-800";
+                } else if (service.duration <= 60) {
+                  blockColor = "bg-blue-100";
+                  borderColor = "border-blue-300";
+                  textColor = "text-blue-800";
+                } else {
+                  blockColor = "bg-purple-100";
+                  borderColor = "border-purple-300";
+                  textColor = "text-purple-800";
+                }
 
                 return (
-                  <div key={service.id} className="flex items-center">
-                    <div className="w-24 flex-shrink-0 text-sm text-gray-700 truncate pr-2">
-                      {service.name}
+                  <div key={service.id} className="relative">
+                    <div className="flex items-center mb-2">
+                      <div className="w-40 flex-shrink-0 font-medium text-gray-700">
+                        {service.name}
+                      </div>
+
+                      {/* Info badge */}
+                      <span
+                        className={`ml-2 text-xs ${textColor} px-2 py-0.5 rounded-full ${blockColor} border ${borderColor}`}
+                      >
+                        {service.duration} min
+                      </span>
+
+                      {service.price && (
+                        <span className="ml-2 text-xs bg-gray-100 text-gray-700 px-2 py-0.5 rounded-full">
+                          {service.price} DT
+                        </span>
+                      )}
                     </div>
-                    <div className="flex-1 h-8 relative">
+
+                    {/* Timeline bar */}
+                    <div className="relative h-10 w-full bg-gray-50 rounded-lg overflow-hidden border border-gray-200">
+                      {/* Service duration block */}
                       <div
-                        className={`absolute h-8 rounded-md ${
-                          service.duration <= 30
-                            ? "bg-green-100 border border-green-200"
-                            : service.duration <= 60
-                            ? "bg-blue-100 border border-blue-200"
-                            : "bg-purple-100 border border-purple-200"
-                        }`}
+                        className={`absolute h-full rounded-md ${blockColor} border ${borderColor} shadow-sm flex items-center justify-center transition-all duration-300 hover:shadow-md`}
                         style={{
                           left: `${startPosition}%`,
                           width: `${blockWidth}%`,
-                          minWidth: "20px",
+                          minWidth: "40px",
                         }}
                       >
-                        <div className="h-full flex items-center justify-center px-2 text-xs font-medium">
+                        <div
+                          className={`px-2 text-xs font-medium ${textColor} whitespace-nowrap`}
+                        >
                           {service.duration} min
+                        </div>
+                      </div>
+
+                      {/* End time indicator */}
+                      <div
+                        className="absolute h-full w-0.5 bg-gray-300 z-10 flex flex-col items-center"
+                        style={{ left: `${startPosition + blockWidth}%` }}
+                      >
+                        <div className="absolute -bottom-6 -translate-x-1/2 text-xs text-gray-500 whitespace-nowrap">
+                          Fin: {serviceEndTime.getHours()}:
+                          {serviceEndTime
+                            .getMinutes()
+                            .toString()
+                            .padStart(2, "0")}
                         </div>
                       </div>
                     </div>
@@ -1428,19 +1797,25 @@ export default function Reservation() {
               })}
             </div>
 
-            {/* Légende */}
-            <div className="mt-4 pt-3 border-t border-gray-200 flex flex-wrap gap-3 text-xs text-gray-600">
-              <div className="flex items-center">
-                <div className="h-3 w-3 rounded-full bg-green-100 border border-green-300 mr-1"></div>
-                <span>&lt;30 min</span>
+            {/* Légende améliorée */}
+            <div className="mt-8 pt-4 border-t border-gray-200 flex flex-wrap gap-4 text-xs">
+              <div className="flex items-center px-3 py-1.5 bg-green-50 rounded-full">
+                <div className="h-3 w-3 rounded-full bg-green-100 border border-green-300 mr-1.5"></div>
+                <span className="text-green-800 font-medium">&lt;30 min</span>
               </div>
-              <div className="flex items-center">
-                <div className="h-3 w-3 rounded-full bg-blue-100 border border-blue-300 mr-1"></div>
-                <span>30-60 min</span>
+              <div className="flex items-center px-3 py-1.5 bg-blue-50 rounded-full">
+                <div className="h-3 w-3 rounded-full bg-blue-100 border border-blue-300 mr-1.5"></div>
+                <span className="text-blue-800 font-medium">30-60 min</span>
               </div>
-              <div className="flex items-center">
-                <div className="h-3 w-3 rounded-full bg-purple-100 border border-purple-300 mr-1"></div>
-                <span>&gt;60 min</span>
+              <div className="flex items-center px-3 py-1.5 bg-purple-50 rounded-full">
+                <div className="h-3 w-3 rounded-full bg-purple-100 border border-purple-300 mr-1.5"></div>
+                <span className="text-purple-800 font-medium">&gt;60 min</span>
+              </div>
+              <div className="flex items-center px-3 py-1.5 bg-indigo-50 rounded-full">
+                <div className="h-3 w-3 rounded-full bg-indigo-500 mr-1.5"></div>
+                <span className="text-indigo-800 font-medium">
+                  Heure sélectionnée
+                </span>
               </div>
             </div>
           </div>
@@ -1673,8 +2048,9 @@ export default function Reservation() {
 
     // 5. Vérifier les réservations qui se chevauchent
     const overlappingReservations = reservationsForDate.filter((res) => {
-      // Ne vérifier que les réservations pour ce service spécifique
-      if (res.serviceId !== service.id) return false;
+      // Ne vérifier que les réservations pour ce service si nécessaire
+      if (!service.allowSimultaneous && res.serviceId !== service.id)
+        return false;
 
       // Convertir l'heure de début de la réservation existante en Date
       const [resHours, resMinutes] = res.formattedStart.split(":").map(Number);
@@ -1690,8 +2066,14 @@ export default function Reservation() {
         resStartDateTime.getTime() + resDuration * 60000
       );
 
-      // Vérifier si les deux plages horaires se chevauchent
-      return startDateTime < resEndDateTime && endDateTime > resStartDateTime;
+      return (
+        startDateTime < resEndDateTime &&
+        endDateTime > resStartDateTime &&
+        !(
+          startDateTime.getTime() === resEndDateTime.getTime() ||
+          endDateTime.getTime() === resStartDateTime.getTime()
+        )
+      );
     });
 
     // 6. Pour les services avec réservations simultanées
@@ -1858,6 +2240,27 @@ export default function Reservation() {
           <Users className="h-5 w-5 mr-2.5 text-indigo-600" />
           Choisir un spécialiste
         </h3>
+
+        {selectedService && (
+          <div className="mb-6 bg-indigo-50 rounded-xl p-4 border border-indigo-100">
+            <div className="flex items-start">
+              <Users className="h-5 w-5 text-indigo-600 mt-0.5 mr-3 flex-shrink-0" />
+              <div>
+                <h4 className="font-medium text-indigo-800">
+                  Informations importantes
+                </h4>
+                <p className="text-sm text-indigo-700 mt-1">
+                  Ce service accepte un maximum de{" "}
+                  <span className="font-bold">
+                    {selectedService.maxAttendees || 1}
+                  </span>{" "}
+                  participant{selectedService.capacity > 1 ? "s" : ""} par
+                  réservation.
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
 
         <div className="grid gap-4">
           {availableEmployees.map((employee) => (
@@ -4757,7 +5160,6 @@ export default function Reservation() {
       </div>
     );
   };
-
 
   if (loading) {
     return (
