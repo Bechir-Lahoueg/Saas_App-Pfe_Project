@@ -93,6 +93,7 @@ export default function ServicesPage() {
       description: "",
       duration: 30,
       price: 0,
+      maxAttendees: 1,
       requiresEmployeeSelection: false,
       allowSimultaneous: false,
       capacity: 1,
@@ -189,6 +190,8 @@ export default function ServicesPage() {
         if (svc.price < 0) throw new Error(`Prix invalide pour "${svc.name}"`);
         if (svc.allowSimultaneous && svc.capacity < 1)
           throw new Error(`Capacité invalide pour "${svc.name}"`);
+        if (svc.maxAttendees < 1)
+          throw new Error(`Nombre maximum de participants invalide pour "${svc.name}"`);
 
         const payload = {
           ...svc,
@@ -570,6 +573,27 @@ export default function ServicesPage() {
                           <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
                             <Clock className="h-4 w-4 text-gray-400" />
                           </div>
+                        </div>
+                      </div>
+                      
+                      {/* max attendees  */}
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Nombre maximum de participants 
+                        </label>
+                        <div className="relative">
+                          <input
+                            type="number"
+                            // min="1"
+                            value={svc.maxAttendees}
+                            onChange={(e) =>
+                              updateService(k, (s) => ({
+                                ...s,
+                                maxAttendees: +e.target.value,
+                              }))
+                            }
+                            className="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
+                          />
                         </div>
                       </div>
 

@@ -595,6 +595,47 @@ const ConfirmationComponent = ({
             )}
           </div>
 
+          {/* Nombre de participants */}
+          <div>
+            <label
+              htmlFor="numberOfAttendees"
+              className="block text-sm font-medium text-gray-700 mb-1"
+            >
+              Nombre de participants <span className="text-red-500">*</span>
+            </label>
+            <input
+              type="number"
+              id="numberOfAttendees"
+              name="numberOfAttendees"
+              min="1"
+              value={clientInfo.numberOfAttendees || "1"}
+              onChange={handleChange}
+              className={`w-full p-3 border rounded-lg focus:ring focus:ring-indigo-200 transition-all ${
+                errors.numberOfAttendees
+                  ? "border-red-300 bg-red-50"
+                  : "border-gray-300 focus:border-indigo-500"
+              }`}
+              placeholder="1"
+            />
+            {errors.numberOfAttendees && (
+              <p className="mt-1 text-sm text-red-600 flex items-center">
+                <svg
+                  className="h-4 w-4 mr-1"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
+                </svg>
+                {errors.numberOfAttendees}
+              </p>
+            )}
+          </div>
         </div>
 
         {/* Message de réussite de validation */}

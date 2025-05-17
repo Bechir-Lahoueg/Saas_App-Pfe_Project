@@ -51,6 +51,7 @@ public class ServicesService {
         existingService.setRequiresEmployeeSelection(updatedService.isRequiresEmployeeSelection());
         existingService.setAllowSimultaneous(updatedService.isAllowSimultaneous());
         existingService.setCapacity(updatedService.getCapacity());
+        existingService.setMaxAttendees(updatedService.getMaxAttendees());
         existingService.getEmployees().clear();
         if (updatedService.getEmployeeIds() != null) {
             for (Long empId : updatedService.getEmployeeIds()) {
