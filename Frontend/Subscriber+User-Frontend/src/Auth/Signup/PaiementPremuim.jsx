@@ -303,7 +303,7 @@ const TenantRegistrationPage = () => {
       city: "",
       zipcode: "",
       country: "",
-      categoryId: "", // Reset sector as well
+      categoryId: "",
     });
   };
 
@@ -332,285 +332,585 @@ const TenantRegistrationPage = () => {
         </motion.div>
       )}
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-        {/* First part of fields up to businessName */}
-        {[
-          {
-            id: "firstName",
-            label: "First Name",
-            type: "text",
-            required: true,
-            icon: "user",
-          },
-          {
-            id: "lastName",
-            label: "Last Name",
-            type: "text",
-            required: true,
-            icon: "user",
-          },
-          {
-            id: "email",
-            label: "Email",
-            type: "email",
-            required: true,
-            icon: "mail",
-          },
-          {
-            id: "password",
-            label: "Password",
-            type: "password",
-            required: true,
-            icon: "lock",
-          },
-
-          {
-            id: "phone",
-            label: "Phone",
-            type: "tel",
-            required: false,
-            icon: "phone",
-            pattern: "[0-9]{8}",
-            title: "Le numéro de téléphone doit contenir exactement 8 chiffres",
-          },
-          {
-            id: "businessName",
-            label: "Business Name",
-            type: "text",
-            required: true,
-            icon: "briefcase",
-          },
-        ].map((field) => (
-          <div key={field.id} className="relative">
-            <label
-              className="block text-sm font-medium text-gray-800 mb-2"
-              htmlFor={field.id}
+      <div className="space-y-8">
+        {/* Personal Information Section */}
+        <div className="bg-gradient-to-r from-indigo-50 to-purple-50 p-6 rounded-xl">
+          <h3 className="text-lg font-semibold text-indigo-800 mb-5 flex items-center">
+            <svg
+              className="w-5 h-5 mr-2 text-indigo-600"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
             >
-              {field.label}{" "}
-              {field.required && <span className="text-indigo-500">*</span>}
-            </label>
-            <div className="relative rounded-lg shadow-sm">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <span className="text-gray-400">{renderIcon(field.icon)}</span>
-              </div>
-              <input
-                type={field.type}
-                id={field.id}
-                name={field.id}
-                value={formData[field.id]}
-                onChange={handleChange}
-                className="w-full pl-10 pr-4 py-3 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all duration-200"
-                required={field.required}
-                placeholder={`Enter your ${field.label.toLowerCase()}`}
-                pattern={field.pattern}
-                title={field.title}
-              />
-            </div>
-          </div>
-        ))}
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+              ></path>
+            </svg>
+            Personal Information
+          </h3>
 
-        {/* Business Sector dropdown right after businessName */}
-        <div className="relative">
-          <label
-            className="block text-sm font-medium text-gray-800 mb-2"
-            htmlFor="sector"
-          >
-            Business Sector <span className="text-indigo-500">*</span>
-          </label>
-          <div className="relative rounded-lg shadow-sm">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <span className="text-gray-400">
-                <svg
-                  className="w-5 h-5"
-                  fill="none"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+            {[
+              {
+                id: "firstName",
+                label: "First Name",
+                type: "text",
+                required: true,
+                icon: "user",
+              },
+              {
+                id: "lastName",
+                label: "Last Name",
+                type: "text",
+                required: true,
+                icon: "user",
+              },
+              {
+                id: "email",
+                label: "Email",
+                type: "email",
+                required: true,
+                icon: "mail",
+              },
+              {
+                id: "password",
+                label: "Password",
+                type: "password",
+                required: true,
+                icon: "lock",
+              },
+              {
+                id: "phone",
+                label: "Phone",
+                type: "tel",
+                required: false,
+                icon: "phone",
+                pattern: "[0-9]{8}",
+                title:
+                  "Le numéro de téléphone doit contenir exactement 8 chiffres",
+              },
+            ].map((field) => (
+              <div key={field.id} className="relative">
+                <label
+                  className="block text-sm font-medium text-gray-700 mb-2"
+                  htmlFor={field.id}
                 >
-                  <path d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
-                </svg>
-              </span>
-            </div>
-            <select
-              id="categoryId"
-              name="categoryId"
-              value={formData.categoryId}
-              onChange={handleChange}
-              className="w-full pl-10 pr-10 py-3 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all duration-200 appearance-none bg-white"
-              required
-            >
-              <option value="" disabled>
-                Select your business sector
-              </option>
-              {categories.map((cat) => (
-                <option key={cat.id} value={cat.id}>
-                  {cat.categoryName}
-                </option>
-              ))}
-            </select>
-            <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-gray-400">
-              <svg
-                className="w-5 h-5"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  d="M19 9l-7 7-7-7"
-                ></path>
-              </svg>
-            </div>
-          </div>
-        </div>
-
-        {/* Country dropdown */}
-        <div key="country" className="relative">
-          <label
-            className="block text-sm font-medium text-gray-800 mb-2"
-            htmlFor="country"
-          >
-            Country <span className="text-indigo-500">*</span>
-          </label>
-          <div className="relative rounded-lg shadow-sm">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <span className="text-gray-400">{renderIcon("globe")}</span>
-            </div>
-            <select
-              id="country"
-              name="country"
-              value={formData.country}
-              onChange={handleChange}
-              className="w-full pl-10 pr-10 py-3 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all duration-200 appearance-none bg-white"
-              required
-            >
-              <option value="" disabled>
-                Select your country
-              </option>
-              <option value="Tunisia">Tunisia</option>
-              <option value="France">France</option>
-              <option value="United States">United States</option>
-              <option value="Germany">Germany</option>
-              <option value="Canada">Canada</option>
-              <option value="Japan">Japan</option>
-              <option value="Australia">Australia</option>
-            </select>
-            <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-gray-400">
-              <svg
-                className="w-5 h-5"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  d="M19 9l-7 7-7-7"
-                ></path>
-              </svg>
-            </div>
-          </div>
-        </div>
-
-        {/* Remaining fields after businessName */}
-        {[
-          {
-            id: "city",
-            label: "City",
-            type: "text",
-            required: true,
-            icon: "map-pin",
-          },
-          {
-            id: "zipcode",
-            label: "Zipcode",
-            type: "text",
-            required: true,
-            icon: "map",
-          },
-        ].map((field) => (
-          <div key={field.id} className="relative">
-            <label
-              className="block text-sm font-medium text-gray-800 mb-2"
-              htmlFor={field.id}
-            >
-              {field.label}{" "}
-              {field.required && <span className="text-indigo-500">*</span>}
-            </label>
-            <div className="relative rounded-lg shadow-sm">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <span className="text-gray-400">{renderIcon(field.icon)}</span>
+                  {field.label}{" "}
+                  {field.required && <span className="text-indigo-500">*</span>}
+                </label>
+                <div className="relative rounded-lg">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <span className="text-indigo-400">
+                      {renderIcon(field.icon)}
+                    </span>
+                  </div>
+                  <input
+                    type={field.type}
+                    id={field.id}
+                    name={field.id}
+                    value={formData[field.id]}
+                    onChange={handleChange}
+                    className="w-full pl-10 pr-4 py-3 border-2 border-indigo-100 bg-white rounded-lg focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all duration-200"
+                    required={field.required}
+                    placeholder={`Enter your ${field.label.toLowerCase()}`}
+                    pattern={field.pattern}
+                    title={field.title}
+                  />
+                </div>
               </div>
-              <input
-                type={field.type}
-                id={field.id}
-                name={field.id}
-                value={formData[field.id]}
-                onChange={handleChange}
-                className="w-full pl-10 pr-4 py-3 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all duration-200"
-                required={field.required}
-                placeholder={`Enter your ${field.label.toLowerCase()}`}
-              />
-            </div>
-          </div>
-        ))}
-
-        {/* The subdomain and address fields remain unchanged */}
-        <div className="md:col-span-2">
-          <label
-            className="block text-sm font-medium text-gray-800 mb-2"
-            htmlFor="subdomain"
-          >
-            Subdomain <span className="text-indigo-500">*</span>
-          </label>
-          <div className="flex rounded-lg shadow-sm">
-            <div className="relative flex-grow">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <span className="text-gray-400">{renderIcon("link")}</span>
-              </div>
-              <input
-                type="text"
-                id="subdomain"
-                name="subdomain"
-                value={formData.subdomain}
-                onChange={handleChange}
-                className="w-full pl-10 pr-4 py-3 border-2 border-gray-200 rounded-l-lg focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all duration-200"
-                required
-                placeholder="your-company"
-                pattern="[^\s]+"
-                title="Le sous-domaine ne doit pas contenir d'espaces"
-              />
-            </div>
-            <span className="bg-gray-100 px-4 py-3 border-2 border-l-0 border-gray-200 rounded-r-lg flex items-center text-gray-600 font-medium">
-              .planifygo.com
-            </span>
+            ))}
           </div>
         </div>
 
-        <div className="md:col-span-2">
-          <label
-            className="block text-sm font-medium text-gray-800 mb-2"
-            htmlFor="address"
-          >
-            Address
-          </label>
-          <div className="relative rounded-lg shadow-sm">
-            <div className="absolute left-3 top-3 text-gray-400">
-              {renderIcon("home")}
+        {/* Business Information Section */}
+        <div className="bg-gradient-to-r from-purple-50 to-blue-50 p-6 rounded-xl">
+          <h3 className="text-lg font-semibold text-indigo-800 mb-5 flex items-center">
+            <svg
+              className="w-5 h-5 mr-2 text-indigo-600"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+              ></path>
+            </svg>
+            Business Information
+          </h3>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+            <div className="relative">
+              <label
+                className="block text-sm font-medium text-gray-700 mb-2"
+                htmlFor="businessName"
+              >
+                Business Name <span className="text-indigo-500">*</span>
+              </label>
+              <div className="relative rounded-lg">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <span className="text-indigo-400">
+                    {renderIcon("briefcase")}
+                  </span>
+                </div>
+                <input
+                  type="text"
+                  id="businessName"
+                  name="businessName"
+                  value={formData.businessName}
+                  onChange={handleChange}
+                  className="w-full pl-10 pr-4 py-3 border-2 border-indigo-100 bg-white rounded-lg focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all duration-200"
+                  required
+                  placeholder="Enter your business name"
+                />
+              </div>
             </div>
-            <input
-              id="address"
-              name="address"
-              value={formData.address}
-              onChange={handleChange}
-              className="w-full pl-10 pr-4 py-3 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all duration-200"
-              placeholder="Enter your full address"
-            ></input>
+
+            <div className="relative">
+              <label
+                className="block text-sm font-medium text-gray-700 mb-2"
+                htmlFor="categoryId"
+              >
+                Business Sector <span className="text-indigo-500">*</span>
+              </label>
+              <div className="relative rounded-lg">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <span className="text-indigo-400">
+                    <svg
+                      className="w-5 h-5"
+                      fill="none"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
+                    </svg>
+                  </span>
+                </div>
+                <select
+                  id="categoryId"
+                  name="categoryId"
+                  value={formData.categoryId}
+                  onChange={handleChange}
+                  className="w-full pl-10 pr-10 py-3 border-2 border-indigo-100 bg-white rounded-lg focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all duration-200 appearance-none"
+                  required
+                >
+                  <option value="" disabled>
+                    Select your business sector
+                  </option>
+                  {categories.map((cat) => (
+                    <option key={cat.id} value={cat.id}>
+                      {cat.categoryName}
+                    </option>
+                  ))}
+                </select>
+                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-indigo-500">
+                  <svg
+                    className="w-5 h-5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="M19 9l-7 7-7-7"
+                    ></path>
+                  </svg>
+                </div>
+              </div>
+            </div>
+
+            <div className="md:col-span-2">
+              <label
+                className="block text-sm font-medium text-gray-700 mb-2"
+                htmlFor="subdomain"
+              >
+                Subdomain <span className="text-indigo-500">*</span>
+              </label>
+              <div className="flex rounded-lg shadow-sm">
+                <div className="relative flex-grow">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <span className="text-indigo-400">
+                      {renderIcon("link")}
+                    </span>
+                  </div>
+                  <input
+                    type="text"
+                    id="subdomain"
+                    name="subdomain"
+                    value={formData.subdomain}
+                    onChange={handleChange}
+                    className="w-full pl-10 pr-4 py-3 border-2 border-indigo-100 bg-white rounded-l-lg focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all duration-200"
+                    required
+                    placeholder="your-company"
+                    pattern="[^\s]+"
+                    title="Le sous-domaine ne doit pas contenir d'espaces"
+                  />
+                </div>
+                <span className="bg-gradient-to-r from-indigo-100 to-purple-100 px-4 py-3 border-2 border-l-0 border-indigo-100 rounded-r-lg flex items-center text-indigo-700 font-medium">
+                  .planifygo.com
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Location Information Section */}
+        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-6 rounded-xl">
+          <h3 className="text-lg font-semibold text-indigo-800 mb-5 flex items-center">
+            <svg
+              className="w-5 h-5 mr-2 text-indigo-600"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
+              ></path>
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
+              ></path>
+            </svg>
+            Location Information
+          </h3>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+            <div className="relative">
+              <label
+                className="block text-sm font-medium text-gray-700 mb-2"
+                htmlFor="country"
+              >
+                Country <span className="text-indigo-500">*</span>
+              </label>
+              <div className="relative rounded-lg">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <span className="text-indigo-400">{renderIcon("globe")}</span>
+                </div>
+                <select
+                  id="country"
+                  name="country"
+                  value={formData.country}
+                  onChange={handleChange}
+                  className="w-full pl-10 pr-10 py-3 border-2 border-indigo-100 bg-white rounded-lg focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all duration-200 appearance-none"
+                  required
+                >
+                  <option value="" disabled>
+                    Select your country
+                  </option>
+                  <option value="Tunisia">Tunisia</option>
+                  <option value="Afghanistan">Afghanistan</option>
+                  <option value="Albania">Albania</option>
+                  <option value="Algeria">Algeria</option>
+                  <option value="Andorra">Andorra</option>
+                  <option value="Angola">Angola</option>
+                  <option value="Antigua and Barbuda">
+                    Antigua and Barbuda
+                  </option>
+                  <option value="Argentina">Argentina</option>
+                  <option value="Armenia">Armenia</option>
+                  <option value="Australia">Australia</option>
+                  <option value="Austria">Austria</option>
+                  <option value="Azerbaijan">Azerbaijan</option>
+                  <option value="Bahamas">Bahamas</option>
+                  <option value="Bahrain">Bahrain</option>
+                  <option value="Bangladesh">Bangladesh</option>
+                  <option value="Barbados">Barbados</option>
+                  <option value="Belarus">Belarus</option>
+                  <option value="Belgium">Belgium</option>
+                  <option value="Belize">Belize</option>
+                  <option value="Benin">Benin</option>
+                  <option value="Bhutan">Bhutan</option>
+                  <option value="Bolivia">Bolivia</option>
+                  <option value="Bosnia and Herzegovina">
+                    Bosnia and Herzegovina
+                  </option>
+                  <option value="Botswana">Botswana</option>
+                  <option value="Brazil">Brazil</option>
+                  <option value="Brunei">Brunei</option>
+                  <option value="Bulgaria">Bulgaria</option>
+                  <option value="Burkina Faso">Burkina Faso</option>
+                  <option value="Burundi">Burundi</option>
+                  <option value="Cabo Verde">Cabo Verde</option>
+                  <option value="Cambodia">Cambodia</option>
+                  <option value="Cameroon">Cameroon</option>
+                  <option value="Canada">Canada</option>
+                  <option value="Central African Republic">
+                    Central African Republic
+                  </option>
+                  <option value="Chad">Chad</option>
+                  <option value="Chile">Chile</option>
+                  <option value="China">China</option>
+                  <option value="Colombia">Colombia</option>
+                  <option value="Comoros">Comoros</option>
+                  <option value="Congo">Congo</option>
+                  <option value="Costa Rica">Costa Rica</option>
+                  <option value="Croatia">Croatia</option>
+                  <option value="Cuba">Cuba</option>
+                  <option value="Cyprus">Cyprus</option>
+                  <option value="Czech Republic">Czech Republic</option>
+                  <option value="Denmark">Denmark</option>
+                  <option value="Djibouti">Djibouti</option>
+                  <option value="Dominica">Dominica</option>
+                  <option value="Dominican Republic">Dominican Republic</option>
+                  <option value="Ecuador">Ecuador</option>
+                  <option value="Egypt">Egypt</option>
+                  <option value="El Salvador">El Salvador</option>
+                  <option value="Equatorial Guinea">Equatorial Guinea</option>
+                  <option value="Eritrea">Eritrea</option>
+                  <option value="Estonia">Estonia</option>
+                  <option value="Eswatini">Eswatini</option>
+                  <option value="Ethiopia">Ethiopia</option>
+                  <option value="Fiji">Fiji</option>
+                  <option value="Finland">Finland</option>
+                  <option value="France">France</option>
+                  <option value="Gabon">Gabon</option>
+                  <option value="Gambia">Gambia</option>
+                  <option value="Georgia">Georgia</option>
+                  <option value="Germany">Germany</option>
+                  <option value="Ghana">Ghana</option>
+                  <option value="Greece">Greece</option>
+                  <option value="Grenada">Grenada</option>
+                  <option value="Guatemala">Guatemala</option>
+                  <option value="Guinea">Guinea</option>
+                  <option value="Guinea-Bissau">Guinea-Bissau</option>
+                  <option value="Guyana">Guyana</option>
+                  <option value="Haiti">Haiti</option>
+                  <option value="Honduras">Honduras</option>
+                  <option value="Hungary">Hungary</option>
+                  <option value="Iceland">Iceland</option>
+                  <option value="India">India</option>
+                  <option value="Indonesia">Indonesia</option>
+                  <option value="Iran">Iran</option>
+                  <option value="Iraq">Iraq</option>
+                  <option value="Ireland">Ireland</option>
+                  <option value="Israel">Israel</option>
+                  <option value="Italy">Italy</option>
+                  <option value="Jamaica">Jamaica</option>
+                  <option value="Japan">Japan</option>
+                  <option value="Jordan">Jordan</option>
+                  <option value="Kazakhstan">Kazakhstan</option>
+                  <option value="Kenya">Kenya</option>
+                  <option value="Kiribati">Kiribati</option>
+                  <option value="North Korea">North Korea</option>
+                  <option value="South Korea">South Korea</option>
+                  <option value="Kosovo">Kosovo</option>
+                  <option value="Kuwait">Kuwait</option>
+                  <option value="Kyrgyzstan">Kyrgyzstan</option>
+                  <option value="Laos">Laos</option>
+                  <option value="Latvia">Latvia</option>
+                  <option value="Lebanon">Lebanon</option>
+                  <option value="Lesotho">Lesotho</option>
+                  <option value="Liberia">Liberia</option>
+                  <option value="Libya">Libya</option>
+                  <option value="Liechtenstein">Liechtenstein</option>
+                  <option value="Lithuania">Lithuania</option>
+                  <option value="Luxembourg">Luxembourg</option>
+                  <option value="Madagascar">Madagascar</option>
+                  <option value="Malawi">Malawi</option>
+                  <option value="Malaysia">Malaysia</option>
+                  <option value="Maldives">Maldives</option>
+                  <option value="Mali">Mali</option>
+                  <option value="Malta">Malta</option>
+                  <option value="Marshall Islands">Marshall Islands</option>
+                  <option value="Mauritania">Mauritania</option>
+                  <option value="Mauritius">Mauritius</option>
+                  <option value="Mexico">Mexico</option>
+                  <option value="Micronesia">Micronesia</option>
+                  <option value="Moldova">Moldova</option>
+                  <option value="Monaco">Monaco</option>
+                  <option value="Mongolia">Mongolia</option>
+                  <option value="Montenegro">Montenegro</option>
+                  <option value="Morocco">Morocco</option>
+                  <option value="Mozambique">Mozambique</option>
+                  <option value="Myanmar">Myanmar</option>
+                  <option value="Namibia">Namibia</option>
+                  <option value="Nauru">Nauru</option>
+                  <option value="Nepal">Nepal</option>
+                  <option value="Netherlands">Netherlands</option>
+                  <option value="New Zealand">New Zealand</option>
+                  <option value="Nicaragua">Nicaragua</option>
+                  <option value="Niger">Niger</option>
+                  <option value="Nigeria">Nigeria</option>
+                  <option value="North Macedonia">North Macedonia</option>
+                  <option value="Norway">Norway</option>
+                  <option value="Oman">Oman</option>
+                  <option value="Pakistan">Pakistan</option>
+                  <option value="Palau">Palau</option>
+                  <option value="Palestine">Palestine</option>
+                  <option value="Panama">Panama</option>
+                  <option value="Papua New Guinea">Papua New Guinea</option>
+                  <option value="Paraguay">Paraguay</option>
+                  <option value="Peru">Peru</option>
+                  <option value="Philippines">Philippines</option>
+                  <option value="Poland">Poland</option>
+                  <option value="Portugal">Portugal</option>
+                  <option value="Qatar">Qatar</option>
+                  <option value="Romania">Romania</option>
+                  <option value="Russia">Russia</option>
+                  <option value="Rwanda">Rwanda</option>
+                  <option value="Saint Kitts and Nevis">
+                    Saint Kitts and Nevis
+                  </option>
+                  <option value="Saint Lucia">Saint Lucia</option>
+                  <option value="Saint Vincent and the Grenadines">
+                    Saint Vincent and the Grenadines
+                  </option>
+                  <option value="Samoa">Samoa</option>
+                  <option value="San Marino">San Marino</option>
+                  <option value="Sao Tome and Principe">
+                    Sao Tome and Principe
+                  </option>
+                  <option value="Saudi Arabia">Saudi Arabia</option>
+                  <option value="Senegal">Senegal</option>
+                  <option value="Serbia">Serbia</option>
+                  <option value="Seychelles">Seychelles</option>
+                  <option value="Sierra Leone">Sierra Leone</option>
+                  <option value="Singapore">Singapore</option>
+                  <option value="Slovakia">Slovakia</option>
+                  <option value="Slovenia">Slovenia</option>
+                  <option value="Solomon Islands">Solomon Islands</option>
+                  <option value="Somalia">Somalia</option>
+                  <option value="South Africa">South Africa</option>
+                  <option value="South Sudan">South Sudan</option>
+                  <option value="Spain">Spain</option>
+                  <option value="Sri Lanka">Sri Lanka</option>
+                  <option value="Sudan">Sudan</option>
+                  <option value="Suriname">Suriname</option>
+                  <option value="Sweden">Sweden</option>
+                  <option value="Switzerland">Switzerland</option>
+                  <option value="Syria">Syria</option>
+                  <option value="Taiwan">Taiwan</option>
+                  <option value="Tajikistan">Tajikistan</option>
+                  <option value="Tanzania">Tanzania</option>
+                  <option value="Thailand">Thailand</option>
+                  <option value="Timor-Leste">Timor-Leste</option>
+                  <option value="Togo">Togo</option>
+                  <option value="Tonga">Tonga</option>
+                  <option value="Trinidad and Tobago">
+                    Trinidad and Tobago
+                  </option>
+                  <option value="Tunisia">Tunisia</option>
+                  <option value="Turkey">Turkey</option>
+                  <option value="Turkmenistan">Turkmenistan</option>
+                  <option value="Tuvalu">Tuvalu</option>
+                  <option value="Uganda">Uganda</option>
+                  <option value="Ukraine">Ukraine</option>
+                  <option value="United Arab Emirates">
+                    United Arab Emirates
+                  </option>
+                  <option value="United Kingdom">United Kingdom</option>
+                  <option value="United States">United States</option>
+                  <option value="Uruguay">Uruguay</option>
+                  <option value="Uzbekistan">Uzbekistan</option>
+                  <option value="Vanuatu">Vanuatu</option>
+                  <option value="Vatican City">Vatican City</option>
+                  <option value="Venezuela">Venezuela</option>
+                </select>
+                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-indigo-500">
+                  <svg
+                    className="w-5 h-5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="M19 9l-7 7-7-7"
+                    ></path>
+                  </svg>
+                </div>
+              </div>
+            </div>
+
+            <div className="relative">
+              <label
+                className="block text-sm font-medium text-gray-700 mb-2"
+                htmlFor="city"
+              >
+                City <span className="text-indigo-500">*</span>
+              </label>
+              <div className="relative rounded-lg">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <span className="text-indigo-400">
+                    {renderIcon("map-pin")}
+                  </span>
+                </div>
+                <input
+                  type="text"
+                  id="city"
+                  name="city"
+                  value={formData.city}
+                  onChange={handleChange}
+                  className="w-full pl-10 pr-4 py-3 border-2 border-indigo-100 bg-white rounded-lg focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all duration-200"
+                  required
+                  placeholder="Enter your city"
+                />
+              </div>
+            </div>
+
+            <div className="relative">
+              <label
+                className="block text-sm font-medium text-gray-700 mb-2"
+                htmlFor="zipcode"
+              >
+                Zipcode <span className="text-indigo-500">*</span>
+              </label>
+              <div className="relative rounded-lg">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <span className="text-indigo-400">{renderIcon("map")}</span>
+                </div>
+                <input
+                  type="text"
+                  id="zipcode"
+                  name="zipcode"
+                  value={formData.zipcode}
+                  onChange={handleChange}
+                  className="w-full pl-10 pr-4 py-3 border-2 border-indigo-100 bg-white rounded-lg focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all duration-200"
+                  required
+                  placeholder="Enter your zipcode"
+                />
+              </div>
+            </div>
+
+            <div className="relative">
+              <label
+                className="block text-sm font-medium text-gray-700 mb-2"
+                htmlFor="address"
+              >
+                Address
+              </label>
+              <div className="relative rounded-lg">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <span className="text-indigo-400">{renderIcon("home")}</span>
+                </div>
+                <input
+                  type="text"
+                  id="address"
+                  name="address"
+                  value={formData.address}
+                  onChange={handleChange}
+                  className="w-full pl-10 pr-4 py-3 border-2 border-indigo-100 bg-white rounded-lg focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all duration-200"
+                  placeholder="Enter your full address"
+                />
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -1079,17 +1379,17 @@ const TenantRegistrationPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50">
       <Navbar />
 
       <div className="pt-24 pb-16 px-4 sm:px-6 lg:px-8">
         <div className="max-w-4xl mx-auto">
-          {/* Modern Progress Steps */}
+          {/* Enhanced Progress Steps */}
           <div className="mb-12">
             <div className="relative">
               <div className="overflow-hidden h-2 mb-6 rounded-full bg-gray-200">
                 <motion.div
-                  className="h-full bg-gradient-to-r from-indigo-500 to-purple-600 rounded-full"
+                  className="h-full bg-gradient-to-r from-indigo-500 via-purple-500 to-indigo-600 rounded-full"
                   initial={{ width: "0%" }}
                   animate={{
                     width: step === 1 ? "33%" : step === 2 ? "66%" : "100%",
@@ -1101,7 +1401,7 @@ const TenantRegistrationPage = () => {
                 {[1, 2, 3].map((stepNumber) => (
                   <div key={stepNumber} className="relative">
                     <motion.div
-                      className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                      className={`w-12 h-12 rounded-full flex items-center justify-center ${
                         step >= stepNumber
                           ? "bg-gradient-to-r from-indigo-500 to-purple-600 text-white"
                           : "bg-white border-2 border-gray-300 text-gray-500"
@@ -1114,9 +1414,25 @@ const TenantRegistrationPage = () => {
                       }}
                       transition={{ duration: 0.3 }}
                     >
-                      {stepNumber}
+                      {step > stepNumber ? (
+                        <svg
+                          className="w-6 h-6"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M5 13l4 4L19 7"
+                          />
+                        </svg>
+                      ) : (
+                        stepNumber
+                      )}
                     </motion.div>
-                    <div className="mt-2 text-center">
+                    <div className="mt-3 text-center">
                       <span
                         className={`text-sm font-medium ${
                           step >= stepNumber
@@ -1141,13 +1457,13 @@ const TenantRegistrationPage = () => {
           <AnimatePresence mode="wait">
             <motion.div
               key={step}
-              className="bg-white rounded-2xl shadow-xl overflow-hidden"
+              className="bg-white rounded-2xl shadow-xl overflow-hidden border border-indigo-100"
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -20 }}
               transition={{ duration: 0.3 }}
             >
-              <div className="bg-gradient-to-r from-indigo-600 to-purple-600 p-8 text-white">
+              <div className="bg-gradient-to-r from-indigo-600 via-purple-600 to-indigo-600 p-8 text-white">
                 <h1 className="text-3xl font-bold">Business Registration</h1>
                 <p className="opacity-90 mt-2">
                   Create your tenant account in a few simple steps

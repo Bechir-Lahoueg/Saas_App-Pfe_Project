@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 
 // Importations des images depuis les assets
-import mediaImage from '../../assets/media.png';
+import mediaImage from '../../assets/login.png';
 import horaireImage from '../../assets/horraire.png';
 import employeeImage from '../../assets/ajout employee.png';
 
