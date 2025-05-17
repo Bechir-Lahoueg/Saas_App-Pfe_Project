@@ -64,67 +64,60 @@ public class ReservationService {
         log.info("[START] Creating reservation: {}", reservation);
 
         // 1) fetch service
-        log.info("[STEP 1] Fetching service by ID: {}", reservation.getServiceId());
         Services service = serviceRepository.findById(reservation.getServiceId())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Service not found"));
 
+        // 1a) check attendee count against maxAttendees
+        if (reservation.getNumberOfAttendees() > service.getMaxAttendees()) {
+            log.error("[STEP 1a] numberOfAttendees {} exceeds maxAttendees {}",
+                    reservation.getNumberOfAttendees(), service.getMaxAttendees());
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "Number of attendees cannot exceed " + service.getMaxAttendees());
+        }
+
         // 2) employee-required check
         if (service.isRequiresEmployeeSelection()) {
-            log.info("[STEP 2] Service requires employee selection");
             if (reservation.getEmployeeId() == null) {
-                log.error("[STEP 2] No employee selected");
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
                         "This service requires selecting an employee");
             }
             Employee emp = employeeRepository.findById(reservation.getEmployeeId())
                     .orElseThrow(() -> new ResponseStatusException(
                             HttpStatus.NOT_FOUND, "Employee not found"));
-            log.info("[STEP 2] Employee fetched: {}", emp);
             if (emp.getStatus() == Employee.Status.INACTIVE) {
-                log.error("[STEP 2] Employee is inactive");
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
                         "Employee is not active");
             }
         }
 
-        // 3) ensure endTime is set, matches duration, and is after startTime
+        // 3) time validations (duration, endTime)
         if (reservation.getEndTime() == null) {
             reservation.setEndTime(reservation.getStartTime().plusMinutes(service.getDuration()));
-            log.info("[STEP 3] auto-set endTime to {}", reservation.getEndTime());
         }
         if (!reservation.getEndTime().isAfter(reservation.getStartTime())) {
-            log.error("[STEP 3] endTime {} is not after startTime {}",
-                    reservation.getEndTime(), reservation.getStartTime());
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
                     "endTime must be after startTime");
         }
         long actualDuration = java.time.Duration.between(
                 reservation.getStartTime(), reservation.getEndTime()).toMinutes();
         if (actualDuration != service.getDuration()) {
-            log.error("[STEP 3] actual duration {} does not match service duration {}",
-                    actualDuration, service.getDuration());
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
                     "Reservation length must equal service duration");
         }
 
         // 4) no past bookings
-        LocalDateTime now = LocalDateTime.now();
-        if (reservation.getStartTime().isBefore(now)) {
-            log.error("[STEP 4] Reservation start time {} is in the past",
-                    reservation.getStartTime());
+        if (reservation.getStartTime().isBefore(LocalDateTime.now())) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
                     "Reservation start time is in the past");
         }
 
-        // 5) working-day & timeslot check (unchanged logic, but use endTime)
-        DayOfWeek dow = reservation.getStartTime().getDayOfWeek();
-        WorkingDay wd = workingDayRepository.findByDayOfWeek(dow)
+        // 5) working-day & timeslot check
+        WorkingDay wd = workingDayRepository.findByDayOfWeek(reservation.getStartTime().getDayOfWeek())
                 .orElseThrow(() -> new ResponseStatusException(
-                        HttpStatus.BAD_REQUEST, "No working-day defined for " + dow));
+                        HttpStatus.BAD_REQUEST, "No working-day defined"));
         if (!wd.isActive()) {
-            log.error("[STEP 5] Working day {} is inactive", dow);
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-                    "Service is not available on " + dow);
+                    "Service is not available on this day");
         }
         LocalTime startLocal = reservation.getStartTime().toLocalTime();
         LocalTime endLocal   = reservation.getEndTime().toLocalTime();
@@ -132,143 +125,116 @@ public class ReservationService {
                 !startLocal.isBefore(ts.getStartTime()) && !endLocal.isAfter(ts.getEndTime())
         );
         if (!fits) {
-            log.error("[STEP 5] {}–{} outside of working slots on {}", startLocal, endLocal, dow);
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-                    "Requested time is outside of working hours on " + dow);
+                    "Requested time is outside of working hours");
         }
 
-        // 6) per-service conflict & capacity
-        LocalDateTime newStart = reservation.getStartTime();
-        LocalDateTime newEnd   = reservation.getEndTime();
-        List<Reservation> svcExisting = reservationRepository.findByServiceId(reservation.getServiceId());
-        log.info("[STEP 6] {} existing reservations for service {}", svcExisting.size(), service.getId());
-
+        // 6) per-service conflict & simultaneous handling using capacity
+        List<Reservation> svcExisting = reservationRepository.findByServiceId(service.getId());
         if (service.isAllowSimultaneous()) {
-            int totalAttendees = reservation.getNumberOfAttendees();
+            int concurrentCount = 0;
             for (Reservation r : svcExisting) {
-                if (r.getStartTime().isBefore(newEnd) && r.getEndTime().isAfter(newStart)) {
-                    totalAttendees += r.getNumberOfAttendees();
+                if (r.getStartTime().isBefore(reservation.getEndTime()) &&
+                        r.getEndTime().isAfter(reservation.getStartTime())) {
+                    concurrentCount++;
                 }
             }
-            log.info("[STEP 6] totalAttendees after new: {}", totalAttendees);
-            if (totalAttendees > service.getMaxAttendees()) {
-                log.error("[STEP 6] exceeds maxAttendees {}", service.getMaxAttendees());
+            if (concurrentCount >= service.getCapacity()) {
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-                        "Reservation exceeds maximum attendees for this service");
+                        "Service is fully booked for this timeslot");
             }
         } else {
             for (Reservation r : svcExisting) {
-                if (r.getStartTime().isBefore(newEnd) && r.getEndTime().isAfter(newStart)) {
-                    log.error("[STEP 6] overlap with reservation {}", r.getId());
+                if (r.getStartTime().isBefore(reservation.getEndTime()) &&
+                        r.getEndTime().isAfter(reservation.getStartTime())) {
                     throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-                            "Overlapping reservation not allowed for this service");
+                            "Overlapping reservation not allowed");
                 }
             }
         }
 
-        // 7) employee-level conflict (across *all* services)
+        // 7) employee-level conflict
         if (reservation.getEmployeeId() != null) {
             List<Reservation> empExisting = reservationRepository.findByEmployeeId(reservation.getEmployeeId());
-            log.info("[STEP 7] {} existing reservations for employee {}",
-                    empExisting.size(), reservation.getEmployeeId());
             for (Reservation r : empExisting) {
-                if (r.getStartTime().isBefore(newEnd) && r.getEndTime().isAfter(newStart)) {
-                    log.error("[STEP 7] employee overlap with reservation {}", r.getId());
+                if (r.getStartTime().isBefore(reservation.getEndTime()) &&
+                        r.getEndTime().isAfter(reservation.getStartTime())) {
                     throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-                            "Selected employee is already booked during that time");
+                            "Selected employee is already booked");
                 }
             }
         }
+
         reservation.setStatus(Reservation.Status.CONFIRMED);
         reservation.setConfirmationCode(String.format("%06d", new Random().nextInt(1_000_000)));
 
-        // 8) persist
-        log.info("[STEP 8] Saving reservation");
+        // 8) save
         Reservation saved = reservationRepository.save(reservation);
-        log.info("[SUCCESS] Reservation created: {}", saved);
 
+        // 9) publish confirmed event
         var evt = new ReservationConfirmedEvent(
-                reservation.getId(),
-                reservation.getClientEmail(),
-                reservation.getClientPhoneNumber(),
-                reservation.getConfirmationCode(),
-                reservation.getStartTime()
+                saved.getId(), saved.getClientEmail(), saved.getClientPhoneNumber(),
+                saved.getConfirmationCode(), saved.getStartTime()
         );
-        log.info("[STEP 9] Publishing reservation confirmed event: {}", evt);
-        rabbit.convertAndSend("reservation.confirmed", evt);
-
+        rabbit.convertAndSend(RabbitConfig.EXCHANGE, "reservation.confirmed", evt);
         return saved;
-
-
     }
 
     //--------------------CLIENT--------------------------------------------
     @Transactional
     public Reservation createClientReservation(Reservation reservation) {
-        log.info("[START] Creating reservation: {}", reservation);
+        log.info("[START] Client creating reservation: {}", reservation);
 
-        // 1) fetch service
-        log.info("[STEP 1] Fetching service by ID: {}", reservation.getServiceId());
         Services service = serviceRepository.findById(reservation.getServiceId())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Service not found"));
+        if (reservation.getNumberOfAttendees() > service.getMaxAttendees()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "Number of attendees cannot exceed " + service.getMaxAttendees());
+        }
 
         // 2) employee-required check
         if (service.isRequiresEmployeeSelection()) {
-            log.info("[STEP 2] Service requires employee selection");
             if (reservation.getEmployeeId() == null) {
-                log.error("[STEP 2] No employee selected");
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
                         "This service requires selecting an employee");
             }
             Employee emp = employeeRepository.findById(reservation.getEmployeeId())
                     .orElseThrow(() -> new ResponseStatusException(
                             HttpStatus.NOT_FOUND, "Employee not found"));
-            log.info("[STEP 2] Employee fetched: {}", emp);
             if (emp.getStatus() == Employee.Status.INACTIVE) {
-                log.error("[STEP 2] Employee is inactive");
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
                         "Employee is not active");
             }
         }
 
-        // 3) ensure endTime is set, matches duration, and is after startTime
+        // 3) time validations (duration, endTime)
         if (reservation.getEndTime() == null) {
             reservation.setEndTime(reservation.getStartTime().plusMinutes(service.getDuration()));
-            log.info("[STEP 3] auto-set endTime to {}", reservation.getEndTime());
         }
         if (!reservation.getEndTime().isAfter(reservation.getStartTime())) {
-            log.error("[STEP 3] endTime {} is not after startTime {}",
-                    reservation.getEndTime(), reservation.getStartTime());
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
                     "endTime must be after startTime");
         }
         long actualDuration = java.time.Duration.between(
                 reservation.getStartTime(), reservation.getEndTime()).toMinutes();
         if (actualDuration != service.getDuration()) {
-            log.error("[STEP 3] actual duration {} does not match service duration {}",
-                    actualDuration, service.getDuration());
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
                     "Reservation length must equal service duration");
         }
 
         // 4) no past bookings
-        LocalDateTime now = LocalDateTime.now();
-        if (reservation.getStartTime().isBefore(now)) {
-            log.error("[STEP 4] Reservation start time {} is in the past",
-                    reservation.getStartTime());
+        if (reservation.getStartTime().isBefore(LocalDateTime.now())) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
                     "Reservation start time is in the past");
         }
 
-        // 5) working-day & timeslot check (unchanged logic, but use endTime)
-        DayOfWeek dow = reservation.getStartTime().getDayOfWeek();
-        WorkingDay wd = workingDayRepository.findByDayOfWeek(dow)
+        // 5) working-day & timeslot check
+        WorkingDay wd = workingDayRepository.findByDayOfWeek(reservation.getStartTime().getDayOfWeek())
                 .orElseThrow(() -> new ResponseStatusException(
-                        HttpStatus.BAD_REQUEST, "No working-day defined for " + dow));
+                        HttpStatus.BAD_REQUEST, "No working-day defined"));
         if (!wd.isActive()) {
-            log.error("[STEP 5] Working day {} is inactive", dow);
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-                    "Service is not available on " + dow);
+                    "Service is not available on this day");
         }
         LocalTime startLocal = reservation.getStartTime().toLocalTime();
         LocalTime endLocal   = reservation.getEndTime().toLocalTime();
@@ -276,50 +242,42 @@ public class ReservationService {
                 !startLocal.isBefore(ts.getStartTime()) && !endLocal.isAfter(ts.getEndTime())
         );
         if (!fits) {
-            log.error("[STEP 5] {}–{} outside of working slots on {}", startLocal, endLocal, dow);
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-                    "Requested time is outside of working hours on " + dow);
+                    "Requested time is outside of working hours");
         }
 
-        // 6) per-service conflict & capacity
-        LocalDateTime newStart = reservation.getStartTime();
-        LocalDateTime newEnd   = reservation.getEndTime();
-        List<Reservation> svcExisting = reservationRepository.findByServiceId(reservation.getServiceId());
-        log.info("[STEP 6] {} existing reservations for service {}", svcExisting.size(), service.getId());
-
+        // 6) per-service conflict & simultaneous handling using capacity
+        List<Reservation> svcExisting = reservationRepository.findByServiceId(service.getId());
         if (service.isAllowSimultaneous()) {
-            int totalAttendees = reservation.getNumberOfAttendees();
+            int concurrentCount = 0;
             for (Reservation r : svcExisting) {
-                if (r.getStartTime().isBefore(newEnd) && r.getEndTime().isAfter(newStart)) {
-                    totalAttendees += r.getNumberOfAttendees();
+                if (r.getStartTime().isBefore(reservation.getEndTime()) &&
+                        r.getEndTime().isAfter(reservation.getStartTime())) {
+                    concurrentCount++;
                 }
             }
-            log.info("[STEP 6] totalAttendees after new: {}", totalAttendees);
-            if (totalAttendees > service.getMaxAttendees()) {
-                log.error("[STEP 6] exceeds maxAttendees {}", service.getMaxAttendees());
+            if (concurrentCount >= service.getCapacity()) {
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-                        "Reservation exceeds maximum attendees for this service");
+                        "Service is fully booked for this timeslot");
             }
         } else {
             for (Reservation r : svcExisting) {
-                if (r.getStartTime().isBefore(newEnd) && r.getEndTime().isAfter(newStart)) {
-                    log.error("[STEP 6] overlap with reservation {}", r.getId());
+                if (r.getStartTime().isBefore(reservation.getEndTime()) &&
+                        r.getEndTime().isAfter(reservation.getStartTime())) {
                     throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-                            "Overlapping reservation not allowed for this service");
+                            "Overlapping reservation not allowed");
                 }
             }
         }
 
-        // 7) employee-level conflict (across *all* services)
+        // 7) employee-level conflict
         if (reservation.getEmployeeId() != null) {
             List<Reservation> empExisting = reservationRepository.findByEmployeeId(reservation.getEmployeeId());
-            log.info("[STEP 7] {} existing reservations for employee {}",
-                    empExisting.size(), reservation.getEmployeeId());
             for (Reservation r : empExisting) {
-                if (r.getStartTime().isBefore(newEnd) && r.getEndTime().isAfter(newStart)) {
-                    log.error("[STEP 7] employee overlap with reservation {}", r.getId());
+                if (r.getStartTime().isBefore(reservation.getEndTime()) &&
+                        r.getEndTime().isAfter(reservation.getStartTime())) {
                     throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-                            "Selected employee is already booked during that time");
+                            "Selected employee is already booked");
                 }
             }
         }
@@ -358,7 +316,10 @@ public class ReservationService {
         // 1) fetch service
         Services service = serviceRepository.findById(updatedReservation.getServiceId())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Service not found"));
-
+        if (updatedReservation.getNumberOfAttendees() > service.getMaxAttendees()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "Number of attendees cannot exceed " + service.getMaxAttendees());
+        }
         // 2) employee-required check
         if (service.isRequiresEmployeeSelection() && updatedReservation.getEmployeeId() == null) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "This service requires selecting an employee");
