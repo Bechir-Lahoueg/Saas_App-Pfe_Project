@@ -29,6 +29,8 @@ public class Services {
 
     private Integer price;
 
+    private Integer maxAttendees;
+
     private boolean requiresEmployeeSelection;
 
     private boolean allowSimultaneous;

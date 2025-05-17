@@ -8,6 +8,7 @@ public record ServiceDto(
         Integer duration,
         Boolean requiresEmployeeSelection,
         Boolean allowSimultaneous,
+        Integer maxAttendees,
         Integer capacity,
         List<EmployeeDto> employees,
         Integer price

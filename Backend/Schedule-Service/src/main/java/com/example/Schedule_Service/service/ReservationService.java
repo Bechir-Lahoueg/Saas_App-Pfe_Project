@@ -151,10 +151,10 @@ public class ReservationService {
                 }
             }
             log.info("[STEP 6] totalAttendees after new: {}", totalAttendees);
-            if (totalAttendees > service.getCapacity()) {
-                log.error("[STEP 6] exceeds capacity {}", service.getCapacity());
+            if (totalAttendees > service.getMaxAttendees()) {
+                log.error("[STEP 6] exceeds maxAttendees {}", service.getMaxAttendees());
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-                        "Reservation exceeds service capacity");
+                        "Reservation exceeds maximum attendees for this service");
             }
         } else {
             for (Reservation r : svcExisting) {
@@ -295,10 +295,10 @@ public class ReservationService {
                 }
             }
             log.info("[STEP 6] totalAttendees after new: {}", totalAttendees);
-            if (totalAttendees > service.getCapacity()) {
-                log.error("[STEP 6] exceeds capacity {}", service.getCapacity());
+            if (totalAttendees > service.getMaxAttendees()) {
+                log.error("[STEP 6] exceeds maxAttendees {}", service.getMaxAttendees());
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-                        "Reservation exceeds service capacity");
+                        "Reservation exceeds maximum attendees for this service");
             }
         } else {
             for (Reservation r : svcExisting) {
@@ -409,15 +409,14 @@ public class ReservationService {
                     totalAttendees += r.getNumberOfAttendees();
                 }
             }
-            if (totalAttendees > service.getCapacity()) {
+            if (totalAttendees > service.getMaxAttendees()) {
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-                        "Reservation exceeds service capacity");
+                        "Reservation exceeds maximum attendees for this service");
             }
         } else {
             for (Reservation r : existing) {
-                if (r.getId().equals(id)) continue;
-                LocalDateTime existingEnd = r.getStartTime().plusMinutes(service.getDuration());
-                if (r.getStartTime().isBefore(newEnd) && existingEnd.isAfter(newStart)) {
+                if (r.getId().equals(id) &&
+                        r.getStartTime().isBefore(newEnd) && r.getEndTime().isAfter(newStart)) {
                     throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
                             "Overlapping reservation not allowed for this service");
                 }
