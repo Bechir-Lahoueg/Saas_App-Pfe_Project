@@ -7,6 +7,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import java.util.Collection;
 import java.util.List;
 
+@Builder
 @Entity
 @Table(name = "admins")
 @Getter
@@ -17,9 +18,13 @@ public class Admin implements UserDetails {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    private String name;  // ✅ name avant email
+    private String name;  //
     private String email;
     private String password;
+
+    @Enumerated(EnumType.STRING)
+    @Builder.Default
+    private Role role= Role.ADMIN;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
@@ -30,5 +35,10 @@ public class Admin implements UserDetails {
     @Override
     public String getUsername() {
         return email;
+    }
+
+    public enum Role {
+        ADMIN,
+        TENANT
     }
 }

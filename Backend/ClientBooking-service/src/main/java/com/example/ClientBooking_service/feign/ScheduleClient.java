@@ -26,7 +26,7 @@ public interface ScheduleClient {
     @GetMapping("/reservation/getall")
     List<ReservationDto> getReservations(@RequestHeader("X-Tenant-ID") String tenantId);
 
-    @GetMapping("/media")
+    @GetMapping("/media/getall")
     List<MediaDto> getMedia(@RequestHeader("X-Tenant-ID") String tenantId);
 
     @PostMapping("/reservation/client/create")

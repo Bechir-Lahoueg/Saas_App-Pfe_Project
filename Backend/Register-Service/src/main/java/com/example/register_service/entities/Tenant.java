@@ -38,6 +38,10 @@ public class Tenant implements UserDetails {
     private String subdomain;
     private String businessName;
 
+    @Enumerated(EnumType.STRING)
+    private Role role = Role.TENANT;
+
+
     @Column(name = "category_id", nullable = false)
     private Long categoryId;
 
@@ -50,5 +54,15 @@ public class Tenant implements UserDetails {
     public String getUsername() {
         return email;
     }
+
+    public enum Role {
+        ADMIN,
+        TENANT
+    }
+
+    public static class TenantBuilder {
+        private Role role = Role.TENANT; // Default value in builder
+    }
+
 
 }

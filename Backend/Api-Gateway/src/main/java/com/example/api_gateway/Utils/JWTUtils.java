@@ -16,11 +16,17 @@ public class JWTUtils {
         return Jwts.parserBuilder().setSigningKey(secret).build().parseClaimsJws(token).getBody();
     }
 
-    private boolean isTokenExpired(String token ) {
+    private boolean isTokenExpired(String token) {
         return this.getALlClaims(token).getExpiration().before(new Date());
     }
 
     public boolean isInvalid(String token) {
         return this.isTokenExpired(token);
+    }
+
+    public String extractRole(String token) {
+        Claims claims = getALlClaims(token);
+        Object role = claims.get("role");
+        return role != null ? role.toString() : null;
     }
 }
