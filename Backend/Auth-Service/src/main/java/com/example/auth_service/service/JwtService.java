@@ -35,11 +35,11 @@ public class JwtService {
     }
 
     private String createToken(Map<String, Object> claims,
-                               String subject,
-                               long expirationTime) {
+            String subject,
+            long expirationTime) {
         return Jwts.builder()
                 .setClaims(claims)
-                .setSubject(subject)            // ← JWT “sub” is the username
+                .setSubject(subject) // ← JWT "sub" is the username
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + expirationTime))
                 .signWith(getSignInKey(), SignatureAlgorithm.HS256)
@@ -47,7 +47,7 @@ public class JwtService {
     }
 
     /**
-     * Issue a new access token.  If the UserDetails is actually your Tenant entity,
+     * Issue a new access token. If the UserDetails is actually your Tenant entity,
      * we pull out its ID & subdomain into the token claims.
      */
     public String generateToken(UserDetails userDetails) {
@@ -55,15 +55,16 @@ public class JwtService {
 
         if (userDetails instanceof Tenant) {
             Tenant t = (Tenant) userDetails;
-            claims.put("id",        t.getId());
+            claims.put("id", t.getId());
             claims.put("subdomain", t.getSubdomain());
             claims.put("firstName", t.getFirstName());
-            claims.put("lastName",  t.getLastName());
-        }
-        else if(userDetails instanceof Admin) {
+            claims.put("lastName", t.getLastName());
+            claims.put("role", t.getRole());
+        } else if (userDetails instanceof Admin) {
             Admin a = (Admin) userDetails;
             claims.put("id", a.getId());
             claims.put("name", a.getName());
+            claims.put("role", a.getRole());
         }
 
         // username() is the email, so we set that as the JWT subject
@@ -79,8 +80,14 @@ public class JwtService {
 
         if (userDetails instanceof Tenant) {
             Tenant t = (Tenant) userDetails;
-            claims.put("id",        t.getId());
+            claims.put("id", t.getId());
             claims.put("subdomain", t.getSubdomain());
+            claims.put("role", t.getRole());
+        } else if (userDetails instanceof Admin) {
+            Admin a = (Admin) userDetails;
+            claims.put("id", a.getId());
+            claims.put("name", a.getName());
+            claims.put("role", a.getRole());
         }
 
         return createToken(claims, userDetails.getUsername(), REFRESH_TOKEN_EXPIRATION);

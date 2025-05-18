@@ -281,7 +281,7 @@ const LoginPage = () => {
                   </div>
                 </div>
 
-                <div className="flex items-center">
+                {/* <div className="flex items-center">
                   <input
                     id="remember-me"
                     name="remember-me"
@@ -291,7 +291,7 @@ const LoginPage = () => {
                   <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-700">
                     Se souvenir de moi
                   </label>
-                </div>
+                </div> */}
 
                 <div className="flex flex-col space-y-4">
                   <button
@@ -310,7 +310,7 @@ const LoginPage = () => {
                     {loading ? "Connexion en cours..." : "Se connecter"}
                   </button>
                   
-                  <div className="relative">
+                  {/* <div className="relative">
                     <div className="absolute inset-0 flex items-center">
                       <div className="w-full border-t border-gray-200"></div>
                     </div>
@@ -346,7 +346,7 @@ const LoginPage = () => {
                       />
                     </svg>
                     <span className="text-gray-700 font-medium">Continuer avec Google</span>
-                  </button>
+                  </button> */}
                 </div>
               </form>
               

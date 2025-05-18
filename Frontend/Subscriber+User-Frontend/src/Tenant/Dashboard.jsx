@@ -1073,15 +1073,7 @@ const getUserName = useMemo(() => {
                 Se reconnecter
               </button>
 
-              {/* Timer */}
-              <p
-                className={`text-center text-xs mt-4 ${
-                  isDarkMode ? "text-slate-400" : "text-gray-500"
-                }`}
-              >
-                Redirection automatique dans{" "}
-                <span className="font-medium">10</span> secondes...
-              </p>
+             
             </div>
           </div>
         </div>

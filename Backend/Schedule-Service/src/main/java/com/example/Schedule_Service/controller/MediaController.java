@@ -29,7 +29,7 @@ public class MediaController {
         return new ResponseEntity<>(uploadedMedia, HttpStatus.CREATED);
     }
 
-    @GetMapping
+    @GetMapping("/getall")
     public ResponseEntity<List<Media>> getAllMedia() {
         List<Media> mediaList = cloudinaryService.getAllMedia();
         return ResponseEntity.ok(mediaList);
@@ -41,7 +41,7 @@ public class MediaController {
         return ResponseEntity.ok(mediaList);
     }
 
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/delete/{id}")
     public ResponseEntity<Void> deleteMedia(@PathVariable Long id) {
         cloudinaryService.deleteMedia(id);
         return ResponseEntity.noContent().build();

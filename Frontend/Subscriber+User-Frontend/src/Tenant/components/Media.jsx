@@ -77,7 +77,7 @@ const MediaManager = () => {
   const fetchAllMedia = async () => {
     try {
       setLoading(true);
-      const response = await axios.get("/schedule/media");
+      const response = await axios.get("/schedule/media/getall");
 
       // Organiser par type
       const mediaByType = {

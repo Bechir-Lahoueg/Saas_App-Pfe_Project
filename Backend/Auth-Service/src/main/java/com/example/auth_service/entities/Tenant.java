@@ -44,7 +44,13 @@ public class Tenant implements UserDetails {
     private String subdomain;
     private String businessName;
 
+    @Enumerated(EnumType.STRING)
+    private Role role= Role.TENANT;
 
+
+    public static class TenantBuilder {
+        private Role role = Role.TENANT; // Default value in builder
+    }
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
@@ -76,4 +82,8 @@ public class Tenant implements UserDetails {
         return true;
     }
 
+    public enum Role {
+        ADMIN,
+        TENANT
+    }
 }
