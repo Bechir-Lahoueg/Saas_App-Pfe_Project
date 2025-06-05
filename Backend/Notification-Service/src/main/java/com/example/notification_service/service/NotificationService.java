@@ -1,6 +1,6 @@
 package com.example.notification_service.service;
 
-import com.example.notification_service.context.TenantContext;
+//import com.example.notification_service.context.TenantContext;
 import com.example.notification_service.events.ReservationCreatedEvent;
 import com.example.notification_service.events.ReservationConfirmedEvent;
 import jakarta.mail.MessagingException;
@@ -70,7 +70,7 @@ public class NotificationService {
         );
         confirmReminderTasks.put(evt.reservationId(), f);
 
-        TenantContext.clear();
+//        TenantContext.clear();
     }
 
     @RabbitListener(queues = "reservation.confirmed.notification.queue")
@@ -111,7 +111,7 @@ public class NotificationService {
         );
         appointmentReminderTasks.put(evt.reservationId(), f2);
 
-        TenantContext.clear();
+//        TenantContext.clear();
     }
 
     /**
