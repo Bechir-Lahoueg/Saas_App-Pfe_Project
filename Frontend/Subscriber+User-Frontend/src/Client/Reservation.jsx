@@ -264,7 +264,6 @@ const ConfirmationComponent = ({
     { code: "+98", name: "Iran", flag: "🇮🇷" },
     { code: "+964", name: "Irak", flag: "🇮🇶" },
     { code: "+353", name: "Irlande", flag: "🇮🇪" },
-    { code: "+972", name: "Israël", flag: "🇮🇱" },
     { code: "+39", name: "Italie", flag: "🇮🇹" },
     { code: "+1", name: "Jamaïque", flag: "🇯🇲" },
     { code: "+81", name: "Japon", flag: "🇯🇵" },
@@ -1184,7 +1183,9 @@ export default function Reservation() {
     });
 
     // Return employees who are available (not in busyEmployeeIds)
-    return service.employees.filter((emp) => !busyEmployeeIds.has(emp.id));
+    return service.employees.filter(
+      (emp) => !busyEmployeeIds.has(emp.id) && emp.status === "ACTIVE"
+    );
   };
 
   // Build time slots (HH:mm format)
@@ -2210,26 +2211,131 @@ export default function Reservation() {
       selectedService.id
     );
 
+    const allServiceEmployees = selectedService.employees || [];
+    const activeServiceEmployees = allServiceEmployees.filter(
+      (emp) => emp.status === "ACTIVE"
+    );
+
+    if (allServiceEmployees.length === 0) {
+      return (
+        <div className="text-center py-12">
+          <div className="mb-4">
+            <svg
+              className="mx-auto h-12 w-12 text-gray-400"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M17 20h5v-2a3 3 0 00-5.83-1M17 20H7m10 0v-2c0-1.38-.56-2.63-1.46-3.54M7 20H2v-2a3 3 0 015.83-1M7 20v-2c0-1.38.56-2.63 1.46-3.54M17 12a3 3 0 00-6 0m6 0a3 3 0 00-6 0m6 0v1a5 5 0 00-10 0v-1m10 0V9a5 5 0 00-10 0v3"
+              />
+            </svg>
+          </div>
+          <h3 className="text-lg font-medium text-gray-900 mb-2">
+            Aucun employé assigné
+          </h3>
+          <p className="text-gray-500">
+            Aucun employé n'est actuellement assigné à ce service. Veuillez
+            contacter l'établissement.
+          </p>
+        </div>
+      );
+    }
+
+    if (activeServiceEmployees.length === 0) {
+      return (
+        <div className="text-center py-12">
+          <div className="mb-4">
+            <svg
+              className="mx-auto h-12 w-12 text-amber-400"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.464 0L4.35 16.5c-.77.833.192 2.5 1.732 2.5z"
+              />
+            </svg>
+          </div>
+          <h3 className="text-lg font-medium text-gray-900 mb-2">
+            Aucun employé disponible
+          </h3>
+          <p className="text-gray-500 mb-4">
+            Tous les employés assignés à ce service sont actuellement
+            indisponibles.
+          </p>
+          <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 max-w-md mx-auto">
+            <p className="text-sm text-amber-800">
+              <strong>Suggestion:</strong> Essayez de choisir un autre créneau
+              horaire ou contactez l'établissement pour plus d'informations.
+            </p>
+          </div>
+        </div>
+      );
+    }
+
     if (availableEmployees.length === 0) {
       return (
-        <div className="mb-8 bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-          <h3 className="text-xl font-semibold text-gray-800 mb-6 flex items-center">
-            <Users className="h-5 w-5 mr-2.5 text-indigo-600" />
-            Choisir un spécialiste
+        <div className="space-y-4">
+          <h3 className="text-xl font-semibold text-gray-800 mb-4">
+            Sélectionnez un spécialiste
           </h3>
-
-          <div className="bg-red-50 p-4 rounded-xl text-red-700 flex items-start">
-            <Info className="h-5 w-5 mr-3 flex-shrink-0 mt-0.5" />
-            <div>
-              <p className="font-medium mb-1">
-                Aucun spécialiste n'est disponible pour ce créneau.
-              </p>
-              <p>
-                Tous nos spécialistes sont déjà occupés à cette heure. Veuillez
-                choisir un autre créneau horaire.
-              </p>
+          {availableEmployees.map((employee) => (
+            <div
+              key={employee.id}
+              onClick={() => {
+                setSelectedEmployee(employee);
+                setStep(5);
+              }}
+              className={`p-4 border-2 rounded-xl cursor-pointer transition-all ${
+                selectedEmployee?.id === employee.id
+                  ? "border-indigo-500 bg-indigo-50"
+                  : "border-gray-200 hover:border-indigo-300"
+              }`}
+            >
+              <div className="flex items-center">
+                <div className="flex-shrink-0 h-12 w-12 rounded-full overflow-hidden">
+                  {employee.imageUrl ? (
+                    <img
+                      src={employee.imageUrl}
+                      alt={`${employee.firstName} ${employee.lastName}`}
+                      className="h-12 w-12 object-cover"
+                    />
+                  ) : (
+                    <div className="h-12 w-12 bg-gradient-to-br from-indigo-400 to-purple-500 flex items-center justify-center text-white font-bold">
+                      {employee.firstName?.charAt(0)}
+                      {employee.lastName?.charAt(0)}
+                    </div>
+                  )}
+                </div>
+                <div className="ml-4">
+                  <h4 className="text-lg font-medium text-gray-900">
+                    {employee.firstName} {employee.lastName}
+                  </h4>
+                  <p className="text-sm text-green-600 flex items-center">
+                    <svg
+                      className="w-4 h-4 mr-1"
+                      fill="currentColor"
+                      viewBox="0 0 20 20"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                        clipRule="evenodd"
+                      />
+                    </svg>
+                    Disponible
+                  </p>
+                </div>
+              </div>
             </div>
-          </div>
+          ))}
         </div>
       );
     }
